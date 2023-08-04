@@ -124,9 +124,8 @@ theorem const_hol (c : ℂ) : IsHolomorphicOn fun z : D.1 => (c : ℂ) := by
   intro z
   use(0 : ℂ)
   have h1 := hasDerivWithinAt_const z.1 D.1 c
-  have H := HasDerivWithinAt.congr_of_eventuallyEq_of_mem h1 _ z.property
-  convert H
-  rw [eventually_eq]
+  apply HasDerivWithinAt.congr_of_eventuallyEq_of_mem h1
+  simp [Eventually_Eq]
   rw [eventually_iff_exists_mem]
   use D.1
   have H2 := ext_by_zero_eq D c
