@@ -261,12 +261,11 @@ theorem sl2_inv (A : SL2Z) (B : SL2Z) (h1 : B.1 0 0 = A.1 1 1) (h2 : B.1 0 1 = -
   rw [h1]; rw [h3]; simp
   have Adet := Matrix.det_fin_two A.1; 
   simp only [SpecialLinearGroup.det_coe, IntegralMatricesWithDeterminante.mat_m_vals] at Adet  
-  apply Adet.symm; have e2 := this.2.1; 
+  apply Adet.symm; 
   simp only [Fin.mk_zero, Fin.mk_one, mat_mul_expl, IntegralMatricesWithDeterminante.mat_m_vals]
   simp_rw [h2, h4]; 
   ring_nf
   simp
-  have e3 := this.2.2.1; 
   rw [h1, h3]; 
   ring_nf 
   simp only [Fin.mk_one, mat_mul_expl, IntegralMatricesWithDeterminante.mat_m_vals]
@@ -539,8 +538,8 @@ theorem det_coe_sl (A : SL2Z) : (A : GL (Fin 2) ℝ).val.det = (A.val.det : ℝ)
   have := A.2;
   rw [this]; simp; 
 -/ 
--/
+
 end SL2Z
 
 end
-
+-/
