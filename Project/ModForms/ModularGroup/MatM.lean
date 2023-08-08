@@ -1,12 +1,10 @@
-import Mathbin.Tactic.Ring
-import Mathbin.Tactic.Tidy
-import Mathbin.LinearAlgebra.Matrix.SpecialLinearGroup
-import Mathbin.LinearAlgebra.Determinant
-import Mathbin.Data.Matrix.Notation
-import Mathbin.LinearAlgebra.Matrix.GeneralLinearGroup
-import Mathbin.Data.Complex.Basic
+import Mathlib.LinearAlgebra.Matrix.SpecialLinearGroup
+import Mathlib.LinearAlgebra.Determinant
+import Mathlib.Data.Matrix.Notation
+import Mathlib.LinearAlgebra.Matrix.GeneralLinearGroup
+import Mathlib.Data.Complex.Basic
 
-#align_import mod_forms.modular_group.mat_m
+
 
 --import .matrix_groups
 --import .matrix_groups
@@ -22,23 +20,22 @@ section
 
 universe u
 
-variable (n : Type _) [DecidableEq n] [Fintype n]
+variable (n : Type _) [DecidableEq n] [Fintype n]  (m : ℤ)
 
 def IntegralMatricesWithDeterminant (m : ℤ) :=
   { A : Matrix n n ℤ // A.det = m }
 
 theorem SLnZ_eq_Mat_1 : SpecialLinearGroup n ℤ = IntegralMatricesWithDeterminant n 1 := by rfl
 
-variable (m : ℤ)
-
-instance coeMatrix : Coe (IntegralMatricesWithDeterminant n m) (Matrix n n ℤ) :=
-  ⟨fun A => A.val⟩
+instance coeMatrix : CoeOut (IntegralMatricesWithDeterminant n m) (Matrix n n ℤ) :=
+    ⟨fun A => A.val⟩
+  
 
 instance coeFun : CoeFun (IntegralMatricesWithDeterminant n m) fun _ => n → n → ℤ
     where coe A := A.val
 
 def toLin' (A : IntegralMatricesWithDeterminant n m) :=
-  Matrix.toLin' A
+  Matrix.toLin' A.val
 
 namespace IntegralMatricesWithDeterminante
 
@@ -63,7 +60,8 @@ def sLnZM (m : ℤ) :
 theorem one_smul' :
     ∀ M : IntegralMatricesWithDeterminant n m, sLnZM n m (1 : SpecialLinearGroup n ℤ) M = M :=
   by
-  rw [SLnZ_M]
+  intro M
+  rw [sLnZM]
   simp
 
 theorem mul_smul' :
@@ -71,8 +69,8 @@ theorem mul_smul' :
       ∀ M : IntegralMatricesWithDeterminant n m,
         sLnZM n m (A * B) M = sLnZM n m A (sLnZM n m B M) :=
   by
-  simp [SLnZ_M]
-  intro A B M
+  intro A B
+  simp [sLnZM]
   simp [Matrix.mul_assoc]
 
 instance (m : ℤ) : MulAction (SpecialLinearGroup n ℤ) (IntegralMatricesWithDeterminant n m)
@@ -86,7 +84,7 @@ variable (A : SpecialLinearGroup n ℤ) (M : IntegralMatricesWithDeterminant n m
 @[simp]
 theorem smul_is_mul (A : SpecialLinearGroup n ℤ) (M : IntegralMatricesWithDeterminant n m) :
     (A • M).1 = A * M := by
-  simp [SLnZ_M]
+  simp [sLnZM]
   rfl
 
 instance : Coe (IntegralMatricesWithDeterminant n 1) (SpecialLinearGroup n ℤ) :=
@@ -99,10 +97,11 @@ variable (B : IntegralMatricesWithDeterminant n m) [Fact (Even (Fintype.card n))
 instance : Neg (IntegralMatricesWithDeterminant n m) :=
   ⟨fun g =>
     ⟨-g, by
-      have := det_smul g (-1)
+      have := det_smul g.val (-1)
       simp at this 
       rw [this]
-      simp [Even.neg_one_pow (Fact.out (Even (Fintype.card n)))]
+      have h : (Even (Fintype.card n)) := by apply Fact.out
+      simp [Even.neg_one_pow, h ]
       have gdet := g.property
       simp at gdet 
       exact gdet⟩⟩
@@ -113,7 +112,10 @@ theorem mat_m_coe_neg (g : IntegralMatricesWithDeterminant n m) : ↑(-g) = -(�
 
 @[simp]
 theorem mat_m_neg_elt (g : IntegralMatricesWithDeterminant n m) :
-    ∀ i j, (↑(-g) : Matrix n n ℤ) i j = -g i j := by simp
+    ∀ i j, (↑(-g) : Matrix n n ℤ) i j = -g i j := by 
+    intro i j
+    rw [mat_m_coe_neg]
+    simp 
 
 end Neg
 
