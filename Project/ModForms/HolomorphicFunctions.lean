@@ -119,30 +119,31 @@ theorem ext_by_zero_apply (D : OpenSubs) (f : D.1 → ℂ) (y : D.1) : extendByZ
   have := ext_by_zero_eq' D f y y.2
   rw [this]
 
-theorem const_hol (c : ℂ) : IsHolomorphicOn fun z : D.1 => (c : ℂ) := by
+theorem const_hol (c : ℂ) : IsHolomorphicOn fun _ : D.1 => (c : ℂ) := by
   rw [IsHolomorphicOn]
   intro z
   use(0 : ℂ)
   have h1 := hasDerivWithinAt_const z.1 D.1 c
   apply HasDerivWithinAt.congr_of_eventuallyEq_of_mem h1
-  simp [Eventually_Eq]
-  rw [eventually_iff_exists_mem]
+  rw [eventuallyEq_iff_exists_mem]
   use D.1
   have H2 := ext_by_zero_eq D c
   constructor
   have h3 := D.2
   simp at h3 
   have h4 := IsOpen.mem_nhds h3 z.2
-  simp only [Subtype.val_eq_coe]
+  simp 
   convert h4
   simp
   exact h4
   exact H2
+  exact z.2
 
-theorem zero_hol (D : OpenSubs) : IsHolomorphicOn fun z : D.1 => (0 : ℂ) := by
+
+theorem zero_hol (D : OpenSubs) : IsHolomorphicOn fun _ : D.1 => (0 : ℂ) := by
   apply const_hol (0 : ℂ)
 
-theorem one_hol (D : OpenSubs) : IsHolomorphicOn fun z : D.1 => (1 : ℂ) := by
+theorem one_hol (D : OpenSubs) : IsHolomorphicOn fun _ : D.1 => (1 : ℂ) := by
   apply const_hol (1 : ℂ)
 
 theorem add_hol (f g : D.1 → ℂ) (f_hol : IsHolomorphicOn f) (g_hol : IsHolomorphicOn g) :
@@ -179,9 +180,9 @@ def holRing (D : OpenSubs) : Subring (D.1 → ℂ)
     where
   carrier := {f : D.1 → ℂ | IsHolomorphicOn f}
   zero_mem' := zero_hol D
-  add_mem' := add_hol
-  neg_mem' := neg_hol
-  mul_mem' := mul_hol
+  add_mem' := add_hol _ _
+  neg_mem' := neg_hol _ 
+  mul_mem' := mul_hol _ _
   one_mem' := one_hol D
 
 theorem smul_hol (c : ℂ) (f : D.1 → ℂ) (f_hol : IsHolomorphicOn f) : IsHolomorphicOn (c • f) :=
@@ -197,7 +198,7 @@ def holSubmodule (D : OpenSubs) : Submodule ℂ (D.1 → ℂ)
     where
   carrier := {f : D.1 → ℂ | IsHolomorphicOn f}
   zero_mem' := zero_hol D
-  add_mem' := add_hol
+  add_mem' := add_hol _ _
   smul_mem' := smul_hol
 
 theorem aux (s t d : Set ℂ) (h : s ⊆ t) : s ∩ d ⊆ t :=
@@ -212,11 +213,10 @@ theorem aux2 (x : ℂ) (a b : ℝ) : Metric.ball x a ∩ Metric.ball x b = Metri
   ext
   constructor
   simp [and_imp, Metric.mem_ball, lt_min_iff]
-  intro ha hb
-  simp only [ha, hb, and_self_iff]
+  intro ha 
   simp [and_imp, Metric.mem_ball, lt_min_iff]
-  intro ha hb
-  simp only [ha, hb, and_self_iff]
+  simp at ha
+  simp only [ha, and_self_iff]
 
 theorem diff_on_diff (f : D.1 → ℂ)
     (h :
@@ -229,7 +229,7 @@ theorem diff_on_diff (f : D.1 → ℂ)
   simp_rw [DifferentiableWithinAt] at *
   intro x hx
   have hh := h ⟨x, hx⟩
-  obtain ⟨ε, hε, hb, H⟩ := hh
+  obtain ⟨ε, hε, _, H⟩ := hh
   have HH := H x
   simp only [Metric.mem_ball, Subtype.coe_mk, dist_self] at HH 
   have HHH := HH hε
@@ -241,14 +241,14 @@ theorem diff_on_diff (f : D.1 → ℂ)
   have hf2 := hf' δ hδ
   rw [Filter.eventually_iff_exists_mem] at *
   simp only [exists_prop, Metric.mem_ball, gt_iff_lt, dist_zero_right, ContinuousLinearMap.map_sub,
-    SetCoe.forall, Subtype.coe_mk, Subtype.val_eq_coe, norm_eq_abs, norm_mul, norm_inv] at *
+    SetCoe.forall, Subtype.coe_mk, norm_eq_abs, norm_mul, norm_inv] at *
   obtain ⟨S, hS, HD⟩ := hf2
   simp_rw [Metric.mem_nhdsWithin_iff] at *
   obtain ⟨e, he, HE⟩ := hS
   use S
   constructor
   use min e ε
-  simp only [gt_iff_lt, lt_min_iff, Subtype.val_eq_coe] at *
+  simp only [gt_iff_lt, lt_min_iff] at *
   simp only [he, hε, and_self_iff]
   simp only [true_and_iff]
   have : Metric.ball x e ∩ Metric.ball x ε = Metric.ball x (min e ε) := by apply aux2
@@ -264,14 +264,13 @@ theorem tendsto_unif_extendByZero (F : ℕ → D.1 → ℂ) (f : D.1 → ℂ)
   rw [Metric.tendstoUniformly_iff] at h 
   intro ε hε
   have h2 := h ε hε
-  simp [gt_iff_lt, ge_iff_le, instNonempty, SetCoe.forall, eventually_at_top,
-    Subtype.val_eq_coe] at *
+  simp [gt_iff_lt, ge_iff_le, instNonempty, SetCoe.forall] at *
   obtain ⟨a, ha⟩ := h2
   use a
   intro b hb x hx
   have hf := ext_by_zero_apply D f ⟨x, hx⟩
   have hFb := ext_by_zero_apply D (F b) ⟨x, hx⟩
-  simp only [Subtype.coe_mk, Subtype.val_eq_coe] at *
+  simp only [Subtype.coe_mk] at *
   rw [hf]
   rw [hFb]
   apply ha b hb x hx
