@@ -1,15 +1,13 @@
-import Mathbin.Tactic.Ring
-import Mathbin.Tactic.Tidy
-import Mathbin.LinearAlgebra.Matrix.SpecialLinearGroup
-import Mathbin.LinearAlgebra.Determinant
-import Mathbin.Data.Matrix.Notation
-import Mathbin.GroupTheory.GroupAction.Basic
-import Mathbin.Algebra.Hom.GroupAction
-import Mathbin.LinearAlgebra.Matrix.GeneralLinearGroup
-import Mathbin.Data.Complex.Basic
-import Project.ModForms.ModularGroup.MatM
+import Mathlib.LinearAlgebra.Matrix.SpecialLinearGroup
+import Mathlib.LinearAlgebra.Determinant
+import Mathlib.Data.Matrix.Notation
+import Mathlib.GroupTheory.GroupAction.Basic
+import Mathlib.Algebra.Hom.GroupAction
+import Mathlib.LinearAlgebra.Matrix.GeneralLinearGroup
+import Mathlib.Data.Complex.Basic
+import Modformsported.ModForms.ModularGroup.MatM
 
-#align_import mod_forms.modular_group.mod_group
+
 
 --import .matrix_groups
 --import .matrix_groups
