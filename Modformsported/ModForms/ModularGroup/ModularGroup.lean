@@ -483,9 +483,12 @@ instance sLZToGLZ : Coe SL2Z (Matrix.SpecialLinearGroup (Fin 2) ℝ) :=
 theorem mat_vals (A : SL2Z) (i j : Fin 2) : (A : GL (Fin 2) ℝ) i j = (A.1 i j : ℝ) := by
   simp [mat_val, mat_Z_to_R]; fin_cases i <;> fin_cases j; rfl; rfl; rfl; rfl
 
+/-
 @[simp]
-theorem det_coe_sl (A : SL2Z) : (A : GL (Fin 2) ℝ).val.det = (A.val.det : ℝ) := by have := A.2;
-  rw [this]; simp; rw [← coe_coe]; rw [← coe_coe]; simp
+theorem det_coe_sl (A : SL2Z) : (A : GL (Fin 2) ℝ).val.det = (A.val.det : ℝ) := by 
+  have := A.2;
+  rw [this]; simp; 
+-/ 
 
 end SL2Z
 
