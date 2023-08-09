@@ -1,22 +1,19 @@
-import Mathlib.Tactic.PiInstances
-import Project.ModForms.ModularGroup.ModGroup
+import Modformsported.ModForms.ModularGroup.ModGroup
 import Mathlib.LinearAlgebra.Matrix.GeneralLinearGroup
-import Project.ForMathlib.ModForms2
+import Modformsported.ForMathlib.ModForms2
 import Mathlib.Data.Matrix.Notation
 import Mathlib.Data.Setoid.Partition
-import Mathlib.Topology.Instances.Ennreal
-import Mathlib.Topology.Instances.Nnreal
-import Project.ModForms.Riemzeta
-import Project.ModForms.HolomorphicFunctions
+import Modformsported.ModForms.Riemzeta
+import Modformsported.ModForms.HolomorphicFunctions
 import Mathlib.Order.Filter.Archimedean
-import Project.ModForms.WeierstrassMTest
+import Modformsported.ModForms.WeierstrassMTest
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.Topology.CompactOpen
 import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.NumberTheory.Modular
 
-#align_import mod_forms.Eisenstein_Series.Eisenstein_series_index_lemmas
+
 
 universe u v w
 
@@ -28,100 +25,115 @@ open IntegralMatricesWithDeterminante
 
 open scoped BigOperators NNReal Classical Filter Matrix UpperHalfPlane
 
-attribute [-instance] Matrix.SpecialLinearGroup.hasCoeToFun
+attribute [-instance] Matrix.SpecialLinearGroup.instCoeFun
 
 local notation "SL2Z" => Matrix.SpecialLinearGroup (Fin 2) ℤ
 
-local prefix:1024 "↑ₘ" => @coe _ (Matrix (Fin 2) (Fin 2) _) _
+local notation "GL(" n ", " R ")" "⁺" => Matrix.GLPos (Fin n) R
+
+local notation:1024 "↑ₘ" A:1024 =>
+  (((A : GL(2, ℝ)⁺) : GL (Fin 2) ℝ) : Matrix (Fin 2) (Fin 2) _)
+local notation:1024 "↑ₘ[" R "]" A:1024 =>
+  ((A : GL (Fin 2) R) : Matrix (Fin 2) (Fin 2) R)
 
 noncomputable section
 
 namespace EisensteinSeries
 
+/-
 theorem ridic (a b c d : ℤ) : a * d - b * c = 1 → a * d - c * b = 1 := by intro h; linarith
 
 theorem ridic2 (a b c d z : ℤ) (h : a * d - b * c = 1) : z * d * a - z * c * b = z := by ring_nf;
   rw [h]; rw [one_mul]
+  -/
 
 -- This is the permutation of the summation index coming from the moebius action
 def indPerm (A : SL2Z) : ℤ × ℤ → ℤ × ℤ := fun z =>
   (z.1 * A.1 0 0 + z.2 * A.1 1 0, z.1 * A.1 0 1 + z.2 * A.1 1 1)
 
-theorem det_sl_one (M : SL2Z) : M.1 0 0 * M.1 1 1 + -(M.1 0 1 * M.1 1 0) = 1 := by apply det_m
+theorem det_sl_one (M : SL2Z) : M.1 0 0 * M.1 1 1 -(M.1 0 1 * M.1 1 0) = 1 := by apply det_m
 
 def indEquiv (A : SL2Z) : ℤ × ℤ ≃ ℤ × ℤ
     where
   toFun := indPerm A
   invFun := indPerm A⁻¹
   left_inv z := by
-    simp_rw [Ind_perm]
+    simp_rw [indPerm]
     ring_nf
     have hdet := det_sl_one A
-    simp only [Subtype.val_eq_coe, SL2Z_inv_a, SL2Z_inv_c, neg_mul, SL2Z_inv_b, SL2Z_inv_d] at *
-    nth_rw 2 [mul_comm]
-    nth_rw 3 [mul_comm]
-    ext
-    simp only
-    simp_rw [hdet]
-    ring
-    simp only
-    nth_rw 3 [add_comm]
-    simp_rw [hdet]
-    ring
+    simp only [SL2Z_inv_a, SL2Z_inv_c, neg_mul, SL2Z_inv_b, SL2Z_inv_d] at *
+    ring_nf
+    have h1: z.fst * A.1 0 0 * A.1 1 1 - z.fst * A.1 0 1 * A.1 1 0 = z.fst := by
+      trans (z.fst * (A.1 0 0 * A.1 1 1 -  A.1 0 1 * A.1 1 0))
+      ring
+      rw [hdet]
+      apply mul_one
+    have h2 :  A.1 0 0 * A.1 1 1* z.snd -  A.1 0 1 * A.1 1 0 * z.snd = z.snd := by
+      trans ((A.1 0 0 * A.1 1 1 -  A.1 0 1 * A.1 1 0)* z.snd )
+      ring
+      rw [hdet]
+      apply one_mul
+    rw [h1,h2]  
   right_inv z := by
-    simp_rw [Ind_perm]
+    simp_rw [indPerm]
     ring_nf
     have hdet := det_sl_one A
-    simp only [Subtype.val_eq_coe, SL2Z_inv_a, SL2Z_inv_c, neg_mul, SL2Z_inv_b, SL2Z_inv_d] at *
-    ext
-    simp only [mul_neg]
-    nth_rw 3 [mul_comm]
-    simp_rw [hdet]
-    ring
-    simp only [mul_neg]
-    nth_rw 3 [add_comm]
-    nth_rw 5 [mul_comm]
-    simp_rw [hdet]
-    ring
+    simp only [SL2Z_inv_a, SL2Z_inv_c, neg_mul, SL2Z_inv_b, SL2Z_inv_d] at *
+    ring_nf
+    have h1: z.fst * A.1 1 1 * A.1 0 0 - z.fst * A.1 0 1 * A.1 1 0 = z.fst := by
+      trans (z.fst * (A.1 0 0 * A.1 1 1 -  A.1 0 1 * A.1 1 0))
+      ring
+      rw [hdet]
+      apply mul_one
+    have h2 :  A.1 1 1 * A.1 0 0* z.snd -  A.1 0 1 * A.1 1 0 * z.snd = z.snd := by
+      trans ((A.1 0 0 * A.1 1 1 -  A.1 0 1 * A.1 1 0)* z.snd )
+      ring
+      rw [hdet]
+      apply one_mul
+    rw [h1,h2]   
 
 @[simp]
 theorem ind_simp (A : SL2Z) (z : ℤ × ℤ) :
     indEquiv A z = (z.1 * A.1 0 0 + z.2 * A.1 1 0, z.1 * A.1 0 1 + z.2 * A.1 1 1) := by rfl
 
-theorem max_aux' (a b : ℕ) : max a b = a ∨ max a b = b := by apply max_choice
-
-theorem max_aux (a b : ℕ) : a = max a b ∨ b = max a b := by have := max_aux' a b; cases this;
-  simp [this]; simp [this]
-
 theorem max_aux'' (a b n : ℕ) (h : max a b = n) : a = n ∨ b = n :=
   by
   rw [← h]
-  apply max_aux
+  have hh := max_choice a b
+  cases hh
+  left
+  linarith
+  right
+  linarith
+  
 
-theorem max_aux3 (a b n : ℕ) (h : max a b = n) : a ≤ n ∧ b ≤ n := by rw [← h]; constructor;
-  exact le_max_left a b; exact le_max_right a b
+theorem max_aux3 (a b n : ℕ) (h : max a b = n) : a ≤ n ∧ b ≤ n := by 
+    rw [← h]
+    simp only [ge_iff_le, le_max_iff, le_refl, true_or, or_true, and_self]
 
 /-- For `m : ℤ` this is the finset of `ℤ × ℤ` of elements such that the maximum of the
 absolute values of the pair is `m` -/
-def square (m : ℕ) : Finset (ℤ × ℤ) :=
-  ((Finset.Ico (-m : ℤ) (m + 1)).product (Finset.Ico (-m : ℤ) (m + 1))).filterₓ fun x =>
+def square (m : ℤ) : Finset (ℤ × ℤ) :=
+  ((Finset.Icc (-m) (m)) ×ˢ (Finset.Icc (-m) (m))).filter fun x =>
     max x.1.natAbs x.2.natAbs = m
 
 /-- For `m : ℤ` this is the finset of `ℤ × ℤ` of elements such that..-/
-def square2 (m : ℕ) : Finset (ℤ × ℤ) :=
-  (Finset.Ico (-m : ℤ) (m + 1)).product {m} ∪ (Finset.Ico (-m : ℤ) (m + 1)).product {-(m : ℤ)} ∪
-      ({m} : Finset ℤ).product (Finset.Ico (-m + 1) m) ∪
-    ({-m} : Finset ℤ).product (Finset.Ico (-m + 1) m)
+def square2 (m : ℤ) : Finset (ℤ × ℤ) :=
+  ((Finset.Icc (-m) (m)) ×ˢ  {(m)}) ∪ 
+  (Finset.Icc (-m ) (m)) ×ˢ {-(m)} ∪
+  ({(m)} : Finset ℤ) ×ˢ (Finset.Icc (-(m) + 1) (m-1)) ∪
+  ({-(m)} : Finset ℤ) ×ˢ (Finset.Icc (-(m) + 1) (m-1))
 
 theorem square2_card (n : ℕ) (h : 1 ≤ n) : (Finset.card (square2 n) : ℤ) = 8 * n :=
   by
-  rw [Square2, Finset.card_union_eq, Finset.card_union_eq, Finset.card_union_eq,
-    Finset.card_product, Finset.card_product, Finset.card_product, Finset.card_product]
+  rw [square2, Finset.card_union_eq, Finset.card_union_eq, Finset.card_union_eq]
+  simp_rw [Finset.card_product]
+    --Finset.card_product, Finset.card_product, Finset.card_product, Finset.card_product]
   · simp only [Finset.card_singleton, mul_one, one_mul]
     have hn : -(n : ℤ) ≤ n + 1 := by linarith
-    have hn2 : -(n : ℤ) + 1 ≤ n := by linarith
-    have r1 := Int.card_Ico_of_le (-(n : ℤ)) (n + 1) hn
-    have r2 := Int.card_Ico_of_le (-(n : ℤ) + 1) n hn2
+    have hn2 : -(n : ℤ) +1  ≤ n-1 +1 := by linarith
+    have r1 := Int.card_Icc_of_le (-(n : ℤ)) (n) hn
+    have r2 := Int.card_Icc_of_le (-(n : ℤ) + 1) (n-1) hn2
     simp only [Int.ofNat_add, Int.card_Ico, sub_neg_eq_add, neg_add_le_iff_le_add] at *
     rw [r1, r2]
     ring_nf
@@ -137,46 +149,45 @@ theorem square2_card (n : ℕ) (h : 1 ≤ n) : (Finset.card (square2 n) : ℤ) =
     simp only [Int.coe_nat_eq_zero] at hv 
     rw [hv] at h 
     simp only [Nat.one_ne_zero, le_zero_iff] at h 
-    exact h
   · rw [Finset.disjoint_iff_ne]
     intro a ha b hb
     simp only [Ne.def, Finset.mem_union, Finset.mem_singleton, neg_add_le_iff_le_add,
-      Finset.mem_product, Finset.mem_Ico] at *
-    cases ha
+      Finset.mem_product, Finset.mem_Icc] at * 
+    cases' ha with ha ha
     have hbb := hb.2
-    have haa := ha.2
+    have haa:=ha.2
     by_contra H
     rw [← H] at hbb 
     rw [haa] at hbb 
-    simp only [lt_self_iff_false, and_false_iff] at hbb 
-    exact hbb
-    have hbb := hb.2
-    have haa := ha.2
+    have hbb2:= hbb.2
+    simp only [le_sub_self_iff] at hbb2 
+
     by_contra H
+    have hbb := hb.2
+    have haa:=ha.2
     rw [← H] at hbb 
     rw [haa] at hbb 
-    simp at hbb 
-    have hk := hbb.1
-    linarith
+    have hbb1:= hbb.1
+    simp only [add_right_neg] at hbb1  
   · rw [Finset.disjoint_iff_ne]
     intro a ha b hb
     simp only [Ne.def, Finset.mem_union, Finset.union_assoc, Finset.mem_singleton,
       neg_add_le_iff_le_add, Finset.mem_product, Finset.mem_Ico] at *
     by_contra H
-    cases ha
+    cases' ha with ha ha
     · have hbb := hb.2
       have haa := ha.2
       rw [← H] at hbb 
       rw [← haa] at hbb 
       simp [lt_self_iff_false, and_false_iff] at hbb 
-      exact hbb
-    cases ha
+    cases' ha with ha ha
     · have hbb := hb.2
       have haa := ha.2
       rw [← H] at hbb 
       rw [haa] at hbb 
-      simp only [Int.coe_nat_pos, neg_lt_self_iff, add_right_neg] at hbb 
-      linarith
+      rw [Finset.mem_Icc] at hbb
+      have hbb1:= hbb.1
+      simp only [add_le_iff_nonpos_right] at hbb1 
     · have hbb := hb.1
       have haa := ha.1
       rw [H] at haa 
@@ -185,74 +196,87 @@ theorem square2_card (n : ℕ) (h : 1 ≤ n) : (Finset.card (square2 n) : ℤ) =
       simp only [Int.coe_nat_eq_zero] at hv 
       rw [hv] at h 
       simp only [Nat.one_ne_zero, le_zero_iff] at h 
-      exact h
+
 
 theorem natAbs_inter (a : ℤ) (n : ℕ) (h : a.natAbs < n) : a < (n : ℤ) ∧ 0 < (n : ℤ) + a :=
   by
   have := Int.natAbs_eq a
-  cases this
+  cases' this with this this
   rw [this]
   constructor
   norm_cast
-  exact h
   norm_cast
   simp only [add_pos_iff]
   left
-  have h1 : 0 ≤ a.nat_abs := zero_le (Int.natAbs a)
+  have h1 : 0 ≤ Int.natAbs a := zero_le (Int.natAbs a)
   linarith
   rw [this]
   constructor
   rw [neg_lt_iff_pos_add]
   norm_cast
-  simp
-  have h1 : 0 ≤ a.nat_abs := zero_le (Int.natAbs a)
+  simp only [add_pos_iff]
+  have h1 : 0 ≤ Int.natAbs a := zero_le (Int.natAbs a)
   left
   linarith
   rw [← Int.ofNat_lt] at h 
   rw [← sub_pos] at h 
-  convert h
+  simpa using h
 
 theorem natAbs_inter2 (a : ℤ) (n : ℕ) (h : a.natAbs ≤ n) : a ≤ (n : ℤ) ∧ 0 ≤ (n : ℤ) + a :=
   by
-  have := lt_or_eq_of_le h; cases this
-  have H := nat_abs_inter a n this; have H1 := le_of_lt H.1; have H2 := le_of_lt H.2; simp [H1, H2];
+  have := lt_or_eq_of_le h; 
+  cases' this with this this
+  have H := natAbs_inter a n this; 
+  have H1 := le_of_lt H.1; have H2 := le_of_lt H.2; simp [H1, H2];
   rw [← this]
   constructor; exact Int.le_natAbs; rw [add_comm]; rw [← neg_le_iff_add_nonneg'];
   rw [← Int.abs_eq_natAbs]
   simp_rw [neg_le_abs_self]
+
+
+theorem natAbs_le_mem_Icc (a : ℤ) (n : ℕ) (h : Int.natAbs a ≤ n) : a ∈ Finset.Icc (-(n : ℤ)) (n) :=
+  by
+  simp
+  have hm : max (a) (-a) ≤ n := by 
+    have : ((Int.natAbs a) : ℤ) = |a| := by simp only [Int.coe_natAbs]
+    rw [← abs_eq_max_neg]
+    rw [← this]
+    norm_cast 
+  rw [max_le_iff] at hm
+  constructor
+  nlinarith
+  exact hm.1
 
 @[simp]
 theorem square_mem (n : ℕ) (x : ℤ × ℤ) : x ∈ square n ↔ max x.1.natAbs x.2.natAbs = n :=
   by
   constructor
   intro x
-  rw [Square] at x 
-  simp at x 
-  simp_rw [x]
-  intro hx
-  rw [Square]
-  simp
-  simp [hx]
-  have h2 := max_aux3 _ _ _ hx
-  have h21 := nat_abs_inter2 _ _ h2.1
-  have h22 := nat_abs_inter2 _ _ h2.2
+  rw [square] at x
+  simp only [ge_iff_le,  Prod.forall, Finset.mem_filter] at x 
+  have hx := x.2
+  norm_cast at hx
+  intro H
+  rw [square]
+  simp only [ge_iff_le, Prod.forall, Finset.mem_filter]
+  constructor 
+  simp only [ge_iff_le, Finset.mem_product]
   constructor
-  constructor
-  rw [neg_le_iff_add_nonneg']
-  exact h21.2
-  have := h21.1
-  linarith
-  constructor
-  rw [neg_le_iff_add_nonneg']
-  exact h22.2
-  have := h22.1; linarith
+  apply natAbs_le_mem_Icc
+  rw [← H]
+  simp only [ge_iff_le, le_max_iff, le_refl, true_or]
+  apply natAbs_le_mem_Icc
+  rw [← H]
+  simp only [ge_iff_le, le_max_iff, le_refl, or_true] 
+  rw [H]
+
 
 theorem square_mem' (n : ℕ) (x : ℤ × ℤ) :
     x ∈ square n ↔
       x.1.natAbs = n ∧ x.2.natAbs < n ∨
         x.2.natAbs = n ∧ x.1.natAbs < n ∨ x.1.natAbs = n ∧ x.2.natAbs = n :=
   by
-  simp
+  simp only [square_mem, ge_iff_le]
   constructor
   intro c1
   have := max_aux3 _ _ _ c1
@@ -261,26 +285,27 @@ theorem square_mem' (n : ℕ) (x : ℤ × ℤ) :
   have h2 := this.2
   rw [le_iff_lt_or_eq] at h2 
   rw [le_iff_lt_or_eq] at h1 
-  cases H
+  cases' H with H H
   simp_rw [H]
-  simp
+  simp only [true_and, lt_self_iff_false, and_false, false_or]
   exact h2
   simp_rw [H]
-  simp
+  simp only [lt_self_iff_false, and_false, true_and, and_true, false_or]
   exact h1
   intro c2
-  cases c2
+  cases' c2 with c2 c2
   rw [c2.1]
-  simp
+  simp only [ge_iff_le, max_eq_left_iff]
   have := c2.2
   linarith
-  cases c2
+  cases' c2 with c2 c2
   rw [c2.1]
-  simp
+  simp only [ge_iff_le, max_eq_right_iff]
   have := c2.2
   linarith
   rw [c2.1, c2.2]
-  simp
+  simp only [max_self]
+
 
 theorem auxin (a : ℤ) (n : ℕ) (h : 0 < (n : ℤ) + a) : 1 ≤ (n : ℤ) + a := by assumption
 
@@ -292,17 +317,17 @@ theorem cat (a b : ℤ) (n : ℕ) (h1 : b = (n : ℤ)) (h2 : -(n : ℤ) ≤ a �
   rw [h1]
   simp
   have := Int.natAbs_eq a
-  cases this
+  cases' this with this this
   rw [this] at h2 
   norm_cast at h2 
   have h22 := h2.2
-  exact nat.lt_succ_iff_lt_or_eq.mp h22
+  exact Nat.lt_succ_iff_lt_or_eq.mp h22
   rw [this] at h2 
   have h22 := h2.1
   have H := lt_or_eq_of_le h22
   simp only [neg_lt_neg_iff, neg_inj] at H 
   norm_cast at H 
-  have h234 : n = a.nat_abs ↔ a.nat_abs = n := comm
+  have h234 : n = a.natAbs ↔ a.natAbs = n := comm
   rw [← h234]
   exact H
 
@@ -312,50 +337,70 @@ theorem cat1 (a b : ℤ) (n : ℕ) (h1 : b = -(n : ℤ)) (h2 : -(n : ℤ) ≤ a 
   rw [h1]
   simp
   have := Int.natAbs_eq a
-  cases this
+  cases' this with this this
   rw [this] at h2 
   norm_cast at h2 
   have h22 := h2.2
-  exact nat.lt_succ_iff_lt_or_eq.mp h22
+  exact Nat.lt_succ_iff_lt_or_eq.mp h22
   rw [this] at h2 
   have h22 := h2.1
   have H := lt_or_eq_of_le h22
   simp only [neg_lt_neg_iff, neg_inj] at H 
   norm_cast at H 
-  have h234 : n = a.nat_abs ↔ a.nat_abs = n := comm
+  have h234 : n = a.natAbs ↔ a.natAbs = n := comm
   rw [← h234]
   exact H
 
 theorem dog (a b : ℤ) (n : ℕ) (h1 : a = (n : ℤ)) (h2 : 1 ≤ (n : ℤ) + b ∧ b < (n : ℤ)) :
     a.natAbs = n ∧ b.natAbs < n := by
-  rw [h1]; simp; have := Int.natAbs_eq b; cases this; rw [this] at h2 ; norm_cast at h2 ; exact h2.2
+  rw [h1]; simp; have := Int.natAbs_eq b; 
+  cases' this with this this; 
+  rw [this] at h2 ; 
+  norm_cast at h2 ; exact h2.2
   rw [this] at h2 ; have h22 := h2.1; norm_cast at *; linarith
+
+
 
 theorem dog1 (a b : ℤ) (n : ℕ) (h1 : a = -(n : ℤ)) (h2 : 1 ≤ (n : ℤ) + b ∧ b < (n : ℤ)) :
     a.natAbs = n ∧ b.natAbs < n := by
-  rw [h1]; simp; have := Int.natAbs_eq b; cases this; rw [this] at h2 ; norm_cast at h2 ; exact h2.2
+  rw [h1]; simp; have := Int.natAbs_eq b; cases' this with this this; 
+  rw [this] at h2 ; norm_cast at h2 ; exact h2.2
   rw [this] at h2 ; have h22 := h2.1; norm_cast at *; linarith
 
 theorem sqr_eq_sqr2 (n : ℕ) : square n = square2 n :=
   by
   ext1
   constructor
+  intro H
+  rw [square2]
+  rw [square] at H
+  simp only [ge_iff_le, Nat.cast_max, Int.coe_natAbs, gt_iff_lt, lt_neg_self_iff, Finset.mem_product, 
+    and_imp, Prod.forall, Finset.mem_filter] at H 
+  simp only [Finset.mem_union, Finset.union_assoc, Finset.mem_product]
+  rw [max_eq_iff] at H
+  simp only [gt_iff_lt, lt_neg_self_iff] at H 
+  
+  cases' H with H H
+
+
+
+  stop
   rw [square_mem']
   intro ha
-  rw [Square2]
+  rw [square2]
   simp_rw [Int.natAbs_eq_iff] at ha 
-  simp only [Finset.mem_union, Finset.union_assoc, Finset.mem_product, Finset.mem_Ico,
+  simp only [Finset.mem_union, Finset.union_assoc, Finset.mem_product, Finset.mem_Icc,
     neg_add_le_iff_le_add, Finset.mem_singleton]
-  cases ha
-  cases ha.1
-  have h1 := nat_abs_inter _ _ ha.2
+  cases' ha with ha ha
+  cases' ha.1 with ha1 
+  have h1 := natAbs_inter _ _ ha.2
   have h2 := auxin _ _ h1.2
-  simp_rw [h, h1, h2]
+  simp_rw [ha1, h1, h2]
   simp
-  have h1 := nat_abs_inter _ _ ha.2
+  have h1 := natAbs_inter _ _ ha.2
   have h2 := auxin _ _ h1.2
-  simp_rw [h, h1, h2]
-  simp
+  
+  
   cases ha
   cases ha.1
   have h1 := nat_abs_inter _ _ ha.2
@@ -450,11 +495,11 @@ theorem Squares_cover_all : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ square i :=
   use max y.1.natAbs y.2.natAbs
   simp only [square_mem, and_self_iff, forall_eq']
 
-theorem square_zero : square (0 : ℕ) = {(0, 0)} := by rfl
+theorem square_zero : square (0) = {(0, 0)} := by rfl
 
 theorem square_zero_card : Finset.card (square 0) = 1 :=
   by
-  rw [Square_zero]
+  rw [square_zero]
   rfl
 
 -- Some summable lemmas

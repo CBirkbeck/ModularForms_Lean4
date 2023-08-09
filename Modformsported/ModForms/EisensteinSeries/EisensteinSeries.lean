@@ -1,4 +1,4 @@
-import Project.ModForms.EisensteinSeries.EisensteinSeriesIndexLemmas
+import Modformsported.ModForms.EisensteinSeries.EisensteinSeriesIndexLemmas
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
 import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
