@@ -257,8 +257,6 @@ theorem pet_is_invariant {k : ℤ} {Γ : Subgroup SL(2, ℤ)} (f : SlashInvarian
     have h2 : conj D ^ k ≠ 0 := by
       apply zpow_ne_zero; rw [starRingEnd_apply, star_ne_zero]; exact hD  
     rw [div_div, mul_assoc]; apply div_mul_cancel; apply mul_ne_zero h1 h2
-
-    --field_simp [h1, h2]; ring
   have : ((γ • z : ℍ) : ℂ).im = UpperHalfPlane.im z / Complex.normSq D :=
     by
     rw [UpperHalfPlane.coe_im]
@@ -267,20 +265,12 @@ theorem pet_is_invariant {k : ℤ} {Γ : Subgroup SL(2, ℤ)} (f : SlashInvarian
     rw [UpperHalfPlane.im_smul_eq_div_normSq γ z]
     refine congr_arg (fun x => x / Complex.normSq D) ?_
     convert one_mul (UpperHalfPlane.im z)
-    -- congr
-    -- convert UpperHalfPlane.im_smul_eq_div_normSq γ z
-    -- stop
     simp only [UpperHalfPlane.coe_im,
       Matrix.SpecialLinearGroup.coe_GLPos_coe_GL_coe_matrix,
       Matrix.SpecialLinearGroup.coe_matrix_coe, Int.coe_castRingHom]
-    have h3 := γ.2
-    
-
-    -- suffices ((↑ₘγ).map ((↑) : ℤ → ℝ)).det = (1 : ℝ) by sorry; rw [this]; sorry; simp only [one_mul]
-    trans Matrix.det ↑ₘγ
-    -- have : (↑ₘ γ : Matrix (Fin 2) (Fin 2) ℤ).map ((↑) : ℤ → ℝ) = ↑ₘ(γ : SL(2, ℝ)) := by
-    · rw [Matrix.SpecialLinearGroup.coe_matrix_coe, Int.coe_castRingHom]
-    · apply Matrix.SpecialLinearGroup.det_coe
+    have h4 := _root_.RingHom.map_det (Int.castRingHom ℝ) γ.1
+    simp at h4
+    exact h4.symm
   apply_fun ((↑) : ℝ → ℂ) at this
   convert this
   simp only [UpperHalfPlane.coe_im, Complex.ofReal_div]
