@@ -230,9 +230,9 @@ theorem circleTransform_of_unifom_limit {R : ℝ} {F : ℕ → ℂ → ℂ} (hR 
         _
     simp only [inv_pos, AbsoluteValue.pos_iff]
     exact sub_ne_zero.2 (circleMap_ne_mem_ball w.2 y)
-  stop
   let e := (Complex.abs r)⁻¹ * (ε / 2)
-  have he : 0 < e := by simp_rw []; apply mul_pos (inv_pos.2 hr) (div_pos hε two_pos)
+  have he : 0 < e := by  apply mul_pos (inv_pos.2 hr) (div_pos hε two_pos)
+
   obtain ⟨a, ha⟩ := hlim e he
   refine' ⟨a, fun b hb => _⟩
   simp_rw [deriv_circleMap, dist_eq_norm, ← mul_sub] at *
@@ -240,34 +240,37 @@ theorem circleTransform_of_unifom_limit {R : ℝ} {F : ℕ → ℂ → ℂ} (hR 
     Complex.abs
         ((2 * π * I : ℂ)⁻¹ *
           (circleMap 0 R y * I *
-            ((circleMap z R y - ↑w)⁻¹ * (f (circleMap z R y) - F b (circleMap z R y))))) =
+            ((circleMap z R y - ↑w)⁻¹ * (F b (circleMap z R y) - f (circleMap z R y))))) =
       Complex.abs ((2 * π * I : ℂ)⁻¹ * circleMap 0 R y * I * (circleMap z R y - ↑w)⁻¹) *
-        Complex.abs (f (z + ↑R * exp (↑y * I)) - F b (z + ↑R * exp (↑y * I))) :=
+        Complex.abs (F b (z + ↑R * exp (↑y * I)) - f (z + ↑R * exp (↑y * I))) :=
     by
-    simp only [circleMap, abs_of_real, abs_exp_of_real_mul_I, mul_one, abs_I, abs_two, norm_eq_abs,
-      mul_inv_rev, inv_I, zero_add, one_mul, AbsoluteValue.map_neg, AbsoluteValue.map_mul, map_inv₀]
+    simp only [circleMap, mul_inv_rev, inv_I, neg_mul, zero_add, map_neg_eq_map, map_mul, abs_I, 
+      map_inv₀, abs_ofReal,abs_two, one_mul, abs_exp_ofReal_mul_I, mul_one]
+  
     ring
-  simp at *
-  simp_rw [hg]
-  have hab := (ha b hb) (z + ↑R * exp (↑y * I)) (circleMap_mem_sphere z hR.le y)
-  apply lt_trans (mul_lt_mul_of_pos_left hab hr)
-  simp_rw [e, r]
-  simp only [mul_inv_rev, AbsoluteValue.map_mul, abs_I, map_inv₀, abs_of_real, abs_two,
+  simp only [mul_inv_rev, inv_I, neg_mul, norm_neg, norm_mul, norm_eq_abs, abs_I, norm_inv, abs_ofReal,
+    IsROrC.norm_ofNat, one_mul, abs_circleMap_zero, mul_one, gt_iff_lt] 
+  simp only [mul_inv_rev, inv_I, neg_mul, map_neg_eq_map, map_mul, abs_I, map_inv₀, abs_ofReal, abs_two, one_mul,
+    abs_circleMap_zero, mul_one] at hg
+  simp_rw [hg]     
+  have hab0 := (circleMap_mem_sphere z hR.le y)
+  rw [circleMap] at hab0
+  have hab2 := (ha b hb) (z + ↑R * exp (↑y * I)) 
+  have hab := hab2 hab0
+  have habb := mul_lt_mul_of_pos_left hab hr
+  simp at habb
+  apply lt_trans habb
+  simp only [mul_inv_rev, AbsoluteValue.map_mul, abs_I, map_inv₀, abs_ofReal, abs_two,
     abs_circleMap_zero, mul_one, inv_inv]
   simp_rw [div_eq_inv_mul, ← mul_assoc]
   have := mul_inv_cancel (ne_of_gt hr)
-  have hfin :
-    |π|⁻¹ * 2⁻¹ * |R| * (Complex.abs (circleMap z R y - ↑w))⁻¹ *
-                Complex.abs (circleMap z R y - ↑w) *
-              |R|⁻¹ *
-            2 *
-          |π| *
-        2⁻¹ =
-      2⁻¹ *
-        (|π|⁻¹ * 2⁻¹ * |R| * (Complex.abs (circleMap z R y - ↑w))⁻¹ *
-          (|π|⁻¹ * 2⁻¹ * |R| * (Complex.abs (circleMap z R y - ↑w))⁻¹)⁻¹) :=
-    by simp only [mul_inv_rev, inv_inv]; ring
-  rw [hfin, this]
+  simp at this
+  have hfinn : |π|⁻¹ * 2⁻¹ * |R| * (Complex.abs (circleMap z R y - ↑w))⁻¹ * Complex.abs (circleMap z R y - ↑w) 
+    * |R|⁻¹ * 2 * |π| * 2⁻¹ * ε = 
+    (|π|⁻¹ * 2⁻¹ * |R| * (Complex.abs (circleMap z R y - ↑w))⁻¹ * 
+      (Complex.abs (circleMap z R y - ↑w) * (|R|⁻¹ * (2 * |π|))))*2⁻¹ *ε := 
+      by ring
+  rw [hfinn, this]
   simp only [inv_eq_one_div]
   nlinarith
 #align complex.circle_transform_of_unifom_limit Complex.circleTransform_of_unifom_limit
@@ -307,7 +310,7 @@ theorem circleTransform_of_uniform_exists_bounding_function {R : ℝ} {F : ℕ �
   simp_rw [← this, add_assoc, le_add_iff_nonneg_right]
   apply add_nonneg
   · apply Finset.sum_nonneg
-    intro a b
+    intro a _
     apply AbsoluteValue.nonneg
   · apply add_nonneg
     apply AbsoluteValue.nonneg
@@ -326,7 +329,7 @@ theorem circleTransform_of_uniform_exists_bounding_function {R : ℝ} {F : ℕ �
       apply (haan x.1 x.property).le
     apply le_add_of_nonneg_of_le
     apply Finset.sum_nonneg
-    intro d dd
+    intro d _
     apply AbsoluteValue.nonneg
     simp only [AbsoluteValue.map_one] at this
     apply (this haf) y
@@ -335,7 +338,7 @@ theorem circleTransform_of_uniform_exists_bounding_function {R : ℝ} {F : ℕ �
     apply_rules [Integrable.add, Integrable.add, integrable_finset_sum]
     refine' fun _ _ => circleTransform_integrable_abs hR z (F_cts _) w
     apply circleTransform_integrable_abs hR z continuous_const.continuousOn
-    apply circleTransform_integrable_abs hR z f_cont
+    apply circleTransform_integrable_abs hR z f_cont 
 #align complex.circle_transform_of_uniform_exists_bounding_function Complex.circleTransform_of_uniform_exists_bounding_function
 
 /-- The integral of a uniform limit of functions `F n` tends to the integral of the limit function
@@ -367,17 +370,18 @@ theorem circle_int_uniform_lim_eq_lim_of_int {R : ℝ} {F : ℕ → ℂ → ℂ}
   exact tendsto_integral_of_dominated_convergence bound F_measurable bound_integrable h_bound h_lim'
 #align complex.circle_int_uniform_lim_eq_lim_of_int Complex.circle_int_uniform_lim_eq_lim_of_int
 
-theorem complex_abs_sub_le (a b : ℂ) : Complex.abs (-b) = Complex.abs b :=
-  abs.map_neg b
-#align complex.complex_abs_sub_le Complex.complex_abs_sub_le
-
 theorem Ineq1 (a b c d e f r : ℂ) (ε : ℝ) (hε : 0 < ε) (h1 : abs (a - b) < 8⁻¹ * abs r * ε)
     (h2 : abs (c - d) < 8⁻¹ * abs r * ε) (h3 : (abs r)⁻¹ * abs (b - d - (e - f)) < 2 / 3 * ε) :
     (abs r)⁻¹ * abs (a - b - (c - d) + (b - d) - (e - f)) < ε :=
   by
   have h4 :
-    abs (a - b - (c - d) + (b - d) - (e - f)) ≤ abs (a - b - (c - d)) + abs (b - d - (e - f)) := by
-    convert Complex.abs.add_le' (a - b - (c - d)) (b - d - (e - f)); ring_nf
+    Complex.abs (a - b - (c - d) + (b - d) - (e - f)) ≤ Complex.abs (a - b - (c - d)) + 
+      Complex.abs (b - d - (e - f)) := by
+    have:= Complex.abs.add_le' (a - b - (c - d)) (b - d - (e - f))
+    simp at this
+    have hh : a - b - (c - d) + (b - d) - (e - f) = a - b - (c - d) + (b - d - (e - f)) := by ring
+    rw [hh]
+    exact this
   have h5 : abs (a - b - (c - d)) ≤ abs (a - b) + abs (c - d) :=
     by
     have := abs.sub_le (a - b) 0 (c - d)
@@ -388,8 +392,9 @@ theorem Ineq1 (a b c d e f r : ℂ) (ε : ℝ) (hε : 0 < ε) (h1 : abs (a - b) 
     (abs r)⁻¹ * abs (a - b - (c - d) + (b - d) - (e - f)) ≤
       (abs r)⁻¹ * abs (a - b) + (abs r)⁻¹ * abs (c - d) + (abs r)⁻¹ * abs (b - d - (e - f)) :=
     by
-    simp_rw [← mul_add]; nth_rw_lhs 1 [mul_comm]; nth_rw_rhs 1 [mul_comm]
-    apply mul_le_mul_of_nonneg_right; swap; rw [inv_nonneg]; simp; simp_rw [← add_assoc]
+    simp_rw [← mul_add]; 
+    apply mul_le_mul_of_nonneg_left; 
+    swap; rw [inv_nonneg]; simp; simp_rw [← add_assoc]
     apply le_trans h4; simp_rw [← add_assoc]; simp only [h5, add_le_add_iff_right]
   have hr : 0 < abs r := by
     by_contra h
@@ -398,12 +403,14 @@ theorem Ineq1 (a b c d e f r : ℂ) (ε : ℝ) (hε : 0 < ε) (h1 : abs (a - b) 
     simp [MulZeroClass.zero_mul, abs_zero, MulZeroClass.mul_zero] at h1
     linarith [abs.nonneg (a - b), h1]
   have e1 : 8⁻¹ * abs r * ε = 8⁻¹ * ε * abs r := by ring_nf
-  rw [e1] at *
+  rw [e1] at h1
+  rw [e1] at h2
   apply
     lt_trans
       (lt_of_le_of_lt h6
         (add_lt_add (add_lt_add ((inv_mul_lt_iff' hr).mpr h1) ((inv_mul_lt_iff' hr).mpr h2)) h3))
-  ring
+  ring_nf
+  simp
   linarith
 #align complex.Ineq1 Complex.Ineq1
 
@@ -427,12 +434,12 @@ theorem Ineq2 (a b c d r : ℂ) (ε : ℝ) (hε : 0 < ε)
     (abs r)⁻¹ * abs (a - y - (b - x) - (c - d - (y - x))) ≤
       (abs r)⁻¹ * abs (a - y) + (abs r)⁻¹ * abs (b - x) + (abs r)⁻¹ * abs (c - d - (y - x)) :=
     by
-    simp_rw [← mul_add]; nth_rw_lhs 1 [mul_comm]; nth_rw_rhs 1 [mul_comm]
-    apply mul_le_mul_of_nonneg_right; swap; simp
+    simp_rw [← mul_add]; 
+    apply mul_le_mul_of_nonneg_left; swap; simp
     have h4 :
       abs (a - y - (b - x) + -(c - d - (y - x))) ≤ abs (a - y - (b - x)) + abs (c - d - (y - x)) :=
       by
-      have := complex.abs.add_le (a - y - (b - x)) (-(c - d - (y - x)))
+      have := Complex.abs.add_le (a - y - (b - x)) (-(c - d - (y - x)))
       have ho : abs (c - d - (y - x)) = abs (-(c - d - (y - x))) := by rw [abs.map_neg]
       rw [ho]
       convert this
@@ -445,7 +452,8 @@ theorem Ineq2 (a b c d r : ℂ) (ε : ℝ) (hε : 0 < ε)
     apply le_trans h4
     simp only [← add_assoc, h44, add_le_add_iff_right]
   have e1 : 8⁻¹ * abs r * ε = 8⁻¹ * ε * abs r := by ring_nf
-  rw [e1] at *
+  rw [e1] at h1
+  rw [e1] at h2
   apply
     lt_trans
       (lt_of_le_of_lt h6
@@ -512,7 +520,6 @@ theorem circle_integral_unif_of_diff_has_fderiv {F : ℕ → ℂ → ℂ} {f : �
   obtain ⟨a, ha⟩ := hlim (8⁻¹ * abs (y - x) * ε) h8'
   obtain ⟨a', ha'⟩ := (keyb x hx) (8⁻¹ * abs (y - x) * ε) h8'
   set A' : ℕ := max a a'
-  have test := mem_ball.1 (mem_ball.2 hy.2)
   simp only [mem_ball, abs_eq_zero, Ne.def, Subtype.coe_mk] at *
   set A : ℕ := max A' a''
   have haA : a ≤ A := by simp only [le_refl, true_or_iff, le_max_iff]
@@ -531,11 +538,11 @@ theorem circle_integral_unif_of_diff_has_fderiv {F : ℕ → ℂ → ℂ} {f : �
   simp_rw [circle_intgral_form_eq_int]
   refine'
     ⟨by
-      have := F_alt A ⟨y, mem_ball.2 hy.2⟩
+      have := F_alt A y (mem_ball.2 hy.2)
       simp only [Subtype.coe_mk] at this
       rw [this, circle_intgral_form_eq_int]
       apply ha'' A ha''A, by
-      have := F_alt A ⟨x, mem_ball.2 hx⟩
+      have := F_alt A x (mem_ball.2 hx)
       simp only [Subtype.coe_mk] at this
       rw [this, circle_intgral_form_eq_int]
       apply ha' A ha'A,
@@ -565,7 +572,7 @@ theorem uniform_of_diff_circle_int_is_diff {R : ℝ} (F : ℕ → ℂ → ℂ) (
     simp only [mem_ball, Algebra.id.smul_eq_mul, diff_empty] at *
     rw [← ttt]
     simp only [circleIntegralForm, circleTransform, one_div, Algebra.id.smul_eq_mul,
-      Nat.cast_bit0, real_smul, integral_const_mul, nsmul_eq_mul, Nat.cast_one]
+       real_smul, integral_const_mul, nsmul_eq_mul, Nat.cast_one]
   have F_cts_ball : ∀ n, ContinuousOn (F n) (closedBall z R) := by
     intro n; apply (hdiff n).continuousOn
   have F_cts_sphere : ∀ n, ContinuousOn (F n) (sphere z R) := by
