@@ -12,7 +12,10 @@ import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.Topology.CompactOpen
 import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.NumberTheory.Modular
-
+import Mathlib.Order.LocallyFinite
+import Mathlib.Data.Int.Interval
+import Mathlib.Tactic
+import Mathlib.Data.Finset.Basic
 
 
 universe u v w
@@ -132,6 +135,54 @@ lemma Icc_sub (m : ℤ) (hm : 1 ≤ m) : (Finset.Icc (-(m) + 1) (m-1)) ⊆  (Fin
   linarith
 
 
+-- a re-definition in simp-normal form
+lemma square_eq (m : ℤ) :
+  square m = ((Finset.Icc (-m) (m)) ×ˢ (Finset.Icc (-m) (m))).filter fun x => max |x.1| |x.2| = m :=
+  by simp [square]
+
+open Finset
+
+lemma mem_square_aux {m : ℤ} {i} : i ∈ Icc (-m) m ×ˢ Icc (-m) m ↔ max |i.1| |i.2| ≤ m :=
+  by simp [abs_le]
+
+lemma square_disj {n : ℤ} : Disjoint (square (n+1)) (Icc (-n) n ×ˢ Icc (-n) n) := by
+  rw [square_eq]
+  simp only [Finset.disjoint_left, mem_filter, mem_square_aux]
+  intros x y
+  simp_all
+
+-- copied from the nat version, probably it already exists somewhere?
+lemma Int.le_add_one_iff {m n : ℤ} : m ≤ n + 1 ↔ m ≤ n ∨ m = n + 1 :=
+  ⟨fun h =>
+    match eq_or_lt_of_le h with
+    | Or.inl h => Or.inr h
+    | Or.inr h => Or.inl <| Int.lt_add_one_iff.1 h,
+    Or.rec (fun h => le_trans h <| Int.le.intro 1 rfl) le_of_eq⟩
+
+lemma square_union {n : ℤ} :
+    square (n+1) ∪ Icc (-n) n ×ˢ Icc (-n) n = Icc (-(n+1)) (n+1) ×ˢ Icc (-(n+1)) (n+1) := by
+  ext x
+  rw [mem_union, square_eq, mem_filter, mem_square_aux, mem_square_aux,
+    and_iff_right_of_imp le_of_eq, Int.le_add_one_iff, or_comm]
+
+lemma square_disjunion (n : ℤ) :
+  (square (n+1)).disjUnion (Icc (-n) n ×ˢ Icc (-n) n) square_disj =
+    Icc (-(n+1)) (n+1) ×ˢ Icc (-(n+1)) (n+1) :=
+  by rw [disjUnion_eq_union, square_union]
+
+theorem square_size (n : ℕ) : Finset.card (square (n + 1)) = 8 * (n + 1) := by
+  have : (((square (n+1)).disjUnion (Icc (-n : ℤ) n ×ˢ Icc (-n : ℤ) n) square_disj).card : ℤ) =
+    (Icc (-(n+1 : ℤ)) (n+1) ×ˢ Icc (-(n+1 : ℤ)) (n+1)).card
+  · rw [square_disjunion]
+  rw [card_disjUnion, card_product, Nat.cast_add, Nat.cast_mul, card_product, Nat.cast_mul,
+    Int.card_Icc, Int.card_Icc, Int.toNat_sub_of_le, Int.toNat_sub_of_le,
+    ←eq_sub_iff_add_eq] at this
+  · rw [←Nat.cast_inj (R := ℤ), this, Nat.cast_mul, Nat.cast_ofNat, Nat.cast_add_one]
+    ring_nf
+  · linarith
+  · linarith
+
+/-
 theorem square2_card (n : ℕ) (h : 1 ≤ n) : (Finset.card (square2 n) : ℤ) = 8 * n :=
   by
   rw [square2, Finset.card_union_eq, Finset.card_union_eq, Finset.card_union_eq]
@@ -241,7 +292,7 @@ theorem natAbs_inter2 (a : ℤ) (n : ℕ) (h : a.natAbs ≤ n) : a ≤ (n : ℤ)
   rw [← Int.abs_eq_natAbs]
   simp_rw [neg_le_abs_self]
 
-
+-/
 theorem natAbs_le_mem_Icc (a : ℤ) (n : ℕ) (h : Int.natAbs a ≤ n) : a ∈ Finset.Icc (-(n : ℤ)) (n) :=
   by
   simp
@@ -328,7 +379,7 @@ theorem square_mem' (n : ℕ) (x : ℤ × ℤ) :
   rw [c2.1, c2.2]
   simp only [max_self]
 
-
+/-
 theorem auxin (a : ℤ) (n : ℕ) (h : 0 < (n : ℤ) + a) : 1 ≤ (n : ℤ) + a := by assumption
 
 theorem auxin2 (a : ℤ) (n : ℕ) (h : 0 < (n : ℤ) + a) : -(n : ℤ) ≤ a := by linarith
@@ -405,9 +456,10 @@ theorem dog1 (a b : ℤ) (n : ℕ) (h1 : a = -(n : ℤ)) (h2 : 1 ≤ (n : ℤ) +
 
 
 -- example (s t : Set ℤ) (a : ℤ) (ha : a ∈ s) : ( s ⊆ t) →  a ∈ t := by exact fun a_1 => a_1 ha
-
+-/
 theorem square_zero : square (0) = {(0, 0)} := by rfl
 
+/-
 theorem square2_zero : square2 (0) = {(0, 0)} := by rfl
 
 theorem sqr_eq_sqr2 (n : ℕ) : square n = square2 n :=
@@ -499,13 +551,15 @@ theorem sqr_eq_sqr2 (n : ℕ) : square n = square2 n :=
   simp_rw [hn0]
   rfl
 
+-/
 
-
-theorem square_size (n : ℕ) (h : 1 ≤ n) : Finset.card (square n) = 8 * n :=
+theorem square_size' (n : ℕ) (h : 1 ≤ n) : Finset.card (square n) = 8 * n :=
   by
-  rw [sqr_eq_sqr2]
-  have := square2_card n h
-  norm_cast at this 
+  have := square_size (n-1)
+  convert this
+  norm_cast
+  repeat {exact Nat.eq_add_of_sub_eq h rfl}
+
 
 
 theorem Squares_are_disjoint : ∀ i j : ℕ, i ≠ j → Disjoint (square i) (square j) :=
