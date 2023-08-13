@@ -14,7 +14,6 @@ import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.NumberTheory.Modular
 import Mathlib.Order.LocallyFinite
 import Mathlib.Data.Int.Interval
-import Mathlib.Tactic
 import Mathlib.Data.Finset.Basic
 
 
