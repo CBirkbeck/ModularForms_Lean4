@@ -3,11 +3,8 @@ import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
 import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.NumberTheory.ModularForms.Basic
-import Mathlib.Geometry.Manifold.Mfderiv
 import Mathlib.Analysis.Calculus.Deriv.Zpow
-import Mathlib.Tactic.Default
 
-#align_import mod_forms.Eisenstein_Series.Eisenstein_series
 
 universe u v w
 
