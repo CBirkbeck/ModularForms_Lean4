@@ -892,8 +892,7 @@ theorem lowbound (z : ℍ) (δ : ℝ) :
 
 
 theorem auxlem (z : ℍ) (δ : ℝ) :
-    rfunct z ≤ Complex.abs ((z : ℂ) + δ) ∧ rfunct z ≤ Complex.abs (δ * (z : ℂ) + 1) :=
-  by
+    rfunct z ≤ Complex.abs ((z : ℂ) + δ) ∧ rfunct z ≤ Complex.abs (δ * (z : ℂ) + 1) := by
   constructor
   · rw [rfunct]
     rw [Complex.abs]
@@ -931,14 +930,8 @@ theorem auxlem (z : ℍ) (δ : ℝ) :
     simp only [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at H1 
     rw [normSq_apply]
     right
-    simp
-    simp_rw [H1]
-
-/-
-theorem le_of_pow' (a b : ℝ) (k : ℕ) (h : 0 ≤ a) (h2 : 0 ≤ b) (h3 : a ≤ b) : a ^ k ≤ b ^ k :=
-  pow_le_pow_of_le_left h h3 k
--/
-
+    simp at *
+    norm_cast
 
 theorem baux (a : ℝ) (k : ℕ) (b : ℂ) (h : 0 ≤ a) (h2 : a ≤ Complex.abs b) :
     a ^ k ≤ Complex.abs (b ^ k) := by
@@ -947,44 +940,44 @@ theorem baux (a : ℝ) (k : ℕ) (b : ℂ) (h : 0 ≤ a) (h2 : a ≤ Complex.abs
   convert this
   simp only [cpow_nat_cast, map_pow]
 
-theorem baux2 (z : ℍ) (k : ℕ) : Complex.abs (rfunct z ^ k) = rfunct z ^ k :=
-  by
-  norm_cast
-  let a := rfunct z
-  simp
-  have ha : 0 ≤ a := by simp_rw [a]; have := rfunct_pos z; apply le_of_lt this
-  have := Complex.abs_of_nonneg ha
-  norm_cast at this 
-  simp_rw [a] at this 
-  rw [this]
 
-theorem auxlem2 (z : ℍ) (n : ℕ) (x : ℤ × ℤ) (h2 : x ∈ square n) (k : ℕ) :
+theorem baux2 (z : ℍ) (k : ℕ) : Complex.abs (rfunct z ^ k) = rfunct z ^ k := by
+  have ha := (rfunct_pos z).le 
+  have := Complex.abs_of_nonneg ha
+  rw [←this]
+  simp only [abs_ofReal, cpow_nat_cast, map_pow, _root_.abs_abs, Real.rpow_nat_cast]
+
+theorem auxlem2 (z : ℍ) (x : ℤ × ℤ) (k : ℕ) :
     Complex.abs ((rfunct z : ℂ) ^ k) ≤ Complex.abs (((z : ℂ) + (x.2 : ℂ) / (x.1 : ℂ)) ^ k) :=
   by
   norm_cast
   have H1 : Complex.abs (rfunct z ^ k) = rfunct z ^ k := by apply baux2
   norm_cast at H1 
   rw [H1]
-  apply baux
-  have := rfunct_pos z
-  apply le_of_lt this
   have := auxlem z (x.2 / x.1 : ℝ)
   norm_cast at this 
-  apply this.1
+  have HT := baux _ k _ ?_ this.1
+  convert HT
+  norm_cast
+  norm_cast
+  apply (rfunct_pos z).le
 
-theorem auxlem3 (z : ℍ) (n : ℕ) (x : ℤ × ℤ) (h2 : x ∈ square n) (k : ℕ) :
+
+theorem auxlem3 (z : ℍ) (x : ℤ × ℤ) (k : ℕ) :
     Complex.abs ((rfunct z : ℂ) ^ k) ≤ Complex.abs (((x.1 : ℂ) / (x.2 : ℂ) * (z : ℂ) + 1) ^ k) :=
   by
   norm_cast
-  have H1 := baux2 z k
+  have H1 : Complex.abs (rfunct z ^ k) = rfunct z ^ k := by apply baux2
   norm_cast at H1 
   rw [H1]
-  apply baux
-  have := rfunct_pos z
-  apply le_of_lt this
   have := auxlem z (x.1 / x.2 : ℝ)
-  norm_cast at *
-  apply this.2
+  norm_cast at this 
+  have HT := baux _ k _ ?_ this.2
+  simp at *
+  convert HT
+  norm_cast
+  norm_cast
+  apply (rfunct_pos z).le
 
 end EisensteinSeries
-
+ 
