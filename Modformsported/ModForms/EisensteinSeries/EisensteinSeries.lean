@@ -1,4 +1,5 @@
 import Modformsported.ModForms.EisensteinSeries.EisensteinSeriesIndexLemmas
+import Modformsported.ForMathlib.ModForms2
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
 import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
@@ -21,7 +22,7 @@ local notation "SL2Z" => Matrix.SpecialLinearGroup (Fin 2) ℤ
 noncomputable section
 
 local notation "ℍ'" =>
-  (⟨UpperHalfPlane.upperHalfSpace, upper_half_plane_isOpen⟩ : TopologicalSpace.Opens ℂ)
+  (TopologicalSpace.Opens.mk UpperHalfPlane.upperHalfSpace upper_half_plane_isOpen)
 
 /-! ### Eisenstein series -/
 
@@ -60,9 +61,10 @@ end
 
 def Eisenstein_series_of_weight_' (k: ℤ) : C(ℍ, ℂ):=
  ∑' (x : ℤ × ℤ), Eisen k x
--/
+
 theorem eise_is_nonneg (k : ℤ) (z : ℍ) (y : ℤ × ℤ) : 0 ≤ abs (eise k z y) := by
   apply complex.abs.nonneg
+-/
 
 theorem calc_lem (k : ℤ) (a b c d i1 i2 : ℂ) (z : ℍ) (h : c * z + d ≠ 0) :
     ((i1 * ((a * z + b) / (c * z + d)) + i2) ^ k)⁻¹ =
@@ -76,10 +78,10 @@ theorem calc_lem (k : ℤ) (a b c d i1 i2 : ℂ) (z : ℍ) (h : c * z + d ≠ 0)
   rw [h3]
   simp only [div_zpow, inv_div]
   rw [div_eq_inv_mul, mul_comm]
-  have h5 : (c * z + d) ^ k ≠ 0 := by apply zpow_ne_zero _ h
-  apply congr_arg fun b : ℂ => (c * z + d) ^ k * b⁻¹
   ring_nf
+  field_simp
 
+/-
 theorem coe_chain (A : SL2Z) (i j : Fin 2) :
     (A.1 i j : ℂ) = ((A.1 : Matrix (Fin 2) (Fin 2) ℝ) i j : ℂ) :=
   by
@@ -89,22 +91,19 @@ theorem coe_chain (A : SL2Z) (i j : Fin 2) :
   all_goals
     simp [coe_coe]
     norm_cast
-
+-/
 -- How the Eise function changes under the Moebius action
 theorem eise_moeb (k : ℤ) (z : ℍ) (A : SL2Z) (i : ℤ × ℤ) :
-    eise k ((A : Matrix.GLPos (Fin 2) ℝ) • z) i =
+    eise k (A • z) i =
       (A.1 1 0 * z + A.1 1 1) ^ k * eise k z (indEquiv A i) :=
   by
-  rw [Eise]
-  rw [Eise]
-  simp [coeFn_coe_base']
-  dsimp
-  rw [calc_lem]
-  have h1 := coe_chain A
-  simp only [Subtype.val_eq_coe] at h1 
-  rw [h1]
-  rw [h1]
-  rw [← coe_coe]
+  rw [eise]
+  rw [eise]
+  rw [UpperHalfPlane.specialLinearGroup_apply]
+  simp
+  norm_cast
+  have hc := calc_lem k (A 0 0) (A 0 1) (A 1 0) (A 1 1) i.fst i.snd z ?_
+  norm_cast at *
   apply UpperHalfPlane.denom_ne_zero A
 
 def eisensteinIsSlashInv (Γ : Subgroup SL2Z) (k : ℤ) : SlashInvariantForm Γ k
