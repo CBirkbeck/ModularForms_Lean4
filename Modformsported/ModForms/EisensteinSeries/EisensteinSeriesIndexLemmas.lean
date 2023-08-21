@@ -804,6 +804,11 @@ theorem rfunct_pos (z : ℍ) : 0 < rfunct z :=
   norm_cast at *
   apply lb_pos
 
+theorem rfunct_ne_zero (z : ℍ) :  rfunct z ≠ 0 := by 
+  by_contra h
+  have := rfunct_pos z
+  rw [h] at this
+  norm_cast at *
 
 theorem ineq1 (x y d : ℝ) : 0 ≤ d ^ 2 * (x ^ 2 + y ^ 2) ^ 2 + 2 * d * x * (x ^ 2 + y ^ 2) + x ^ 2 :=
   by
