@@ -217,7 +217,7 @@ theorem Eise_on_square_is_bounded (k : ℕ) (z : ℍ) (n : ℕ) (x : ℤ × ℤ)
   apply mul_ne_zero
   norm_cast
   apply pow_ne_zero
-  apply EisensteinSeries.rfunct_ne_zero 
+  apply EisensteinSeries.rfunct_ne_zero  
   norm_cast
   apply pow_ne_zero
   linarith
@@ -696,113 +696,52 @@ theorem rfunct_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfSpaceS
   ring_nf
   rw [inv_le_inv]
   simp
-  stop
-  norm_cast
-  simp
-  apply add_le_add
   apply mul_le_mul
-  have := pow_le_pow_of_le_left h.le hz.2 4
-  norm_cast at *
-  have t2 := abs_even_pow_eq_self (z : ℂ).im 4
-  simp at t2
+  have t2 := abs_even_pow_eq_self (z : ℂ).re 2
+  simp only [TopologicalSpace.Opens.coe_mk, Nat.cast_ofNat, Real.rpow_two, forall_true_left] at t2 
   norm_cast at t2
-  rw [t2] at this
-  exact this
+  rw [←t2]
+  apply pow_le_pow_of_le_left (abs_nonneg _) hz.1 2
   rw [inv_le_inv]
-  
-  stop
-  cases' z.2 with hz hz
-  dsimp at *
-  simp at *
-  fconstructor
-  simp_rw [lb]
-  rw [Real.sqrt_le_sqrt_iff]
-  have h1 : B ^ 2 ≤ Complex.abs z_val_val.im ^ 2 := by norm_cast; nlinarith
-  norm_cast at h1 
-  rw [_root_.sq_abs] at h1 
-  simp [h1]
+  have t2 := abs_even_pow_eq_self (z : ℂ).im 2
+  simp only [TopologicalSpace.Opens.coe_mk, Nat.cast_ofNat, Real.rpow_two, forall_true_left] at t2
+  norm_cast at t2
+  rw [←t2]
+  apply pow_le_pow_of_le_left h.le hz.2 2
+  apply pow_pos
+  norm_cast at *
   nlinarith
-  simp_rw [lb]
-  rw [Real.sqrt_le_sqrt_iff]
-  rw [Real.sqrt_le_sqrt_iff]
-  rw [aux4]
-  rw [aux4]
-  simp
-  rw [inv_le_inv]
-  simp
-  simp_rw [hcoe] at z_val_property 
-  simp at z_val_property 
-  have i1 : ((z_val_val.im ^ 2)⁻¹ : ℝ) ≤ ((B ^ 2)⁻¹ : ℝ) :=
-    by
-    rw [inv_le_inv]
-    have h' : 0 ≤ B := by linarith
-    have z_prop' : 0 ≤ z_val_val.im := by apply zpos.le
-    apply aux6 _ _ h' z_prop'
-    have : z_val_val.im = Complex.abs z_val_val.im := by norm_cast; have := abs_of_pos zpos;
-      exact this.symm
-    norm_cast at this 
-    rw [this]
-    exact z_property_right
-    apply pow_two_pos_of_ne_zero
-    have z_prop2 : 0 < z_val_val.im := by apply zpos
-    linarith
-    apply pow_two_pos_of_ne_zero; linarith
-  have i2 : (z_val_val.re ^ 2 : ℝ) ≤ (A ^ 2 : ℝ) :=
-    by
-    have : Complex.abs z_val_val.re ^ 2 = z_val_val.re ^ 2 :=
-      by
-      norm_cast
-      simp
-    norm_cast at this 
-    rw [← this]
-    have v2 : 0 ≤ Complex.abs z_val_val.re := by apply complex.abs.nonneg
-    norm_cast at v2 
-    have v1 : 0 ≤ A := by apply le_trans v2 z_property_left
-    apply aux6 _ _ v2 v1
-    exact z_property_left
-  ring_nf
-  have i3 := mul_le_mul i1 i2
-  have i4 : 0 ≤ z_val_val.re ^ 2 := by nlinarith
-  have i5 : 0 ≤ (B ^ 2)⁻¹ := by simp; nlinarith
-  have i6 := i3 i4 i5
-  simp_rw [i6]
-  simp
-  apply aux5
-  apply aux5
-  exact h
-  exact z_val_property
-  apply div_nonneg
-  apply Right.add_nonneg
-  have he : Even (4 : ℤ) := by simp
-  have := Even.zpow_nonneg he z_val_val.im
-  apply this
-  simp
+  rw [inv_nonneg]
+  apply pow_two_nonneg
+  apply pow_two_nonneg
   nlinarith
   nlinarith
   apply div_nonneg
-  apply Right.add_nonneg
-  have he : Even (4 : ℤ) := by simp
-  have := Even.zpow_nonneg he z_val_val.im
-  apply this
-  simp only
-  nlinarith
-  nlinarith
+  apply add_nonneg
+  simp
+  norm_cast
+  apply pow_nonneg ?_ 4
+  apply zpos.le
+  simpa using (pow_two_nonneg  ((z : ℂ).re *(z : ℂ).im ))
+  norm_cast
+  apply pow_two_nonneg
 
 theorem rfunctbound (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice A B) :
-    8 / rfunct z ^ k * rZ (k - 1) ≤ 8 / rfunct (lbpoint A B hb) ^ k * rZ (k - 1) :=
+    8 / rfunct (z : ℍ') ^ k * rZ (k - 1) ≤ 8 / rfunct (lbpoint A B hb) ^ k * rZ (k - 1) :=
   by
   have h1 := rfunct_lower_bound_on_slice A B hb z
-  simp only [Subtype.val_eq_coe] at h1 
-  have v1 : 0 ≤ rfunct z := by have := rfunct_pos z; linarith
+  simp only at h1 
   have v2 : 0 ≤ rfunct (lbpoint A B hb) := by have := rfunct_pos (lbpoint A B hb); linarith
   have h2 := pow_le_pow_of_le_left v2 h1 k
   ring_nf
   rw [← inv_le_inv] at h2 
   have h3 : 0 ≤ rZ (k - 1) := by
     have hk : 1 < (k - 1 : ℤ) := by linarith
-    have hkk : 1 < ((k - 1 : ℤ) : ℝ) := by norm_cast; exact hk
+    have hkk : 1 < ((k - 1 : ℤ) : ℝ) := by norm_cast; 
     simp only [Int.cast_ofNat, Int.cast_one, Int.cast_sub] at hkk 
     have := rZ_pos (k - 1) hkk; linarith
+  norm_cast
+  simp only [Int.negSucc_add_ofNat, Int.cast_subNatNat, Nat.cast_one, gt_iff_lt, ge_iff_le]
   nlinarith
   apply pow_pos
   apply rfunct_pos
@@ -810,11 +749,10 @@ theorem rfunctbound (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) (z : upperH
   apply rfunct_pos
 
 theorem rfunctbound' (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice A B) (n : ℕ) :
-    8 / rfunct z ^ k * rie (k - 1) n ≤ 8 / rfunct (lbpoint A B hb) ^ k * rie (k - 1) n :=
+    8 / rfunct (z : ℍ') ^ k * rie (k - 1) n ≤ 8 / rfunct (lbpoint A B hb) ^ k * rie (k - 1) n :=
   by
   have h1 := rfunct_lower_bound_on_slice A B hb z
-  simp only [Subtype.val_eq_coe] at h1 
-  have v1 : 0 ≤ rfunct z := by have := rfunct_pos z; linarith
+  simp only at h1 
   have v2 : 0 ≤ rfunct (lbpoint A B hb) := by have := rfunct_pos (lbpoint A B hb); linarith
   have h2 := pow_le_pow_of_le_left v2 h1 k
   ring_nf
@@ -824,6 +762,8 @@ theorem rfunctbound' (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice
     simp only [one_div, inv_nonneg]
     apply Real.rpow_nonneg_of_nonneg
     simp only [Nat.cast_nonneg]
+  norm_cast
+  simp only [Int.negSucc_add_ofNat, Int.cast_subNatNat, Nat.cast_one, gt_iff_lt, ge_iff_le]
   nlinarith
   apply pow_pos
   apply rfunct_pos
@@ -834,12 +774,12 @@ theorem Real_Eisenstein_bound_unifomly_on_stip (k : ℕ) (h : 3 ≤ k) (A B : �
     (z : upperHalfSpaceSlice A B) :
     realEisensteinSeriesOfWeight_ k z.1 ≤ 8 / rfunct (lbpoint A B hb) ^ k * rZ (k - 1) :=
   by
-  have : 8 / rfunct z ^ k * rZ (k - 1) ≤ 8 / rfunct (lbpoint A B hb) ^ k * rZ (k - 1) := by
+  have : 8 / rfunct (z : ℍ') ^ k * rZ (k - 1) ≤ 8 / rfunct (lbpoint A B hb) ^ k * rZ (k - 1) := by
     apply rfunctbound; exact h
-  apply le_trans (Real_Eisenstein_bound k z h) this
+  apply le_trans (Real_Eisenstein_bound k (z : ℍ') h) this
 
 def eisenSquareSlice (k : ℤ) (A B : ℝ) (n : ℕ) : upperHalfSpaceSlice A B → ℂ := fun x =>
-  eisenSquare k n x
+  eisenSquare k n (x : ℍ')
 
 def eisenParSumSlice (k : ℤ) (A B : ℝ) (n : ℕ) : upperHalfSpaceSlice A B → ℂ := fun z =>
   ∑ x in Finset.range n, eisenSquareSlice k A B x z
@@ -847,11 +787,13 @@ def eisenParSumSlice (k : ℤ) (A B : ℝ) (n : ℕ) : upperHalfSpaceSlice A B �
 instance : Coe ℍ ℍ' :=
   ⟨fun z => ⟨z.1, by simp; cases z; assumption⟩⟩
 
-instance sliceCoe (A B : ℝ) (hb : 0 < B) : Coe (upperHalfSpaceSlice A B) ℍ' :=
+
+instance sliceCoe (A B : ℝ) : CoeOut (upperHalfSpaceSlice A B) ℍ :=
   ⟨fun x : upperHalfSpaceSlice A B => (x : ℍ')⟩
 
+
 def eisensteinSeriesRestrict (k : ℤ) (A B : ℝ) : upperHalfSpaceSlice A B → ℂ := fun x =>
-  eisensteinSeriesOfWeight_ k x
+  eisensteinSeriesOfWeight_ k (x : ℍ')
 
 instance nonemp (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) : Nonempty (upperHalfSpaceSlice A B) :=
   by
@@ -859,68 +801,62 @@ instance nonemp (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) : Nonempty (upperHalfSpa
   rw [← exists_true_iff_nonempty]
   simp
   use z
-  have zim : z.im = B := by rfl
   use hb
-  simp_rw [z]
-  simp_rw [UpperHalfPlane.re, UpperHalfPlane.im]
-  simp
+  simp [upperHalfSpaceSlice]
   constructor
   have := abs_eq_self.2 ha
   rw [this]
   apply le_abs_self
 
-theorem Eisenstein_series_is_sum_eisen_squares_slice (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
+theorem Eisenstein_series_is_sum_eisen_squares_slice (k : ℕ) (h : 3 ≤ k) (A B : ℝ) 
     (z : upperHalfSpaceSlice A B) :
-    eisensteinSeriesRestrict k A B z = ∑' n : ℕ, eisenSquareSlice k A B n z :=
-  by
-  rw [Eisenstein_series_restrict]; simp_rw [Eisen_square_slice]
+    eisensteinSeriesRestrict k A B z = ∑' n : ℕ, eisenSquareSlice k A B n z := by
+  rw [eisensteinSeriesRestrict]; simp_rw [eisenSquareSlice]
   have HI := Squares_cover_all
-  let g := fun y : ℤ × ℤ => (Eise k z) y
-  have hgsumm : Summable g := by simp_rw [g]; apply Eisenstein_series_is_summable k z h
-  have index_lem := tsum_lemma' g Square HI hgsumm
-  simp_rw [g] at index_lem 
+  let g := fun y : ℤ × ℤ => (eise k z) y
+  have hgsumm : Summable g := by apply Eisenstein_series_is_summable k z h
+  have index_lem := tsum_lemma g (fun (n : ℕ) => square n) HI hgsumm
   exact index_lem
 
 theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :
     TendstoUniformly (eisenParSumSlice k A B) (eisensteinSeriesRestrict k A B) Filter.atTop :=
   by
   let M : ℕ → ℝ := fun x => 8 / rfunct (lbpoint A B hb) ^ k * rie (k - 1) x
-  have := M_test_uniform _ (Eisen_square_slice k A B) M
-  simp_rw [← Eisenstein_series_is_sum_eisen_squares_slice k h A B hb _] at this 
+  have := M_test_uniform ?_ (eisenSquareSlice k A B) M
+  simp_rw [← Eisenstein_series_is_sum_eisen_squares_slice k h A B  _] at this 
   apply this
-  simp_rw [Eisen_square_slice]
-  simp_rw [eisen_square]
-  simp_rw [M]
-  simp_rw [Eise]
+  simp_rw [eisenSquareSlice]
+  simp_rw [eisenSquare]
+  simp_rw [eise]
   intro n a
   have SC := SmallClaim k a h n
-  rw [real_Eise] at SC 
+  simp_rw [realEise] at SC 
   simp at SC 
   simp
   have ineq1 :
-    Complex.abs (∑ x : ℤ × ℤ in Square n, ((↑x.fst * ↑↑a + ↑x.snd) ^ k)⁻¹) ≤
-      ∑ x : ℤ × ℤ in Square n, (Complex.abs ((↑x.fst * ↑↑a + ↑x.snd) ^ k))⁻¹ :=
+    Complex.abs (∑ x : ℤ × ℤ in square n, ((↑x.fst * ↑↑a + ↑x.snd) ^ k)⁻¹) ≤
+      ∑ x : ℤ × ℤ in square n, (Complex.abs ((↑x.fst * ↑↑a + ↑x.snd) ^ k))⁻¹ :=
     by
     simp
-    have := complex_abs_sum_le (Square n) fun x : ℤ × ℤ => (((x.1 : ℂ) * (a : ℂ) + (x.2 : ℂ)) ^ k)⁻¹
+    have := complex_abs_sum_le (square n) fun x : ℤ × ℤ => (((x.1 : ℂ) * (a : ℂ) + (x.2 : ℂ)) ^ k)⁻¹
     simp at this 
     exact this
   simp at *
   have SC2 := le_trans ineq1 SC
   have rb := rfunctbound' k A B hb a n
+  norm_cast at *
   apply le_trans SC2 rb
-  infer_instance
-  infer_instance
-  simp_rw [M]
   have hk : 1 < (k - 1 : ℤ) := by linarith
   have nze : (8 / rfunct (lbpoint A B hb) ^ k : ℝ) ≠ 0 :=
     by
-    apply div_ne_zero; simp; apply pow_ne_zero
+    apply div_ne_zero
+    simp
+    norm_cast
+    apply pow_ne_zero
     simp; by_contra HR
     have := rfunct_pos (lbpoint A B hb)
     rw [HR] at this 
     simp at this 
-    exact this
   have riesum := int_RZ_is_summmable (k - 1) hk
   rw [← (summable_mul_left_iff nze).symm]
   simp at riesum 
@@ -935,26 +871,41 @@ def ein (a b k : ℤ) : ℂ → ℂ := fun x => (a * x + b) ^ k
 
 theorem com (a b k : ℤ) : ein a b k = powfun k ∘ trans a b := by rfl
 
-theorem d1 (k : ℤ) (x : ℂ) : deriv (fun x => x ^ k) x = k * x ^ (k - 1) := by simp
+theorem d1 (k : ℤ) (x : ℂ) : deriv (fun x => x ^ k) x = k * x ^ (k - 1) := by 
+  norm_cast
+  simp
+
+theorem d_trans (a b : ℤ) (x : ℂ) : deriv (trans a b) x = a := by 
+  simp [trans]
+  norm_cast
+  rw [deriv_const_mul]
+  simp
+  apply differentiable_id.differentiableAt
+
+
 
 theorem d2 (a b k : ℤ) (x : ℂ) (h : (a : ℂ) * x + b ≠ 0) :
     deriv (ein a b k) x = k * a * (a * x + b) ^ (k - 1) :=
   by
   rw [com]
   rw [deriv.comp]
-  rw [powfun]
-  rw [trans]
-  simp
+  simp_rw [powfun]
+  norm_cast
+  rw [d_trans]
+  simp [trans]
   ring
-  rw [powfun]
-  rw [trans]; simp; simp_rw [differentiableAt_zpow]
+  simp_rw [powfun]
+  simp [trans]
+  rw [differentiableAt_zpow]
   simp [h]
-  rw [trans]
-  simp only [differentiableAt_const, differentiableAt_add_const_iff, differentiableAt_id',
-    DifferentiableAt.mul]
+  simp [trans]
+  rw [differentiableAt_add_const_iff]
+  apply DifferentiableAt.const_mul
+  apply differentiable_id.differentiableAt
 
 theorem aux8 (a b k : ℤ) (x : ℂ) : (((a : ℂ) * x + b) ^ k)⁻¹ = ((a : ℂ) * x + b) ^ (-k) := by
-  refine' (zpow_neg _ k).symm
+  have := (zpow_neg ((a : ℂ) * x + b) k).symm
+  norm_cast at *
 
 theorem dd2 (a b k : ℤ) (x : ℂ) (h : (a : ℂ) * x + b ≠ 0) :
     HasDerivAt (ein a b k) (k * (a * x + b) ^ (k - 1) * a : ℂ) x :=
