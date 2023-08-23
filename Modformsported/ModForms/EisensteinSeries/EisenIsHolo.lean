@@ -1,19 +1,16 @@
-import Project.ModForms.EisensteinSeries.EisensteinSeries
-import Project.ForMathlib.UnformLimitsOfHolomorphic
-import Project.ForMathlib.ModForms2
-import Mathbin.Geometry.Manifold.Mfderiv
-
-#align_import mod_forms.Eisenstein_Series.Eisen_is_holo
-
+import Modformsported.ModForms.EisensteinSeries.EisensteinSeries 
+import Modformsported.ForMathlib.UnformLimitsOfHolomorphic
+import Mathlib.Geometry.Manifold.MFDeriv
+import Mathlib.Analysis.Complex.LocallyUniformLimit 
+  
 universe u v w
 
 open Complex UpperHalfPlane
 
 open scoped BigOperators NNReal Classical Filter
 
-local notation "ℍ" => UpperHalfPlane
-
-local notation "ℍ'" => (⟨UpperHalfPlane.upperHalfSpace, upper_half_plane_isOpen⟩ : OpenSubs)
+local notation "ℍ'" =>
+  (TopologicalSpace.Opens.mk UpperHalfPlane.upperHalfSpace upper_half_plane_isOpen)
 
 local notation "SL2Z" => Matrix.SpecialLinearGroup (Fin 2) ℤ
 
@@ -28,16 +25,16 @@ theorem eisenSquare_diff_on (k : ℤ) (hkn : k ≠ 0) (n : ℕ) :
   by
   rw [← isHolomorphicOn_iff_differentiableOn]
   have h1 :
-    (extendByZero fun z : ℍ' => eisen_square k n z) = fun x : ℂ =>
-      ∑ y in Square n, (extendByZero fun z : ℍ' => Eise k z y) x :=
+    (extendByZero fun z : ℍ' => eisenSquare k n z) = fun x : ℂ =>
+      ∑ y in square n, (extendByZero fun z : ℍ' => eise k z y) x :=
     by
-    simp_rw [eisen_square]
+    simp_rw [eisenSquare]
     funext z
     simp only [extendByZero, Finset.sum_dite_irrel, Finset.sum_const_zero]
   simp only [Ne.def] at *
   rw [h1]
   apply DifferentiableOn.sum
-  intro i hi
+  intro i _
   apply Eise'_has_diff_within_at k i hkn
 
 def eisenSquare' (k : ℤ) (n : ℕ) : ℍ' → ℂ := fun z : ℍ' => ∑ x in Finset.range n, eisenSquare k x z
@@ -46,14 +43,14 @@ theorem eisenSquare'_diff_on (k : ℤ) (hkn : k ≠ 0) (n : ℕ) : IsHolomorphic
   by
   rw [← isHolomorphicOn_iff_differentiableOn]
   have h1 :
-    extendByZero (eisen_square' k n) = fun x : ℂ =>
-      ∑ y in Finset.range n, (extendByZero fun z : ℍ' => eisen_square k y z) x :=
+    extendByZero (eisenSquare' k n) = fun x : ℂ =>
+      ∑ y in Finset.range n, (extendByZero fun z : ℍ' => eisenSquare k y z) x :=
     by
-    simp_rw [eisen_square']
+    simp_rw [eisenSquare']
     simp only [extendByZero, Finset.sum_dite_irrel, Finset.sum_const_zero]
   rw [h1]
   apply DifferentiableOn.sum
-  exact fun i hi => (isHolomorphicOn_iff_differentiableOn _ _).mpr (eisen_square_diff_on k hkn i)
+  exact fun i _ => (isHolomorphicOn_iff_differentiableOn _ _).mpr (eisenSquare_diff_on k hkn i)
 
 variable (A B : ℝ)
 
@@ -66,38 +63,39 @@ theorem Eisen_partial_tends_to_uniformly_on_ball (k : ℕ) (h : 3 ≤ k) (z : �
               TendstoUniformlyOn (eisenSquare' k) (eisensteinSeriesOfWeight_ k) Filter.atTop
                 (Metric.closedBall z ε) :=
   by
-  have h1 := closed_ball_in_slice z
+  have h1 := closedBall_in_slice z
   obtain ⟨A, B, ε, hε, hB, hball, hA, hεB⟩ := h1
   use A
   use B
   use ε
   simp only [hε, hB, hball, hεB, true_and_iff]
-  have hz : z ∈ upper_half_space_slice A B := by apply hball; simp [hε.le]
+  have hz : z ∈ upperHalfSpaceSlice A B := by apply hball; simp [hε.le]
   have hu := Eisen_partial_tends_to_uniformly k h A B hA hB
   have hu2 :
-    TendstoUniformlyOn (Eisen_par_sum_slice k A B) (Eisenstein_series_restrict k A B) Filter.atTop
+    TendstoUniformlyOn (eisenParSumSlice k A B) (eisensteinSeriesRestrict k A B) Filter.atTop
       (Metric.closedBall ⟨z, hz⟩ ε) :=
-    by apply hu.tendsto_uniformly_on
+    by apply hu.tendstoUniformlyOn
   clear hu
-  simp_rw [Eisenstein_series_restrict] at *
+  simp_rw [eisensteinSeriesRestrict] at *
   simp_rw [Metric.tendstoUniformlyOn_iff] at *
-  simp_rw [Eisen_par_sum_slice] at *
-  simp_rw [Eisen_square_slice] at *
-  simp_rw [eisen_square']
-  simp only [Filter.eventually_atTop, abs_of_real, gt_iff_lt, ge_iff_le, instNonempty,
+  simp_rw [eisenParSumSlice] at *
+  simp_rw [eisenSquareSlice] at *
+  simp_rw [eisenSquare']
+  simp  [Filter.eventually_atTop, gt_iff_lt, ge_iff_le, instNonempty,
     Metric.mem_closedBall, Subtype.forall, SetCoe.forall, UpperHalfPlane.coe_im, Subtype.coe_mk,
-    Subtype.val_eq_coe, coe_coe, UpperHalfPlane.coe_re] at *
+      UpperHalfPlane.coe_re] at *
   intro δ hδ
   have hu3 := hu2 δ hδ
   clear hu2
   obtain ⟨a, ha⟩ := hu3
   use a
-  intro b hb x hx
-  have hxx : x ∈ upper_half_space_slice A B := by apply hball; simp only [hx, Metric.mem_closedBall]
-  have hxu := UpperHalfPlane.im_pos x
-  have ha2 := ha b hb x hxx
+  intro b hb x hx hxx
+  have ha2 := ha b hb x ?_
   apply ha2
-  apply hx
+  exact hxx
+  apply hball
+  simp only [hxx, Metric.mem_closedBall]
+
 
 theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℕ) (h : 3 ≤ k) (z : ℍ') :
     ∃ A B ε : ℝ,
@@ -120,16 +118,23 @@ theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℕ) (h : 3 ≤ k) (z : �
   simp only [Filter.eventually_atTop, gt_iff_lt, ge_iff_le, Metric.mem_closedBall] at *
   obtain ⟨a, ha⟩ := h2
   use a
-  have Hba := ball_in_upper_half z A B ε hB hε hεB hball
+  have Hba := ball_in_upper_half z A B ε hε hεB hball
   intro b hb x hx
   have hxx : x ∈ ℍ'.1 := by apply Hba; simp [hx]
-  have hf := ext_by_zero_apply ℍ' (Eisenstein_series_of_weight_ k) ⟨x, hxx⟩
-  let F : ℕ → ℍ' → ℂ := fun n => eisen_square' k n
+  have hf := ext_by_zero_apply ℍ' (eisensteinSeriesOfWeight_ k) ⟨x, hxx⟩
+  let F : ℕ → ℍ' → ℂ := fun n => eisenSquare' k n
   have hFb := ext_by_zero_apply ℍ' (F b) ⟨x, hxx⟩
-  simp only [Subtype.coe_mk, Subtype.val_eq_coe] at *
+  simp  at *
   rw [hf]
   rw [hFb]
-  apply ha b hb ⟨x, hxx⟩ hx
+  apply ha b hb x hxx hx
+
+
+lemma eisenSquare_tendstolocunif (k : ℕ) (h : 3 ≤ k):
+  TendstoLocallyUniformly (eisenSquare' k) (eisensteinSeriesOfWeight_ k) Filter.atTop := by
+   
+ 
+
 
 /-- The extension of a function from `ℍ` to `ℍ'`-/
 def holExtn (f : ℍ → ℂ) : ℍ' → ℂ := fun z : ℍ' => f (z : ℍ)
@@ -139,6 +144,28 @@ local notation "↑ₕ" => holExtn
 instance : Coe (ℍ → ℂ) (ℍ' → ℂ) :=
   ⟨fun f => holExtn f⟩
 
+open scoped Manifold
+
+lemma tsum_circ {ι : Type} (f : ι → ℍ → ℂ) : 
+  (fun (z : ℍ) => ∑' (i : ι), f i z) ∘ ⇑(chartAt ℂ z).symm = 
+    ∑' (i : ι), (f i  ∘ ⇑(chartAt ℂ z).symm) := by
+  ext1
+  simp only [OpenEmbedding.toLocalHomeomorph_source, LocalHomeomorph.singletonChartedSpace_chartAt_eq,
+    Function.comp_apply]
+  norm_cast
+  sorry
+
+
+theorem Eisenstein_is_mdiff (k : ℕ) (hk : 3 ≤ k) :
+    MDifferentiable 𝓘(ℂ) 𝓘(ℂ) (eisensteinSeriesOfWeight_ k) :=
+  by
+  rw [mdiff_iff_diffOn]
+  simp_rw [eisensteinSeriesOfWeight_ ]
+  
+
+  stop
+
+
 theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
     IsHolomorphicOn (↑ₕ (eisensteinSeriesOfWeight_ k)) :=
   by
@@ -146,10 +173,10 @@ theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
   apply diff_on_diff
   intro x
   have H := Eisen_partial_tends_to_uniformly_on_ball' k hk x
-  obtain ⟨A, B, ε, hε, hball, hB, hεB, hunif⟩ := H
+  obtain ⟨A, B, ε, hε, hball, _, hεB, hunif⟩ := H
   use ε
   have hball2 : Metric.closedBall (↑x) ε ⊆ ℍ'.1 := by
-    apply ball_in_upper_half x A B ε hB hε hεB hball
+    apply ball_in_upper_half x A B ε  hε hεB hball
   constructor
   apply hε
   constructor
@@ -157,17 +184,16 @@ theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
   have hwa : w ∈ ℍ'.1 := by apply hball2; simp; simp at hw ; apply le_trans hw.le; field_simp
   apply hwa
   have hkn : (k : ℤ) ≠ 0 := by norm_cast; linarith
-  let F : ℕ → ℂ → ℂ := fun n => extendByZero (eisen_square' k n)
+  let F : ℕ → ℂ → ℂ := fun n => extendByZero (eisenSquare' k n)
   have hdiff : ∀ n : ℕ, DifferentiableOn ℂ (F n) (Metric.closedBall x ε) :=
     by
     intro n
-    have := eisen_square'_diff_on k hkn n
+    have := eisenSquare'_diff_on k hkn n
     rw [← isHolomorphicOn_iff_differentiableOn] at this 
-    simp_rw [F]
     apply this.mono
     apply hball2
   apply
-    uniform_of_diff_circle_int_is_diff F (extendByZero (Eisenstein_series_of_weight_ k)) x hε hdiff
+    uniform_of_diff_circle_int_is_diff F (extendByZero (eisensteinSeriesOfWeight_ k)) x hε hdiff
       hunif
 
 theorem Eisenstein_is_holomorphic (k : ℤ) (hk : 3 ≤ k) :
@@ -362,95 +388,6 @@ theorem Eisenstein_is_bounded (k : ℤ) (hk : 3 ≤ k) :
   convert this
   apply hn.symm
 
-variable (f : ℍ' → ℂ)
-
-open scoped Classical Topology Manifold
-
-instance : Inhabited ℍ' := by
-  let x := (⟨Complex.I, by simp⟩ : ℍ)
-  apply Inhabited.mk x
-
-theorem ext_chart (z : ℍ') : (extendByZero f) z = (f ∘ ⇑(chartAt ℂ z).symm) z :=
-  by
-  simp_rw [chart_at]
-  simp_rw [extendByZero]
-  simp
-  have := (LocalHomeomorph.subtypeRestr_coe (LocalHomeomorph.refl ℂ) ℍ').symm
-  congr
-  simp_rw [LocalHomeomorph.subtypeRestr]
-  simp
-  have hf := TopologicalSpace.Opens.localHomeomorphSubtypeCoe_coe ℍ'
-  simp_rw [← hf]
-  apply symm
-  apply LocalHomeomorph.left_inv
-  simp only [TopologicalSpace.Opens.localHomeomorphSubtypeCoe_source]
-
-theorem holo_to_mdiff (f : ℍ' → ℂ) (hf : IsHolomorphicOn f) : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f :=
-  by
-  rw [← isHolomorphicOn_iff_differentiableOn] at hf 
-  simp_rw [MDifferentiable]
-  simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps]
-  intro x
-  constructor
-  have hc := hf.continuous_on
-  simp at hc 
-  rw [continuousOn_iff_continuous_restrict] at hc 
-  have hcc := hc.continuous_at
-  convert hcc
-  funext y
-  simp_rw [extendByZero]
-  simp_rw [Set.restrict]
-  simp [y.2]
-  rw [← dite_eq_ite]
-  rw [dif_pos]
-  apply y.2
-  have hfx := hf x x.2
-  have hH : ℍ'.1 ∈ 𝓝 ((chart_at ℂ x) x) :=
-    by
-    simp_rw [Metric.mem_nhds_iff]; simp
-    simp_rw [chart_at]; simp; have := upper_half_plane_isOpen; rw [Metric.isOpen_iff] at this 
-    have ht := this x.1 x.2; simp at ht ; exact ht
-  apply DifferentiableOn.differentiableAt _ hH
-  apply DifferentiableOn.congr hf
-  intro y hy
-  have HH := ext_chart f (⟨y, hy⟩ : ℍ')
-  simp at HH 
-  simp only [Function.comp_apply]
-  simp_rw [HH]
-  congr
-
-theorem mdiff_to_holo (f : ℍ' → ℂ) (hf : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f) : IsHolomorphicOn f :=
-  by
-  rw [← isHolomorphicOn_iff_differentiableOn]
-  simp_rw [MDifferentiable] at hf 
-  simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps] at hf 
-  simp_rw [DifferentiableOn]
-  intro x hx
-  have hff := (hf ⟨x, hx⟩).2
-  apply DifferentiableAt.differentiableWithinAt
-  simp_rw [DifferentiableAt] at *
-  obtain ⟨g, hg⟩ := hff
-  refine' ⟨g, _⟩
-  apply HasFDerivAt.congr_of_eventuallyEq hg
-  simp_rw [Filter.eventuallyEq_iff_exists_mem]
-  refine' ⟨ℍ', _⟩
-  constructor
-  simp_rw [Metric.mem_nhds_iff]; simp
-  simp_rw [chart_at]; simp
-  have := upper_half_plane_isOpen
-  rw [Metric.isOpen_iff] at this 
-  have ht := this x hx
-  simp at ht 
-  exact ht
-  simp_rw [Set.EqOn]
-  intro y hy
-  apply ext_chart f (⟨y, hy⟩ : ℍ')
-
-theorem mdiff_iff_holo (f : ℍ' → ℂ) : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f ↔ IsHolomorphicOn f :=
-  by
-  constructor
-  apply mdiff_to_holo f
-  apply holo_to_mdiff f
 
 example (k : ℤ) (hk : 0 ≤ k) : ∃ n : ℕ, (n : ℤ) = k :=
   CanLift.prf k hk

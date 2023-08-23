@@ -1,17 +1,16 @@
-import Modformsported.ModForms.EisensteinSeries.EisensteinSeriesIndexLemmas
+import Modformsported.ModForms.EisensteinSeries.EisensteinSeriesIndexLemmas 
 import Modformsported.ForMathlib.ModForms2
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
 import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.NumberTheory.ModularForms.Basic
-import Mathlib.Analysis.Calculus.Deriv.Zpow
-
+import Mathlib.Analysis.Calculus.Deriv.ZPow 
 
 universe u v w
 
 open Complex
 
-open scoped BigOperators NNReal Classical Filter UpperHalfPlane
+open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold
 
 open ModularForm
 
@@ -142,6 +141,29 @@ theorem linear_ne_zero' (c d : ℤ) (z : ℍ) (h : c ≠ 0) : (c : ℂ) * z + d 
   simp at *
   exact this
   simp [h]
+
+
+theorem linear_ne_zero'' (c d : ℤ) (z : ℍ) (h : d ≠ 0) : (c : ℂ) * z + d  ≠ 0 := by 
+  have := UpperHalfPlane.linear_ne_zero  ![c, d] z ?_
+  simp at *
+  exact this
+  simp [h]
+
+
+theorem linear_eq_zero_iff (c d : ℤ) (z : ℍ): (c : ℂ) * z + d  = 0  ↔ c = 0 ∧ d = 0:= by 
+  constructor
+  intro h
+  by_contra hc
+  simp at hc
+  have := linear_ne_zero'' c d z
+  by_cases hcc : c = 0
+  have H := this (hc hcc)
+  norm_cast at *
+  have := linear_ne_zero' c d z hcc
+  norm_cast
+  intro h
+  rw [h.1,h.2]
+  simp
 
 
 lemma Complex_abs_square_left_zero (n : ℕ) (x : ℤ × ℤ) (h : x ∈ square n) (hx : Complex.abs (x.1) ≠ n): 
@@ -912,12 +934,13 @@ theorem dd2 (a b k : ℤ) (x : ℂ) (h : (a : ℂ) * x + b ≠ 0) :
   by
   rw [com]
   apply HasDerivAt.comp
-  rw [powfun]
-  rw [trans]
+  simp_rw [powfun]
+  simp_rw [trans]
   simp
-  apply hasDerivAt_zpow
+  have := hasDerivAt_zpow k ((a : ℂ) * x + b ) ?_
+  norm_cast at *
   simp [h]
-  rw [trans]
+  simp_rw [trans]
   apply HasDerivAt.add_const
   have := HasDerivAt.const_mul (a : ℂ) (hasDerivAt_id x)
   simp at *
@@ -926,29 +949,212 @@ theorem dd2 (a b k : ℤ) (x : ℂ) (h : (a : ℂ) * x + b ≠ 0) :
 theorem H_member (z : ℂ) : z ∈ UpperHalfPlane.upperHalfSpace ↔ 0 < z.im :=
   Iff.rfl
 
-theorem Eise'_has_deriv_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
-    IsHolomorphicOn fun z : ℍ' => eise k z y :=
+variable (f : ℍ' → ℂ)
+
+open scoped Topology Manifold
+
+instance : Inhabited ℍ' := by
+  let x := (⟨Complex.I, by simp⟩ : ℍ)
+  apply Inhabited.mk x 
+
+theorem ext_chart' (z : ℍ) : (extendByZero f) z = (f ∘ ⇑(chartAt ℂ z).symm) z :=
   by
+  simp_rw [chartAt]
+  simp [TopologicalSpace.Opens.coe_mk, Subtype.coe_prop, Subtype.coe_eta, dite_eq_ite, ite_true,
+    Function.comp_apply]
+  congr
+  have H : (extendByZero f) z = f z := by 
+    apply ext_by_zero_apply
+  rw [H]
+  apply symm
+  congr
+  apply LocalHomeomorph.left_inv
+  simp  [TopologicalSpace.Opens.localHomeomorphSubtypeCoe_source]
+  norm_cast  
+
+theorem ext_chart'' (g : ℍ → ℂ) (z : ℍ) : (extendByZero g) z = (g ∘ ⇑(chartAt ℂ z).symm) z :=
+  by
+  simp_rw [chartAt]
+  simp [TopologicalSpace.Opens.coe_mk, Subtype.coe_prop, Subtype.coe_eta, dite_eq_ite, ite_true,
+    Function.comp_apply]
+  congr
+  have H : (extendByZero g) z = g z := by 
+    simp_rw [extendByZero]
+    exact dif_pos z.property
+  rw [H]
+  apply symm
+  congr
+  apply LocalHomeomorph.left_inv
+  simp  [TopologicalSpace.Opens.localHomeomorphSubtypeCoe_source]
+
+
+theorem ext_chart (z : ℍ') : (extendByZero f) z = (f ∘ ⇑(chartAt ℂ z).symm) z :=
+  by
+  simp_rw [chartAt]
+  simp_rw [extendByZero]
+  simp only [TopologicalSpace.Opens.coe_mk, Subtype.coe_prop, Subtype.coe_eta, dite_eq_ite, ite_true,
+    Function.comp_apply]
+  congr
+  apply symm
+  apply LocalHomeomorph.left_inv
+  simp  [TopologicalSpace.Opens.localHomeomorphSubtypeCoe_source]
+
+theorem diff_to_mdiff (f : ℍ → ℂ) (hf : DifferentiableOn ℂ (f ∘ ⇑(chartAt ℂ z).symm) ℍ') : 
+  MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f := by
+  simp_rw [MDifferentiable]
+  simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps]
+  intro x
+  constructor
+  have hc := hf.continuousOn
+  simp at hc 
+  rw [continuousOn_iff_continuous_restrict] at hc 
+  convert hc.continuousAt
+  funext y
+  simp_rw [Set.restrict]
+  simp  [Subtype.coe_prop, Subtype.coe_eta, dite_eq_ite, ite_true]
+  congr
+  apply symm
+  apply LocalHomeomorph.left_inv
+  simp
+  have hH : ℍ'.1 ∈ 𝓝 ((chartAt ℂ x) x) :=
+    by
+    simp_rw [Metric.mem_nhds_iff]; simp
+    simp_rw [chartAt]; simp; have := upper_half_plane_isOpen; rw [Metric.isOpen_iff] at this 
+    have ht := this x.1 x.2; simp at ht ; exact ht
+  apply DifferentiableOn.differentiableAt _ hH
+  apply DifferentiableOn.congr hf
+  intro z hz
+  have HH := ext_chart f (⟨z, hz⟩ : ℍ')
+  simp at HH 
+  simp only [Function.comp_apply]
+  simp_rw [HH] 
+  norm_cast
+
+
+
+theorem holo_to_mdiff (f : ℍ' → ℂ) (hf : IsHolomorphicOn f) : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f :=
+  by
+  rw [← isHolomorphicOn_iff_differentiableOn] at hf 
+  simp_rw [MDifferentiable]
+  simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps]
+  intro x
+  constructor
+  have hc := hf.continuousOn
+  simp at hc 
+  rw [continuousOn_iff_continuous_restrict] at hc 
+  convert hc.continuousAt
+  funext y
+  simp_rw [extendByZero]
+  simp_rw [Set.restrict]
+  simp only [Subtype.coe_prop, Subtype.coe_eta, dite_eq_ite, ite_true]
+  have hH : ℍ'.1 ∈ 𝓝 ((chartAt ℂ x) x) :=
+    by
+    simp_rw [Metric.mem_nhds_iff]; simp
+    simp_rw [chartAt]; simp; have := upper_half_plane_isOpen; rw [Metric.isOpen_iff] at this 
+    have ht := this x.1 x.2; simp at ht ; exact ht
+  apply DifferentiableOn.differentiableAt _ hH
+  apply DifferentiableOn.congr hf
+  intro z hz
+  have HH := ext_chart f (⟨z, hz⟩ : ℍ')
+  simp at HH 
+  simp only [Function.comp_apply]
+  simp_rw [HH] 
+  norm_cast
+
+theorem mdiff_to_diff (f : ℍ → ℂ) (hf : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f) : 
+  DifferentiableOn ℂ (f ∘ ⇑(chartAt ℂ z).symm) ℍ' := by
+  simp_rw [MDifferentiable] at hf 
+  simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps] at hf 
+  simp_rw [DifferentiableOn]
+  intro x hx
+  have hff := (hf ⟨x, hx⟩).2
+  apply DifferentiableAt.differentiableWithinAt
+  simp_rw [DifferentiableAt] at *
+  obtain ⟨g, hg⟩ := hff
+  refine' ⟨g, _⟩
+  apply HasFDerivAt.congr_of_eventuallyEq hg
+  simp_rw [Filter.eventuallyEq_iff_exists_mem]
+  refine' ⟨ℍ', _⟩
+  constructor
+  simp_rw [Metric.mem_nhds_iff]; simp
+  simp_rw [chartAt]; simp
+  have := upper_half_plane_isOpen
+  rw [Metric.isOpen_iff] at this 
+  have ht := this x hx
+  simp at ht 
+  exact ht
+  simp_rw [Set.EqOn]
+  intro y _
+  simp only [OpenEmbedding.toLocalHomeomorph_source, LocalHomeomorph.singletonChartedSpace_chartAt_eq,
+    Function.comp_apply]
+
+theorem mdiff_to_holo (f : ℍ' → ℂ) (hf : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f) : IsHolomorphicOn f :=
+  by
+  rw [← isHolomorphicOn_iff_differentiableOn]
+  simp_rw [MDifferentiable] at hf 
+  simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps] at hf 
+  simp_rw [DifferentiableOn]
+  intro x hx
+  have hff := (hf ⟨x, hx⟩).2
+  apply DifferentiableAt.differentiableWithinAt
+  simp_rw [DifferentiableAt] at *
+  obtain ⟨g, hg⟩ := hff
+  refine' ⟨g, _⟩
+  apply HasFDerivAt.congr_of_eventuallyEq hg
+  simp_rw [Filter.eventuallyEq_iff_exists_mem]
+  refine' ⟨ℍ', _⟩
+  constructor
+  simp_rw [Metric.mem_nhds_iff]; simp
+  simp_rw [chartAt]; simp
+  have := upper_half_plane_isOpen
+  rw [Metric.isOpen_iff] at this 
+  have ht := this x hx
+  simp at ht 
+  exact ht
+  simp_rw [Set.EqOn]
+  intro y hy
+  apply ext_chart f (⟨y, hy⟩ : ℍ')
+
+theorem mdiff_iff_holo (f : ℍ' → ℂ) : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f ↔ IsHolomorphicOn f :=
+  by
+  constructor
+  apply mdiff_to_holo f
+  apply holo_to_mdiff f
+
+theorem mdiff_iff_diffOn (f : ℍ → ℂ) : 
+  MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f ↔ DifferentiableOn ℂ (f ∘ ⇑(chartAt ℂ z).symm) ℍ' := by
+  constructor
+  apply mdiff_to_diff f
+  apply diff_to_mdiff f  
+
+/-
+theorem mdifferentiable_eise (k : ℤ) (y : ℤ × ℤ) (hkn: k ≠ 0) : 
+  MDifferentiable 𝓘(ℂ) 𝓘(ℂ) (fun z : ℍ => eise k z y) := by
+  simp_rw [eise]
+  stop
+-/
+
+theorem Eise'_has_deriv_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
+    IsHolomorphicOn fun z : ℍ' => eise k z y := by
   rw [IsHolomorphicOn]
   intro z
   by_cases hy : (y.1 : ℂ) * z.1 + y.2 ≠ 0
-  simp_rw [Eise]; ring_nf
+  simp_rw [eise]; ring_nf
   have := aux8 y.1 y.2 k z.1
-  simp only [Subtype.val_eq_coe] at this 
+  
   have nz : (y.1 : ℂ) * z.1 + y.2 ≠ 0 := by apply hy
   have hdd := dd2 y.1 y.2 (-k) z nz
-  rw [ein] at hdd 
-  have H' := HasDerivAt.hasDerivWithinAt hdd
+  simp_rw [ein] at hdd 
   have H :
     HasDerivWithinAt (fun x : ℂ => (↑y.fst * x + ↑y.snd) ^ (-k))
-      (↑(-k) * (↑y.fst * ↑z + ↑y.snd) ^ (-k - 1) * ↑y.fst) UpperHalfPlane.upperHalfSpace ↑z :=
-    by apply H'
+      (↑(-k) * (↑y.fst * ↑z + ↑y.snd) ^ (-k - 1) * ↑y.fst) UpperHalfPlane.upperHalfSpace ↑z := by 
+      simpa using (HasDerivAt.hasDerivWithinAt hdd)
   simp at H 
   let fx := (-k * ((y.1 : ℂ) * z.1 + y.2) ^ (-k - 1) * y.1 : ℂ)
   refine' ⟨fx, _⟩
   rw [hasDerivWithinAt_iff_tendsto] at *
-  simp [zpow_neg, Algebra.id.smul_eq_mul, eq_self_iff_true, Ne.def, Int.cast_neg,
-    Subtype.val_eq_coe, norm_eq_abs, sub_neg_eq_add] at *
+  simp [zpow_neg, Algebra.id.smul_eq_mul, eq_self_iff_true, Ne.def, Int.cast_neg, 
+    norm_eq_abs, sub_neg_eq_add] at *
   rw [Metric.tendsto_nhdsWithin_nhds] at *
   intro ε hε
   have HH := H ε hε
@@ -957,35 +1163,18 @@ theorem Eise'_has_deriv_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
   intro x hx hd
   dsimp at *
   simp_rw [extendByZero]
-  simp only [dite_eq_ite, if_true, Subtype.coe_prop, Subtype.coe_eta, Subtype.coe_mk]
-  rw [← dite_eq_ite]; rw [dif_pos hx]
+  simp [hx]
   have H3 := hh hx hd
-  simp_rw [fx]
+  simp at H3
+  norm_cast at *
   convert H3
   ring_nf
-  simp only [Classical.not_not, Subtype.val_eq_coe] at hy 
-  have hz : y.1 = 0 ∧ y.2 = 0 := by
-    by_contra
-    simp only [not_and] at h 
-    cases z
-    cases y
-    dsimp at *
-    injections
-    dsimp at *
-    simp only [int_cast_re, Int.cast_eq_zero, add_zero, int_cast_im, MulZeroClass.zero_mul,
-      sub_zero, mul_eq_zero] at *
-    cases h_2
-    rw [h_2] at h_1 
-    simp only [Int.cast_eq_zero, Int.cast_zero, MulZeroClass.zero_mul, zero_add] at *
-    have := h h_2
-    rw [h_1] at this 
-    simp only [eq_self_iff_true, not_true] at this 
-    exact this
-    simp only [H_member] at z_property 
-    rw [h_2] at z_property 
-    simp only [lt_self_iff_false] at z_property 
-    exact z_property
-  simp_rw [Eise]; rw [hz.1, hz.2]
+  simp
+  rfl
+  have hz : y.1 = 0 ∧ y.2 = 0 := by 
+    simp at hy
+    apply (linear_eq_zero_iff y.1 y.2 z).1 hy
+  simp_rw [eise]; rw [hz.1, hz.2]
   simp only [one_div, add_zero, Int.cast_zero, MulZeroClass.zero_mul]
   have zhol := zero_hol ℍ'
   rw [IsHolomorphicOn] at zhol 
@@ -993,15 +1182,16 @@ theorem Eise'_has_deriv_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
   simp only at zhol' 
   have zk : ((0 : ℂ) ^ k)⁻¹ = 0 := by
     simp only [inv_eq_zero]
-    apply zero_zpow
-    apply hkn
+    norm_cast
+    apply zero_zpow 
+    exact hkn
   rw [zk]
   exact zhol'
 
 theorem Eise'_has_diff_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
     DifferentiableOn ℂ (extendByZero fun z : ℍ' => eise k z y) ℍ' :=
   by
-  have := isHolomorphicOn_iff_differentiableOn ℍ' fun z : ℍ' => Eise k z y
+  have := isHolomorphicOn_iff_differentiableOn ℍ' fun z : ℍ' => eise k z y
   simp
   rw [this]
   apply Eise'_has_deriv_within_at
