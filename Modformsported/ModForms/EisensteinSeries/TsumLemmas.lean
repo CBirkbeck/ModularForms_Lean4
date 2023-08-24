@@ -1,9 +1,9 @@
-import Mathbin.Data.Complex.Exponential
-import Mathbin.Analysis.Calculus.Series
-import Mathbin.Analysis.Calculus.ParametricIntervalIntegral
-import Mathbin.Data.Complex.Basic
+import Mathlib.Data.Complex.Exponential
+import Mathlib.Analysis.Calculus.Series
+import Mathlib.Analysis.Calculus.ParametricIntervalIntegral
+import Mathlib.Data.Complex.Basic
 
-#align_import mod_forms.Eisenstein_Series.tsum_lemmas
+
 
 noncomputable section
 
@@ -14,7 +14,11 @@ open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
 theorem embedding_coer : Embedding (coe : ℝ → ℂ) :=
   by
   apply Isometry.embedding
-  apply isometry_of_real
+  have := isometry_ofReal
+  convert this
+  funext x
+  stop
+  
 
 @[norm_cast]
 theorem tendsto_coe {α : Type _} {f : Filter α} {m : α → ℝ} {a : ℝ} :

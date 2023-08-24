@@ -407,8 +407,6 @@ theorem Eisenstein_is_bounded' (k : ℕ) (hk : 3 ≤ k) :
   intro z hz
   obtain ⟨n, hn⟩ := upp_half_translation z
   have := mod_form_periodic k (eisensteinIsSlashInv ⊤ k) z n
-  --have hf : (eisensteinIsSlashInv ⊤ k) z = eisensteinSeriesOfWeight_  k z := by rfl
-  --rw [hf] at this 
   rw [← this]
   let Z := (ModularGroup.T^n) • z
   apply le_trans (eis_bound_by_real_eis k Z hk)
@@ -457,7 +455,7 @@ theorem Eisenstein_series_is_mdiff (k : ℤ) (hk : 3 ≤ k) :
   convert h2
 
 theorem Eisenstein_series_is_bounded (k : ℤ) (hk : 3 ≤ k) (A : SL(2, ℤ)) :
-    IsBoundedAtImInfty (↑ₕ (eisensteinIsSlashInv ⊤ k)∣[k,A]) :=
+    IsBoundedAtImInfty ( (eisensteinIsSlashInv ⊤ k)∣[k,A]) :=
   by
   simp_rw [(eisensteinIsSlashInv ⊤ k).2]
   have := Eisenstein_is_bounded k hk
@@ -467,7 +465,7 @@ theorem Eisenstein_series_is_bounded (k : ℤ) (hk : 3 ≤ k) (A : SL(2, ℤ)) :
 
 def eisensteinSeriesIsModularForm (k : ℤ) (hk : 3 ≤ k) : ModularForm ⊤ k
     where
-  toFun := ↑ₕ (eisensteinIsSlashInv ⊤ k)
+  toFun := (eisensteinIsSlashInv ⊤ k)
   slash_action_eq' := by convert (eisensteinIsSlashInv ⊤ k).2
   holo' := Eisenstein_series_is_mdiff k hk
   bdd_at_infty' A :=  Eisenstein_series_is_bounded k hk A
