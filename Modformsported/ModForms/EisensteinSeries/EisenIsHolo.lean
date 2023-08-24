@@ -130,11 +130,41 @@ theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℕ) (h : 3 ≤ k) (z : �
   apply ha b hb x hxx hx
 
 
+/-
 lemma eisenSquare_tendstolocunif (k : ℕ) (h : 3 ≤ k):
   TendstoLocallyUniformly (eisenSquare' k) (eisensteinSeriesOfWeight_ k) Filter.atTop := by
-   
- 
+  rw [Metric.tendstoLocallyUniformly_iff]
+  intros ε hε z 
+  have := Eisen_partial_tends_to_uniformly_on_ball k h z
+  obtain ⟨A, B, e,he, hee, hB, heB, H⟩ := this
+  rw [Metric.tendstoUniformlyOn_iff] at H 
+  sorry 
 
+
+lemma eisenSquare_tendstolocunif' (k : ℕ) (h : 3 ≤ k):
+  TendstoLocallyUniformlyOn (fun (n: ℕ) => (eisenSquare' k n) ∘ ⇑(chartAt ℂ z).symm) 
+  ((eisensteinSeriesOfWeight_ k) ∘ ⇑(chartAt ℂ z).symm) Filter.atTop ℍ' := by
+  have H := eisenSquare_tendstolocunif k h
+  have HH := tendstoLocallyUniformlyOn_univ.2 H
+  sorry
+  
+  
+
+lemma eisenSquare_tendstolocunif'' (k : ℕ) (h : 3 ≤ k):
+  TendstoLocallyUniformlyOn (fun (n: ℕ) => extendByZero (eisenSquare' k n))
+  (extendByZero (eisensteinSeriesOfWeight_ k)) Filter.atTop UpperHalfPlane.upperHalfSpace := by
+  have H := eisenSquare_tendstolocunif k h
+  rw [Metric.tendstoLocallyUniformlyOn_iff]
+  rw [Metric.tendstoLocallyUniformly_iff] at H
+  simp at *
+  intros ε hε x hx
+  have H2 := H ε hε x hx
+  obtain ⟨t, ht, H3⟩:= H2
+  use t 
+  sorry
+-/
+
+  
 
 /-- The extension of a function from `ℍ` to `ℍ'`-/
 def holExtn (f : ℍ → ℂ) : ℍ' → ℂ := fun z : ℍ' => f (z : ℍ)
@@ -144,6 +174,8 @@ local notation "↑ₕ" => holExtn
 instance : Coe (ℍ → ℂ) (ℍ' → ℂ) :=
   ⟨fun f => holExtn f⟩
 
+  
+/-
 open scoped Manifold
 
 lemma tsum_circ {ι : Type} (f : ι → ℍ → ℂ) : 
@@ -156,15 +188,25 @@ lemma tsum_circ {ι : Type} (f : ι → ℍ → ℂ) :
   sorry
 
 
+
 theorem Eisenstein_is_mdiff (k : ℕ) (hk : 3 ≤ k) :
     MDifferentiable 𝓘(ℂ) 𝓘(ℂ) (eisensteinSeriesOfWeight_ k) :=
   by
   rw [mdiff_iff_diffOn]
   simp_rw [eisensteinSeriesOfWeight_ ]
+  have H:=eisenSquare_tendstolocunif'' k h
+  have HH :=H.differentiableOn ?_ ?_
+  apply HH.congr
+  intros x hx
+  have := ext_chart (eisensteinSeriesOfWeight_ k) ⟨x, hx⟩
+  rw [this]
+  simp_rw [eisensteinSeriesOfWeight_ ]
+  rfl
+  sorry
+
+  -/
+
   
-
-  stop
-
 
 theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
     IsHolomorphicOn (↑ₕ (eisensteinSeriesOfWeight_ k)) :=
@@ -192,9 +234,16 @@ theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
     rw [← isHolomorphicOn_iff_differentiableOn] at this 
     apply this.mono
     apply hball2
-  apply
-    uniform_of_diff_circle_int_is_diff F (extendByZero (eisensteinSeriesOfWeight_ k)) x hε hdiff
-      hunif
+  rw [←tendstoLocallyUniformlyOn_iff_tendstoUniformlyOn_of_compact] at hunif
+  have mbb : Metric.ball x.1 ε ⊆  Metric.closedBall (x) ε := by exact Metric.ball_subset_closedBall
+  have :=TendstoLocallyUniformlyOn.mono hunif mbb
+  have := this.differentiableOn ?_ ?_
+  apply this
+  apply Filter.eventually_of_forall
+  apply (fun n : ℕ => (hdiff n).mono mbb)
+  exact Metric.isOpen_ball
+  exact isCompact_closedBall (x.1) ε
+  
 
 theorem Eisenstein_is_holomorphic (k : ℤ) (hk : 3 ≤ k) :
     IsHolomorphicOn (↑ₕ (eisensteinSeriesOfWeight_ k)) :=
@@ -208,34 +257,37 @@ theorem Eisenstein_is_holomorphic (k : ℤ) (hk : 3 ≤ k) :
   convert this
   apply hn.symm
 
+/-
 def myVadd : ℤ → ℍ → ℍ := fun n => fun z : ℍ => ⟨z.1 + n, by simp; apply z.2⟩
 
 instance : VAdd ℤ ℍ where vadd := myVadd
 
 theorem my_add_im (n : ℤ) (z : ℍ) : (myVadd n z).im = z.im :=
   by
-  simp_rw [my_vadd]
-  simp only [Subtype.val_eq_coe]
+  simp_rw [myVadd]
+  have : (z.1+n).im = z.1.im := by simp only [add_im, int_cast_im, add_zero]
   simp_rw [UpperHalfPlane.im]
-  simp only [add_zero, int_cast_im, add_im, Subtype.coe_mk]
+  convert this
+
+  
 
 theorem my_add_re (n : ℤ) (z : ℍ) : (myVadd n z).re = z.re + n :=
   by
-  simp_rw [my_vadd]
-  simp only [Subtype.val_eq_coe]
+  simp_rw [myVadd]
   simp_rw [UpperHalfPlane.re]
   simp only [int_cast_re, add_re, Subtype.coe_mk]
+  exact rfl
 
 theorem zero_vadd' (z : ℍ) : myVadd (0 : ℤ) z = z :=
   by
-  simp_rw [my_vadd]
-  simp only [add_zero, Int.cast_zero, Subtype.coe_eta, Subtype.val_eq_coe]
+  simp_rw [myVadd]
+  simp  [add_zero, Int.cast_zero, Subtype.coe_eta]
 
 theorem add_vadd' (n m : ℤ) (z : ℍ) : myVadd (n + m) z = myVadd n (myVadd m z) :=
   by
-  simp_rw [my_vadd]
-  simp only [Int.cast_add, Subtype.val_eq_coe]
-  abel
+  simp_rw [myVadd]
+  simp only [Int.cast_add]
+  abel_nf
 
 instance : AddAction ℤ ℍ where
   zero_vadd := by apply zero_vadd'
@@ -246,18 +298,21 @@ def tn (n : ℤ) : Matrix (Fin 2) (Fin 2) ℤ :=
 
 theorem Tndet (n : ℤ) : Matrix.det (tn n) = 1 :=
   by
-  simp_rw [Tn]
+  simp_rw [tn]
   rw [Matrix.det_fin_two]
   simp only [Matrix.head_cons, mul_one, sub_zero, Matrix.cons_val_one, MulZeroClass.mul_zero,
     Matrix.cons_val_zero]
 
+/-
 theorem coe_aux (γ : SL2Z) : ∀ i j, ((γ : Matrix.GLPos (Fin 2) ℝ) i j : ℝ) = ((γ i j : ℤ) : ℝ) :=
   by
   intro i j
   have := ModularGroup.mat_vals γ i j
-  simp [of_real_int_cast, Subtype.val_eq_coe, Matrix.GeneralLinearGroup.coeFn_eq_coe, coe_coe] at *
+  simp [Matrix.GeneralLinearGroup.coeFn_eq_coe, coe_coe] at *
   rw [← this]
   cases j; cases i; cases γ; dsimp at *; solve_by_elim
+
+-/
 
 def tN (n : ℤ) : SL2Z :=
   ⟨tn n, Tndet n⟩
@@ -269,45 +324,37 @@ theorem TN01 (n : ℤ) : (tN n) 0 1 = n := by rfl
 theorem TN10 (n : ℤ) : (tN n) 1 0 = 0 := by rfl
 
 theorem TN11 (n : ℤ) : (tN n) 1 1 = 1 := by rfl
+-/
+open scoped ModularGroup
+
+lemma slcoe (M : SL(2, ℤ)) : (M : GL (Fin 2) ℤ) i j = M i j  := by
+  rfl
+    
+
 
 theorem mod_form_periodic (k : ℤ) (f : SlashInvariantForm (⊤ : Subgroup SL2Z) k) :
-    ∀ (z : ℍ) (n : ℤ), f ((tN n : Matrix.GLPos (Fin 2) ℝ) • z) = f z :=
+    ∀ (z : ℍ) (n : ℤ), f ((ModularGroup.T^n)  • z) = f z :=
   by
   have h := SlashInvariantForm.slash_action_eqn' k ⊤ f
-  simp only [SlashInvariantForm.slash_action_eqn', coe_coe]
+  simp only [SlashInvariantForm.slash_action_eqn']
   intro z n
-  have htop : TN n ∈ (⊤ : Subgroup SL2Z) := by simp
-  have H := h ⟨TN n, htop⟩ z
-  simp only [Subgroup.coe_mk] at H 
-  have hoo' : (TN n) 1 0 = 0 := by rfl
-  have h11' : (TN n) 1 1 = 1 := by rfl
-  simp at *
-  simp_rw [hoo'] at H 
-  simp_rw [h11'] at H 
-  simp [Int.cast_zero, one_mul, MulZeroClass.zero_mul, Int.cast_one, zero_add, one_zpow] at H 
-  apply H
+  simp only [Subgroup.top_toSubmonoid, subgroup_to_sl_moeb, Subgroup.coe_top, Subtype.forall,
+    Subgroup.mem_top, forall_true_left] at h 
+  have H:= h (ModularGroup.T^n) z
+  rw [H]
+  have h0 : ((ModularGroup.T^n) : GL (Fin 2) ℤ) 1 0 = 0  := by 
+    rw [slcoe]
+    rw [ModularGroup.coe_T_zpow n]
+    rfl
+  have h1: ((ModularGroup.T^n) : GL (Fin 2) ℤ) 1 1 = 1  := by 
+    rw [slcoe]
+    rw [ModularGroup.coe_T_zpow n]
+    rfl    
+  rw [h0,h1]
+  ring_nf
+  simp
 
-theorem smul_expl (n : ℤ) (z : ℍ) : (tN n : Matrix.GLPos (Fin 2) ℝ) • z = n +ᵥ z :=
-  by
-  simp [coe_coe]
-  have := UpperHalfPlane.coe_smul (TN n : Matrix.GLPos (Fin 2) ℝ) z
-  have h1 := TN00 n
-  have h2 := TN01 n
-  have h3 := TN10 n
-  have h4 := TN11 n
-  ext
-  simp [UpperHalfPlane.num, UpperHalfPlane.denom, eq_self_iff_true, coe_coe,
-    UpperHalfPlane.coe_smul, UpperHalfPlane.coe_re] at *
-  simp_rw [h1, h2, h3, h4]
-  simp [int_cast_re, one_mul, of_real_zero, MulZeroClass.zero_mul, add_re, of_real_int_cast,
-    zero_add, of_real_one, div_one, UpperHalfPlane.coe_re]
-  convert (my_add_re n z).symm
-  simp [UpperHalfPlane.num, UpperHalfPlane.denom, eq_self_iff_true, UpperHalfPlane.coe_im, coe_coe,
-    UpperHalfPlane.coe_smul] at *
-  simp_rw [h1, h2, h3, h4]
-  simp [add_zero, one_mul, of_real_zero, int_cast_im, MulZeroClass.zero_mul, add_im,
-    of_real_int_cast, zero_add, UpperHalfPlane.coe_im, of_real_one, div_one]
-  convert (my_add_im n z).symm
+
 
 theorem abs_floor_sub (r : ℝ) : |r - Int.floor r| < 1 :=
   by
@@ -316,68 +363,72 @@ theorem abs_floor_sub (r : ℝ) : |r - Int.floor r| < 1 :=
   apply Int.fract_lt_one r
 
 theorem upp_half_translation (z : ℍ) :
-    ∃ n : ℤ, (tN n : Matrix.GLPos (Fin 2) ℝ) • z ∈ upperHalfSpaceSlice 1 z.1.2 :=
+    ∃ n : ℤ, ((ModularGroup.T^n)) • z ∈ upperHalfSpaceSlice 1 z.1.2 :=
   by
   let n := Int.floor z.1.1
   use-n
-  have := smul_expl (-n) z
+  have := modular_T_zpow_smul z (-n)
   simp_rw [this]
-  simp only [abs_of_real, ge_iff_le, slice_mem, UpperHalfPlane.coe_im, Subtype.val_eq_coe,
+  simp  [ge_iff_le, slice_mem, UpperHalfPlane.coe_im, 
     UpperHalfPlane.coe_re]
-  have him := my_add_im (-n) z
-  have hre := my_add_re (-n) z
   constructor
-  have h1 : (-n +ᵥ z).re = (my_vadd (-n) z).re := by rfl
-  rw [h1]
-  rw [hre]
+  have : (-(n : ℝ) +ᵥ z).1.re= -Int.floor z.1.1 + z.re := by rfl
+  norm_cast at *
+  rw [this]
   simp
+  rw [add_comm]
   apply (abs_floor_sub z.1.1).le
-  have h2 : (-n +ᵥ z).im = (my_vadd (-n) z).im := by rfl
-  rw [h2]
-  rw [him]
+  have : (-(n : ℝ) +ᵥ z).1.im = z.im := by 
+    have := vadd_im (-(n : ℝ)) z
+    rw [← this]
+    congr
+  rw [this]
   apply le_abs_self
 
 theorem eis_bound_by_real_eis (k : ℕ) (z : ℍ) (hk : 3 ≤ k) :
     Complex.abs (eisensteinSeriesOfWeight_ k z) ≤ realEisensteinSeriesOfWeight_ k z :=
   by
-  simp_rw [Eisenstein_series_of_weight_]
-  simp_rw [real_Eisenstein_series_of_weight_]
-  simp_rw [real_Eise]
-  simp_rw [Eise]
+  simp_rw [eisensteinSeriesOfWeight_]
+  simp_rw [realEisensteinSeriesOfWeight_]
+  simp_rw [realEise]
+  simp_rw [eise]
   apply abs_tsum'
   have := real_eise_is_summable k z hk
-  simp_rw [real_Eise] at this 
+  simp_rw [realEise] at this 
   simp only [one_div, Complex.abs_pow, abs_inv, norm_eq_abs, zpow_ofNat] at *
   apply this
 
 theorem Eisenstein_is_bounded' (k : ℕ) (hk : 3 ≤ k) :
-    UpperHalfPlane.IsBoundedAtImInfty (eisensteinSeriesOfWeight_ k) :=
+    UpperHalfPlane.IsBoundedAtImInfty ((eisensteinIsSlashInv ⊤ k)) :=
   by
   simp only [UpperHalfPlane.bounded_mem, Subtype.forall, UpperHalfPlane.coe_im]
   let M : ℝ := 8 / rfunct (lbpoint 1 2 <| by linarith) ^ k * rZ (k - 1)
   use M, 2
   intro z hz
   obtain ⟨n, hn⟩ := upp_half_translation z
-  have := mod_form_periodic k (Eisenstein_is_slash_inv ⊤ k) z n
-  have hf : (Eisenstein_is_slash_inv ⊤ k) z = Eisenstein_series_of_weight_ k z := by rfl
-  rw [hf] at this 
+  have := mod_form_periodic k (eisensteinIsSlashInv ⊤ k) z n
+  --have hf : (eisensteinIsSlashInv ⊤ k) z = eisensteinSeriesOfWeight_  k z := by rfl
+  --rw [hf] at this 
   rw [← this]
-  let Z := (TN n : Matrix.GLPos (Fin 2) ℝ) • z
+  let Z := (ModularGroup.T^n) • z
   apply le_trans (eis_bound_by_real_eis k Z hk)
-  have hZ : Z ∈ upper_half_space_slice 1 2 :=
+  have hZ : Z ∈ upperHalfSpaceSlice 1 2 :=
     by
-    simp_rw [Z, smul_expl n z] at *
-    simp only [abs_of_real, slice_mem, UpperHalfPlane.coe_im, Subtype.val_eq_coe,
-      UpperHalfPlane.coe_re] at hn ⊢
+    simp only [map_zpow, slice_mem, abs_ofReal, ge_iff_le] at hn ⊢
     refine' ⟨hn.1, _⟩
-    have hadd : (n +ᵥ z).im = (my_vadd n z).im := by rfl
-    rw [hadd, my_add_im n z]
     apply le_trans hz
+    rw [modular_T_zpow_smul]
+    have : ((n : ℝ) +ᵥ z).1.im = z.im := by 
+      have := vadd_im ((n : ℝ)) z
+      rw [← this]
+      congr
+    rw [this]
     apply le_abs_self
   convert Real_Eisenstein_bound_unifomly_on_stip k hk 1 2 (by linarith) ⟨Z, hZ⟩
 
+
 theorem Eisenstein_is_bounded (k : ℤ) (hk : 3 ≤ k) :
-    UpperHalfPlane.IsBoundedAtImInfty (eisensteinSeriesOfWeight_ k) :=
+    UpperHalfPlane.IsBoundedAtImInfty ((eisensteinIsSlashInv ⊤ k)) :=
   by
   have : ∃ n : ℕ, (n : ℤ) = k :=
     haveI hk' : 0 ≤ k := by linarith
@@ -387,6 +438,8 @@ theorem Eisenstein_is_bounded (k : ℤ) (hk : 3 ≤ k) :
   have := Eisenstein_is_bounded' n hn3
   convert this
   apply hn.symm
+  apply hn.symm
+  apply hn.symm
 
 
 example (k : ℤ) (hk : 0 ≤ k) : ∃ n : ℕ, (n : ℤ) = k :=
@@ -394,31 +447,31 @@ example (k : ℤ) (hk : 0 ≤ k) : ∃ n : ℕ, (n : ℤ) = k :=
 
 local notation:73 f "∣[" k:0 "," A "]" => SlashAction.map ℂ k A f
 
+open scoped Manifold
+
 theorem Eisenstein_series_is_mdiff (k : ℤ) (hk : 3 ≤ k) :
     MDifferentiable 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ) (↑ₕ (eisensteinIsSlashInv ⊤ ↑k)) :=
   by
   have := Eisenstein_is_holomorphic k hk
-  have h2 := (mdiff_iff_holo (↑ₕ (Eisenstein_is_slash_inv ⊤ k).toFun)).2 this
+  have h2 := (mdiff_iff_holo (↑ₕ (eisensteinIsSlashInv ⊤ k).toFun)).2 this
   convert h2
 
 theorem Eisenstein_series_is_bounded (k : ℤ) (hk : 3 ≤ k) (A : SL(2, ℤ)) :
     IsBoundedAtImInfty (↑ₕ (eisensteinIsSlashInv ⊤ k)∣[k,A]) :=
   by
-  rw [hol_extn]
-  simp_rw [(Eisenstein_is_slash_inv ⊤ k).2]
+  simp_rw [(eisensteinIsSlashInv ⊤ k).2]
   have := Eisenstein_is_bounded k hk
   convert this
-  have hr := (Eisenstein_is_slash_inv ⊤ k).2 ⟨A, by tauto⟩
-  have hr2 : (Eisenstein_is_slash_inv ⊤ k).toFun = Eisenstein_series_of_weight_ k := by rfl
-  rw [hr2] at hr 
+  have hr := (eisensteinIsSlashInv ⊤ k).2 ⟨A, by tauto⟩
   convert hr
 
 def eisensteinSeriesIsModularForm (k : ℤ) (hk : 3 ≤ k) : ModularForm ⊤ k
     where
   toFun := ↑ₕ (eisensteinIsSlashInv ⊤ k)
-  slash_action_eq' := by convert (Eisenstein_is_slash_inv ⊤ k).2
+  slash_action_eq' := by convert (eisensteinIsSlashInv ⊤ k).2
   holo' := Eisenstein_series_is_mdiff k hk
-  bdd_at_infty' A := Eisenstein_series_is_bounded k hk A
+  bdd_at_infty' A :=  Eisenstein_series_is_bounded k hk A
+  
 
 end EisensteinSeries
 
