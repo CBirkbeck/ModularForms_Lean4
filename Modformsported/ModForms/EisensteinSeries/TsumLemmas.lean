@@ -11,13 +11,11 @@ open TopologicalSpace Set Metric Filter Function Complex MeasureTheory
 
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
 
-theorem embedding_coer : Embedding (coe : ℝ → ℂ) :=
+theorem embedding_coer : Embedding (Complex.ofReal' : ℝ → ℂ) :=
   by
   apply Isometry.embedding
   have := isometry_ofReal
   convert this
-  funext x
-  stop
   
 
 @[norm_cast]
@@ -31,22 +29,27 @@ theorem coe_finset_sum {α : Type _} {s : Finset α} {f : α → ℝ} :
   ofReal.map_sum f s
 
 @[norm_cast]
-protected theorem hasSum_coe {α : Type _} {f : α → ℝ} {r : ℝ} :
+theorem hasSum_coe {α : Type _} {f : α → ℝ} {r : ℝ} :
     HasSum (fun a => (f a : ℂ)) ↑r ↔ HasSum f r :=
   by
   have :
-    (fun s : Finset α => ∑ a in s, ↑(f a)) = (coe : ℝ → ℂ) ∘ fun s : Finset α => ∑ a in s, f a :=
+    (fun s : Finset α => ∑ a in s, ↑(f a)) = 
+      (Complex.ofReal' : ℝ → ℂ) ∘ fun s : Finset α => ∑ a in s, f a :=
     funext fun s => coe_finset_sum.symm
-  unfold HasSum <;> rw [this, tendsto_coe]
+  unfold HasSum 
+  rw [this]
+  apply tendsto_coe
 
-protected theorem tsum_coe_eq {α : Type _} {f : α → ℝ} {r : ℝ} (h : HasSum f r) :
+
+theorem tsum_coe_eq {α : Type _} {f : α → ℝ} {r : ℝ} (h : HasSum f r) :
     ∑' a, (f a : ℂ) = r :=
   (hasSum_coe.2 h).tsum_eq
 
-protected theorem coe_tsum {α : Type _} {f : α → ℝ} : Summable f → ↑(tsum f) = ∑' a, (f a : ℂ)
+theorem coe_tsum {α : Type _} {f : α → ℝ} : Summable f → ↑(tsum f) = ∑' a, (f a : ℂ)
   | ⟨r, hr⟩ => by rw [hr.tsum_eq, tsum_coe_eq hr]
 
-theorem coe_summable {α : Type _} (f : α → ℝ) : Summable ((coe : ℝ → ℂ) ∘ f) ↔ Summable f :=
+theorem coe_summable {α : Type _} (f : α → ℝ) : 
+  Summable ((Complex.ofReal' : ℝ → ℂ) ∘ f) ↔ Summable f :=
   by
   apply Summable.map_iff_of_leftInverse Complex.ofReal Complex.reAddGroupHom
   exact Complex.continuous_ofReal
@@ -60,31 +63,36 @@ theorem tsum_coe {α : Type _} (f : α → ℝ) : ∑' i, (f i : ℂ) = (∑' i,
   have := tsum_eq_zero_of_not_summable hf
   rw [this]
   simp
-  have h2 := coe_summable f
   apply tsum_eq_zero_of_not_summable
-  rw [h2]
+  simp at *
   apply hf
 
-theorem nat_pos_tsum2 (f : ℕ → ℂ) (hf : f 0 = 0) : (Summable fun x : ℕ+ => f x) ↔ Summable f :=
-  by
-  rw [Function.Injective.summable_iff]
-  simp
+theorem nat_pos_tsum2   {α : Type _} [TopologicalSpace α] [AddCommMonoid α] 
+  (f : ℕ → α) (hf : f 0 = 0) : (Summable fun x : ℕ+ => f x) ↔ Summable f :=
+  by 
+  apply Function.Injective.summable_iff
   exact PNat.coe_injective
   intro x hx
-  simp at hx 
-  rw [hx]
+  simp at *
+  by_cases h : 0 < x
+  have := hx ⟨x,h⟩
+  simp at this
+  simp at *
+  rw [h]
   exact hf
+
+variable {α : Type _} 
 
 theorem hasSum_pnat' (f : ℕ → ℂ) (hf2 : Summable f) :
     HasSum (fun n : ℕ => f (n + 1)) (∑' n : ℕ+, f n) :=
   by
-  have := _root_.equiv.pnat_equiv_nat.hasSum_iff
+  rw  [← _root_.Equiv.pnatEquivNat.hasSum_iff]
   simp_rw [Equiv.pnatEquivNat] at *
   simp at *
-  rw [← this]
   have hf3 : Summable ((fun n : ℕ => f (n + 1)) ∘ PNat.natPred) :=
     by
-    have hs : Summable fun n : ℕ+ => f n := by apply hf2.Subtype
+    have hs : Summable fun n : ℕ+ => f n := by 
+      apply hf2.subtype
     apply Summable.congr hs
     intro b; simp
   rw [Summable.hasSum_iff hf3]
@@ -92,10 +100,10 @@ theorem hasSum_pnat' (f : ℕ → ℂ) (hf2 : Summable f) :
   funext
   simp
 
-theorem nat_pos_tsum2' {α : Type _} [TopologicalSpace α] [AddCommMonoid α] (f : ℕ → α) :
+theorem nat_pos_tsum2' [TopologicalSpace α] [AddCommMonoid α]  (f : ℕ → α) :
     (Summable fun x : ℕ+ => f x) ↔ Summable fun x : ℕ => f (x + 1) :=
   by
-  rw [← Equiv.summable_iff _root_.equiv.pnat_equiv_nat]
+  rw [← Equiv.summable_iff _root_.Equiv.pnatEquivNat]
   constructor
   intro hf
   apply Summable.congr hf
@@ -106,7 +114,8 @@ theorem nat_pos_tsum2' {α : Type _} [TopologicalSpace α] [AddCommMonoid α] (f
   intro b
   simp
 
-theorem tsum_pNat (f : ℕ → ℂ) (hf : f 0 = 0) : ∑' n : ℕ+, f n = ∑' n, f n :=
+theorem tsum_pNat {α : Type _} [AddCommGroup α] [UniformSpace α] [UniformAddGroup α] [T2Space α] 
+  [CompleteSpace α] (f : ℕ → α) (hf : f 0 = 0) : ∑' n : ℕ+, f n = ∑' n, f n :=
   by
   by_cases hf2 : Summable f
   rw [tsum_eq_zero_add]
@@ -114,13 +123,13 @@ theorem tsum_pNat (f : ℕ → ℂ) (hf : f 0 = 0) : ∑' n : ℕ+, f n = ∑' n
   simp
   have hpos : HasSum (fun n : ℕ => f (n + 1)) (∑' n : ℕ+, f n) :=
     by
-    have := _root_.equiv.pnat_equiv_nat.hasSum_iff
+    rw  [← _root_.Equiv.pnatEquivNat.hasSum_iff]
     simp_rw [Equiv.pnatEquivNat] at *
     simp at *
-    rw [← this]
     have hf3 : Summable ((fun n : ℕ => f (n + 1)) ∘ PNat.natPred) :=
       by
-      have hs : Summable fun n : ℕ+ => f n := by apply hf2.Subtype
+      have hs : Summable fun n : ℕ+ => f n := by 
+        apply hf2.subtype
       apply Summable.congr hs
       intro b; simp
     rw [Summable.hasSum_iff hf3]
@@ -135,15 +144,15 @@ theorem tsum_pNat (f : ℕ → ℂ) (hf : f 0 = 0) : ∑' n : ℕ+, f n = ∑' n
   have h2 := tsum_eq_zero_of_not_summable hf2
   simp [h1, h2]
 
-theorem tsum_pnat' (f : ℕ → ℂ) : ∑' n : ℕ+, f n = ∑' n, f (n + 1) :=
+theorem tsum_pnat' [TopologicalSpace α] [AddCommMonoid α]  [T2Space α] (f : ℕ → α) : 
+  ∑' n : ℕ+, f n = ∑' n, f (n + 1) :=
   by
   by_cases hf2 : Summable fun n : ℕ+ => f n
   have hpos : HasSum (fun n : ℕ => f (n + 1)) (∑' n : ℕ+, f n) :=
     by
-    have := _root_.equiv.pnat_equiv_nat.hasSum_iff
+    rw  [← _root_.Equiv.pnatEquivNat.hasSum_iff]
     simp_rw [Equiv.pnatEquivNat] at *
     simp at *
-    rw [← this]
     have hf3 : Summable ((fun n : ℕ => f (n + 1)) ∘ PNat.natPred) :=
       by
       apply Summable.congr hf2
@@ -159,10 +168,10 @@ theorem tsum_pnat' (f : ℕ → ℂ) : ∑' n : ℕ+, f n = ∑' n, f (n + 1) :=
   have h2 := tsum_eq_zero_of_not_summable hf2
   simp [h1, h2]
 
-theorem prod_sum (f : ℤ × ℤ → ℂ) (hf : Summable f) : Summable fun a => ∑' b, f ⟨a, b⟩ :=
+theorem prod_sum  
+  (f : ℤ × ℤ → ℂ) (hf : Summable f) : Summable fun a => ∑' b, f ⟨a, b⟩ :=
   by
-  have := Equiv.summable_iff (Equiv.sigmaEquivProd ℤ ℤ)
-  rw [← this] at hf 
+  rw [← Equiv.summable_iff (Equiv.sigmaEquivProd ℤ ℤ)] at hf 
   have H := Summable.sigma hf
   simp at H 
   apply Summable.congr H
@@ -172,15 +181,15 @@ theorem prod_sum (f : ℤ × ℤ → ℂ) (hf : Summable f) : Summable fun a => 
 def mapdiv (n : ℕ+) : Nat.divisorsAntidiagonal n → ℕ+ × ℕ+ :=
   by
   intro x
-  have h1 := x.1.1
   have h11 := Nat.fst_mem_divisors_of_mem_antidiagonal x.2
   have h111 := Nat.pos_of_mem_divisors h11
-  have h2 := x.1.2
   have h22 := Nat.snd_mem_divisors_of_mem_antidiagonal x.2
   have h222 := Nat.pos_of_mem_divisors h22
   set n1 : ℕ+ := ⟨x.1.1, h111⟩
   set n2 : ℕ+ := ⟨x.1.2, h222⟩
-  use⟨n1, n2⟩
+  use n1
+  use n2
+  exact h222
 
 variable (f : Σ n : ℕ+, Nat.divisorsAntidiagonal n)
 
@@ -189,87 +198,90 @@ def sigmaAntidiagonalEquivProd : (Σ n : ℕ+, Nat.divisorsAntidiagonal n) ≃ �
   toFun x := mapdiv x.1 x.2
   invFun x :=
     ⟨⟨x.1.1 * x.2.1, by apply mul_pos x.1.2 x.2.2⟩, ⟨x.1, x.2⟩, by
-      rw [Nat.mem_divisorsAntidiagonal]; simp⟩
+      rw [Nat.mem_divisorsAntidiagonal]; simp; constructor; rfl; rw [not_or]; constructor; 
+        linarith [x.1.2]; linarith [x.2.2] ⟩
   left_inv := by
     rintro ⟨n, ⟨k, l⟩, h⟩
     rw [Nat.mem_divisorsAntidiagonal] at h 
     simp_rw [mapdiv]
     simp only [h, PNat.mk_coe, eq_self_iff_true, Subtype.coe_eta, true_and_iff]
-    cases h; cases n; dsimp at *; induction h_left; rfl
+    ext
+    simp at *
+    simp_rw [h]
+    norm_cast
+    simp only
+    simp only
   right_inv := by
     rintro ⟨n, ⟨k, l⟩, h⟩
     simp_rw [mapdiv]
     exfalso
     simp only [not_lt_zero'] at h 
-    exact h
+    simp at *
     simp_rw [mapdiv]
-    simp only [eq_self_iff_true, Subtype.coe_eta]
+    simp [eq_self_iff_true, Subtype.coe_eta]
+    norm_cast
 
-theorem summable_mul_prod_iff_summable_mul_sigma_antidiagonall {f : ℕ+ × ℕ+ → ℂ} :
+theorem summable_mul_prod_iff_summable_mul_sigma_antidiagonall {α : Type _} [TopologicalSpace α] 
+  [AddCommMonoid α] {f : ℕ+ × ℕ+ → α} :
     (Summable fun x : ℕ+ × ℕ+ => f x) ↔
       Summable fun x : Σ n : ℕ+, Nat.divisorsAntidiagonal n =>
         f ⟨(mapdiv x.1 x.2).1, (mapdiv x.1 x.2).2⟩ :=
   by
   simp_rw [mapdiv]
-  apply sigma_antidiagonal_equiv_prod.summable_iff.symm
+  apply sigmaAntidiagonalEquivProd.summable_iff.symm
 
-theorem nat_pos_tsum (f : ℕ → ℝ) (hf : f 0 = 0) : (Summable fun x : ℕ+ => f x) ↔ Summable f :=
-  by
-  rw [Function.Injective.summable_iff]
-  simp
-  exact PNat.coe_injective
-  intro x hx
-  simp at hx 
-  rw [hx]
-  exact hf
-
+/-
 theorem nat_pos_tsum' (ξ : ℂ) :
     (Summable fun n : ℕ => ξ ^ n) → Summable fun n : ℕ+ => ξ ^ (n : ℕ) :=
   by
   intro h
   apply h.subtype
+ -/ 
 
-theorem sumaux (f : ℕ × ℕ → ℂ) (e : ℕ+) :
+theorem sumaux [TopologicalSpace α] [AddCommMonoid α]  (f : ℕ × ℕ → α) (e : ℕ+) :
     ∑ x : Nat.divisorsAntidiagonal e, f x = ∑ x : ℕ × ℕ in Nat.divisorsAntidiagonal e, f x :=
   by
   simp only [Finset.univ_eq_attach]
   apply Finset.sum_finset_coe
 
-theorem int_nat_sum (f : ℤ → ℂ) : Summable f → Summable fun x : ℕ => f x :=
+theorem int_nat_sum [AddCommGroup α] [UniformSpace α] [ UniformAddGroup α]  [CompleteSpace α]
+  (f : ℤ → α  ) : Summable f → Summable fun x : ℕ => f x :=
   by
-  have : IsCompl (Set.range (coe : ℕ → ℤ)) (Set.range Int.negSucc) :=
+  have : IsCompl (Set.range (Int.ofNat : ℕ → ℤ)) (Set.range Int.negSucc) :=
     by
     constructor
     · rw [disjoint_iff_inf_le]
       rintro _ ⟨⟨i, rfl⟩, ⟨j, ⟨⟩⟩⟩
     · rw [codisjoint_iff_le_sup]
-      rintro (i | j) h
+      rintro (i | j) _
       exacts [Or.inl ⟨_, rfl⟩, Or.inr ⟨_, rfl⟩]
   intro h
-  rw [← @summable_subtype_and_compl _ _ _ _ _ f _ (Set.range (coe : ℕ → ℤ))] at h 
-  cases h
-  rw [← (Equiv.ofInjective (coe : ℕ → ℤ) Nat.cast_injective).symm.summable_iff]
+  have H:= @summable_subtype_and_compl _ _ _ _ _ f _ (Set.range (Int.ofNat : ℕ → ℤ))
+  simp at H
+  rw [← H] at h
+  cases' h with h_left h_right
+  rw [← (Equiv.ofInjective (Int.ofNat : ℕ → ℤ) Nat.cast_injective).symm.summable_iff]
   apply Summable.congr h_left
   intro b
   funext
   simp_rw [Equiv.apply_ofInjective_symm]
   simp
   apply congr_arg
-  cases b; cases h_right; cases h_left; cases b_property; induction b_property_h; dsimp at *
-  simp at *
+  exact Eq.symm (Equiv.apply_ofInjective_symm Nat.cast_injective b)
+  
 
-theorem sum_int_even (f : ℤ → ℂ) (hf : ∀ n : ℤ, f n = f (-n)) (hf2 : Summable f) :
+theorem sum_int_even  [UniformSpace α] [CommRing α]  [ UniformAddGroup α] [CompleteSpace α] 
+  [T2Space α] (f : ℤ → α) (hf : ∀ n : ℤ, f n = f (-n)) (hf2 : Summable f) :
     ∑' n, f n = f 0 + 2 * ∑' n : ℕ+, f n :=
   by
   have hpos : HasSum (fun n : ℕ => f (n + 1)) (∑' n : ℕ+, f n) :=
     by
-    have := _root_.equiv.pnat_equiv_nat.hasSum_iff
+    rw [← _root_.Equiv.pnatEquivNat.hasSum_iff]
     simp_rw [Equiv.pnatEquivNat] at *
     simp at *
-    rw [← this]
     have hf3 : Summable ((fun n : ℕ => f (↑n + 1)) ∘ PNat.natPred) :=
       by
-      have hs : Summable fun n : ℕ+ => f n := by apply (int_nat_sum f hf2).Subtype
+      have hs : Summable fun n : ℕ+ => f n := by apply (int_nat_sum f hf2).subtype
       apply Summable.congr hs
       intro b; simp; congr; simp
     rw [Summable.hasSum_iff hf3]
@@ -303,41 +315,43 @@ def succEquiv : ℤ ≃ ℤ where
   left_inv := by apply Int.pred_succ
   right_inv := by apply Int.succ_pred
 
-theorem summable_neg (f : ℤ → ℂ) (hf : Summable f) : Summable fun d => f (-d) :=
+theorem summable_neg  [TopologicalSpace α] [AddCommMonoid α] (f : ℤ → α) (hf : Summable f) : 
+  Summable fun d => f (-d) :=
   by
-  have h : (fun d => f (-d)) = (fun d => f d) ∘ neg_equiv.to_fun :=
+  have h : (fun d => f (-d)) = (fun d => f d) ∘ negEquiv.toFun :=
     by
     funext
     simp
     rfl
   rw [h]
-  have := neg_equiv.summable_iff.mpr hf
+  have := negEquiv.summable_iff.mpr hf
   apply this
 
-theorem int_sum_neg (f : ℤ → ℂ) (hf : Summable f) : ∑' d : ℤ, f d = ∑' d, f (-d) :=
+theorem int_sum_neg [AddCommMonoid α] [TopologicalSpace α] [T2Space α] (f : ℤ → α) : 
+  ∑' d : ℤ, f d = ∑' d, f (-d) :=
   by
-  have h : (fun d => f (-d)) = (fun d => f d) ∘ neg_equiv.to_fun :=
+  have h : (fun d => f (-d)) = (fun d => f d) ∘ negEquiv.toFun :=
     by
     funext
     simp
     rfl
   rw [h]
   apply symm
-  apply neg_equiv.tsum_eq
-  exact T25Space.t2Space
+  apply negEquiv.tsum_eq
 
-theorem int_tsum_pNat (f : ℤ → ℂ) (hf2 : Summable f) :
-    ∑' n, f n = f 0 + ∑' n : ℕ+, f n + ∑' m : ℕ+, f (-m) :=
+
+theorem int_tsum_pNat [UniformSpace α] [CommRing α]  [ UniformAddGroup α] [CompleteSpace α]
+  [T2Space α] (f : ℤ → α) (hf2 : Summable f) : 
+  ∑' n, f n = f 0 + ∑' n : ℕ+, f n + ∑' m : ℕ+, f (-m) :=
   by
   have hpos : HasSum (fun n : ℕ => f (n + 1)) (∑' n : ℕ+, f n) :=
     by
-    have := _root_.equiv.pnat_equiv_nat.hasSum_iff
+    rw [←_root_.Equiv.pnatEquivNat.hasSum_iff]
     simp_rw [Equiv.pnatEquivNat] at *
     simp at *
-    rw [← this]
     have hf3 : Summable ((fun n : ℕ => f (↑n + 1)) ∘ PNat.natPred) :=
       by
-      have hs : Summable fun n : ℕ+ => f n := by apply (int_nat_sum f hf2).Subtype
+      have hs : Summable fun n : ℕ+ => f n := by apply (int_nat_sum f hf2).subtype
       apply Summable.congr hs
       intro b; simp; congr; simp
     rw [Summable.hasSum_iff hf3]
@@ -349,9 +363,8 @@ theorem int_tsum_pNat (f : ℤ → ℂ) (hf2 : Summable f) :
     simp
   have hneg : HasSum (fun n : ℕ => f (-n.succ)) (∑' n : ℕ+, f (-n)) :=
     by
-    have := _root_.equiv.pnat_equiv_nat.hasSum_iff
+    rw [←_root_.Equiv.pnatEquivNat.hasSum_iff]
     simp_rw [Equiv.pnatEquivNat] at *
-    rw [← this]
     rw [Summable.hasSum_iff _]
     congr
     funext
@@ -360,11 +373,10 @@ theorem int_tsum_pNat (f : ℤ → ℂ) (hf2 : Summable f) :
     simp_rw [PNat.natPred]
     simp
     ring
-    exact T25Space.t2Space
     rw [Equiv.summable_iff]
     have H : Summable fun d : ℤ => f d.pred :=
       by
-      have := succ_equiv.symm.summable_iff.2 hf2
+      have := succEquiv.symm.summable_iff.2 hf2
       apply this
     have H2 := summable_neg _ H
     have := int_nat_sum _ H2
@@ -374,8 +386,6 @@ theorem int_tsum_pNat (f : ℤ → ℂ) (hf2 : Summable f) :
     congr
     simp_rw [Int.pred]
     ring
-    exact AddCommGroup.toAddCommMonoid ℂ
-    exact UniformSpace.toTopologicalSpace
   have := (HasSum.pos_add_zero_add_neg hpos hneg).tsum_eq
   rw [this]
   ring_nf
@@ -384,9 +394,7 @@ theorem int_tsum_pNat (f : ℤ → ℂ) (hf2 : Summable f) :
 theorem hasDerivAt_tsum_fun {α : Type _} [NeBot (atTop : Filter (Finset α))] (f : α → ℂ → ℂ)
     {s : Set ℂ} (hs : IsOpen s) (x : ℂ) (hx : x ∈ s)
     (hf : ∀ y : ℂ, y ∈ s → Summable fun n : α => f n y)
-    (hu :
-      ∀ (K) (_ : K ⊆ s),
-        IsCompact K →
+    (hu :∀ (K) (_ : K ⊆ s), IsCompact K →
           ∃ u : α → ℝ, Summable u ∧ ∀ (n : α) (k : K), Complex.abs (deriv (f n) k) ≤ u n)
     (hf2 : ∀ (n : α) (r : s), DifferentiableAt ℂ (f n) r) :
     HasDerivAt (fun z => ∑' n : α, f n z) (∑' n : α, deriv (fun z => f n z) x) x :=
@@ -394,7 +402,7 @@ theorem hasDerivAt_tsum_fun {α : Type _} [NeBot (atTop : Filter (Finset α))] (
   have A :
     ∀ x : ℂ,
       x ∈ s →
-        tendsto (fun t : Finset α => ∑ n in t, (fun z => f n z) x) at_top
+        Tendsto (fun t : Finset α => ∑ n in t, (fun z => f n z) x) atTop
           (𝓝 (∑' n : α, (fun z => f n z) x)) :=
     by
     intro y hy
@@ -412,11 +420,10 @@ theorem hasDerivAt_tsum_fun {α : Type _} [NeBot (atTop : Filter (Finset α))] (
   intro n x hx
   simp
   apply hu2 n ⟨x, hx⟩
-  exact complete_of_proper
   apply eventually_of_forall
   intro t r hr
   apply HasDerivAt.sum
-  intro q w
+  intro q _
   rw [hasDerivAt_deriv_iff]
   simp
   apply hf2 q ⟨r, hr⟩
@@ -430,8 +437,8 @@ theorem hasDerivWithinAt_tsum_fun {α : Type _} [NeBot (atTop : Filter (Finset �
         IsCompact K →
           ∃ u : α → ℝ, Summable u ∧ ∀ (n : α) (k : K), Complex.abs (deriv (f n) k) ≤ u n)
     (hf2 : ∀ (n : α) (r : s), DifferentiableAt ℂ (f n) r) :
-    HasDerivWithinAt (fun z => ∑' n : α, f n z) (∑' n : α, deriv (fun z => f n z) x) s x :=
-  (hasDerivAt_tsum_fun f hs x hx hf hu hf2).HasDerivWithinAt
+    HasDerivWithinAt (fun z => ∑' n : α, f n z) (∑' n : α, deriv (fun z => f n z) x) s x := by
+  apply (hasDerivAt_tsum_fun f hs x hx hf hu hf2).hasDerivWithinAt
 
 /- ./././Mathport/Syntax/Translate/Basic.lean:635:2: warning: expanding binder collection (K «expr ⊆ » s) -/
 theorem hasDerivWithinAt_tsum_fun' {α : Type _} [NeBot (atTop : Filter (Finset α))] (f : α → ℂ → ℂ)
@@ -445,12 +452,16 @@ theorem hasDerivWithinAt_tsum_fun' {α : Type _} [NeBot (atTop : Filter (Finset 
     HasDerivWithinAt (fun z => ∑' n : α, f n z) (∑' n : α, derivWithin (fun z => f n z) s x) s x :=
   by
   have := hasDerivWithinAt_tsum_fun f hs x hx hf hu hf2
+  have Hd : (∑' (n : α), deriv (fun z => f n z) x) = (∑' n : α, derivWithin (fun z => f n z) s x) :=
+    by 
+    apply tsum_congr
+    intro n
+    apply symm
+    apply DifferentiableAt.derivWithin
+    apply hf2 n ⟨x, hx⟩
+    apply IsOpen.uniqueDiffWithinAt hs hx
+  rw [Hd] at this
   convert this
-  simp
-  ext1 n
-  apply DifferentiableAt.derivWithin
-  apply hf2 n ⟨x, hx⟩
-  apply IsOpen.uniqueDiffWithinAt hs hx
 
 /- ./././Mathport/Syntax/Translate/Basic.lean:635:2: warning: expanding binder collection (K «expr ⊆ » s) -/
 theorem deriv_tsum_fun' {α : Type _} [NeBot (atTop : Filter (Finset α))] (f : α → ℂ → ℂ) {s : Set ℂ}
