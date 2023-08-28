@@ -1,11 +1,10 @@
-import Mathbin.Analysis.Calculus.IteratedDeriv
-import Mathbin.Analysis.Calculus.Series
-import Mathbin.Data.Complex.Exponential
-import Mathbin.Analysis.Complex.UpperHalfPlane.Basic
-import Project.ForMathlib.ModForms2
-import Project.ModForms.HolomorphicFunctions
+import Mathlib.Analysis.Calculus.IteratedDeriv
+import Mathlib.Analysis.Calculus.Series
+import Mathlib.Data.Complex.Exponential
+import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
+import Modformsported.ForMathlib.ModForms2
+import Modformsported.ModForms.HolomorphicFunctions
 
-#align_import mod_forms.Eisenstein_Series.iterated_deriv_lemmas
 
 noncomputable section
 
@@ -13,7 +12,8 @@ open UpperHalfPlane TopologicalSpace Set Metric Filter Function Complex
 
 open scoped Interval NNReal ENNReal Topology BigOperators Nat Classical
 
-local notation "ℍ'" => (⟨UpperHalfPlane.upperHalfSpace, upper_half_plane_isOpen⟩ : OpenSubs)
+local notation "ℍ'" =>
+  (TopologicalSpace.Opens.mk UpperHalfPlane.upperHalfSpace upper_half_plane_isOpen)
 
 theorem iter_der_eqOn_cong (f g : ℂ → ℂ) (k : ℕ) (S : Set ℂ) (hs : IsOpen S) (hfg : EqOn f g S) :
     EqOn (iteratedDerivWithin k f S) (iteratedDerivWithin k g S) S :=
@@ -47,9 +47,9 @@ theorem iter_der_within_const_neg (k : ℕ) (hk : 0 < k) (x : ℍ') (c : ℂ) (f
       iteratedDerivWithin k (fun z => -f z) ℍ' x :=
   by
   simp
-  induction' k with k IH
+  induction' k with k _
   exfalso
-  simpa using hk
+  simp at hk
   rw [iteratedDerivWithin_succ']
   rw [iteratedDerivWithin_succ']
   apply iter_der_eqOn_cong
@@ -82,15 +82,17 @@ theorem iter_der_within_neg (k : ℕ) (x : ℍ') (f : ℂ → ℂ) (hf : ContDif
     iteratedDerivWithin k (-f) ℍ' x = -iteratedDerivWithin k f ℍ' x :=
   by
   rw [neg_eq_neg_one_mul]
-  nth_rw 2 [neg_eq_neg_one_mul]
   rw [← smul_eq_mul]
-  rw [← smul_eq_mul]
-  apply iter_der_within_const_mul k x (-1)
+  have := iter_der_within_const_mul k x (-1)
+  simp at *
+  apply this
   apply hf
 
 theorem iter_der_within_neg' (k : ℕ) (x : ℍ') (f : ℂ → ℂ) (hf : ContDiffOn ℂ k f ℍ') :
     iteratedDerivWithin k (fun z => -f z) ℍ' x = -iteratedDerivWithin k f ℍ' x := by
-  convert iter_der_within_neg k x f hf
+  have := iter_der_within_neg k x f hf
+  simp at *
+  apply this
 
 theorem iter_deriv_within_sub (k : ℕ) (x : ℍ') (f g : ℂ → ℂ) (hf : ContDiffOn ℂ k f ℍ')
     (hg : ContDiffOn ℂ k g ℍ') :
