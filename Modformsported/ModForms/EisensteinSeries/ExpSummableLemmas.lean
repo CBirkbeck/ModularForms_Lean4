@@ -1,15 +1,13 @@
-import Mathbin.Data.Complex.Exponential
-import Mathbin.Analysis.Calculus.IteratedDeriv
-import Mathbin.Analysis.Calculus.Series
-import Project.ModForms.EisensteinSeries.TsumLemmas
-import Project.ForMathlib.ModForms2
-import Project.ModForms.HolomorphicFunctions
-import Mathbin.Analysis.Complex.UpperHalfPlane.Basic
-import Project.ModForms.EisensteinSeries.EisensteinSeriesIndexLemmas
-import Project.ModForms.EisensteinSeries.IteratedDerivLemmas
-import Mathbin.Analysis.SpecialFunctions.ExpDeriv
-
-#align_import mod_forms.Eisenstein_Series.exp_summable_lemmas
+import Mathlib.Data.Complex.Exponential
+import Mathlib.Analysis.Calculus.IteratedDeriv
+import Mathlib.Analysis.Calculus.Series
+import Modformsported.ModForms.EisensteinSeries.TsumLemmas
+import Modformsported.ForMathlib.ModForms2
+import Modformsported.ModForms.HolomorphicFunctions
+import Mathlib.Analysis.Complex.UpperHalfPlane.Basic 
+import Modformsported.ModForms.EisensteinSeries.EisensteinSeriesIndexLemmas
+import Modformsported.ModForms.EisensteinSeries.IteratedDerivLemmas
+import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 
 noncomputable section
 
@@ -17,9 +15,10 @@ open ModularForm EisensteinSeries UpperHalfPlane TopologicalSpace Set Metric Fil
 
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
 
-local notation "ℍ" => UpperHalfPlane
+--local notation "ℍ" => UpperHalfPlane
 
-local notation "ℍ'" => (⟨UpperHalfPlane.upperHalfSpace, upper_half_plane_isOpen⟩ : OpenSubs)
+local notation "ℍ'" =>
+  (TopologicalSpace.Opens.mk UpperHalfPlane.upperHalfSpace upper_half_plane_isOpen)
 
 theorem exp_upperHalfPlane_lt_one (z : ℍ) : Complex.abs (Complex.exp (2 * ↑π * I * z)) < 1 :=
   by
