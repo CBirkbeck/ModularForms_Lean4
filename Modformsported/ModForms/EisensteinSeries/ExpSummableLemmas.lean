@@ -161,17 +161,18 @@ theorem exp_iter_deriv_apply (n m : ℕ) (x : ℂ) :
 
 def uexp (n : ℕ) : ℍ' → ℂ := fun z => Complex.exp (2 * ↑π * I * z * n)
 
-def funn (K : Set ℂ) : ContinuousMap K ℂ
+def cts_exp_two_pi_n (K : Set ℂ) : ContinuousMap K ℂ
     where toFun := fun r : K => Complex.exp (2 * ↑π * I * r)
 
-def funnN (K : Set ℂ) (hk1 : K ⊆ upperHalfSpace) (hk2 : IsCompact K) (n k : ℕ) : ContinuousMap K ℂ
+/-
+def funnN (K : Set ℂ) (n k : ℕ) : ContinuousMap K ℂ
     where toFun := fun r : K => (2 * π * I * n) ^ k * Complex.exp (2 * ↑π * I * r)
+-/
 
 theorem der_iter_eq_der_aux2 (k n : ℕ) (r : ↥upperHalfSpace) :
-    DifferentiableAt ℂ
-      (fun z : ℂ =>
-        iteratedDerivWithin k (fun s : ℂ => Complex.exp (2 * ↑π * I * n * s)) upperHalfSpace z)
-      ↑r :=
+  DifferentiableAt ℂ
+    (fun z : ℂ =>
+      iteratedDerivWithin k (fun s : ℂ => Complex.exp (2 * ↑π * I * n * s)) upperHalfSpace z) ↑r :=
   by
   simp at *
   have hh :
@@ -225,60 +226,81 @@ theorem iter_deriv_comp_bound2 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
               (deriv (iteratedDerivWithin k (fun s : ℂ => Complex.exp (2 * ↑π * I * n * s)) ℍ') r) ≤
             u n :=
   by
-  have : CompactSpace K := by rw [← isCompact_univ_iff]; rw [isCompact_iff_isCompact_univ] at hK2 ;
+  have : CompactSpace K := by 
+    rw [← isCompact_univ_iff]
+    rw [isCompact_iff_isCompact_univ] at hK2 
     apply hK2
-  have hg := BoundedContinuousFunction.mkOfCompact (funn K hK1 hK2)
-  set r : ℝ := ‖BoundedContinuousFunction.mkOfCompact (funn K hK1 hK2)‖
-  have hr : ‖BoundedContinuousFunction.mkOfCompact (funn K hK1 hK2)‖ < 1 :=
+  set r : ℝ := ‖BoundedContinuousFunction.mkOfCompact (cts_exp_two_pi_n K )‖
+  have hr : ‖BoundedContinuousFunction.mkOfCompact (cts_exp_two_pi_n K )‖ < 1 :=
     by
     rw [BoundedContinuousFunction.norm_lt_iff_of_compact]
-    intro x; rw [BoundedContinuousFunction.mkOfCompact_apply]; simp_rw [funn]
+    intro x; rw [BoundedContinuousFunction.mkOfCompact_apply]; simp_rw [cts_exp_two_pi_n]
     simp only [ContinuousMap.coe_mk, norm_eq_abs]
     apply exp_upperHalfPlane_lt_one ⟨x.1, hK1 x.2⟩; linarith
   have hr2 : 0 ≤ r := by simp only [norm_nonneg]
   have hu : Summable fun n : ℕ => Complex.abs ((2 * ↑π * I * n) ^ (k + 1) * r ^ n) :=
     by
-    simp
-    simp_rw [mul_pow]
-    have h2ne : (2 : ℝ) ^ (k + 1) ≠ 0 := by apply pow_ne_zero; exact NeZero.ne 2
-    simp_rw [mul_assoc]
-    rw [summable_mul_left_iff h2ne]
-    rw [summable_mul_left_iff _]
+    have : ∀ (n : ℕ), ((2 * ↑π)^(k+1))* ((n) ^ (k + 1) *Complex.abs (r ^ n)) =
+      Complex.abs ((2 * ↑π * I * n) ^ (k + 1) * r ^ n) := by
+        intro n
+        rw [←mul_assoc]
+        norm_cast
+        simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal,
+          abs_norm, map_mul, mul_eq_mul_right_iff]
+        constructor
+        norm_cast
+        simp only [Nat.cast_pow, ofReal_mul, ofReal_ofNat, map_pow, map_mul, Complex.abs_two, abs_ofReal, abs_I,
+          mul_one, abs_cast_nat]
+        have hh : |π| = π := by simp [Real.pi_pos.le]
+        rw [hh]
+        ring
+    apply Summable.congr _ this
+    rw [summable_mul_left_iff]
+    norm_cast
+    simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal, abs_norm]
     apply summable_pow_mul_geometric_of_norm_lt_1
-    simp at *
+    simp only [norm_norm]
     apply hr
-    exact TopologicalSemiring.mk
+    norm_cast
     apply pow_ne_zero
-    simpa using Real.pi_ne_zero
+    apply mul_ne_zero
+    linarith
+    apply Real.pi_ne_zero
   refine' ⟨fun n : ℕ => Complex.abs ((2 * ↑π * I * n) ^ (k + 1) * r ^ n), hu, _⟩
   intro n t
   have go := der_iter_eq_der2' k n ⟨t.1, hK1 t.2⟩
   simp at *
   simp_rw [go]
   have h1 := exp_iter_deriv_within (k + 1) n (hK1 t.2)
-  simp only [Subtype.val_eq_coe, opens.coe_mk] at *
+  norm_cast at *
+  simp at *
   rw [h1]
   simp
   have ineqe : Complex.abs (Complex.exp (2 * π * I * n * t)) ≤ ‖r‖ ^ n :=
     by
     have hw1 :
       Complex.abs (Complex.exp (2 * π * I * n * t)) =
-        Complex.abs (Complex.exp (2 * π * I * t)) ^ n :=
-      by rw [← Complex.abs_pow]; congr; rw [← exp_nat_mul]; ring_nf
+        Complex.abs (Complex.exp (2 * π * I * t)) ^ n := by
+          norm_cast 
+          rw [← Complex.abs_pow]; 
+          congr; 
+          rw [← exp_nat_mul]; 
+          ring_nf
     rw [hw1]
-    apply le_of_pow'
-    apply complex.abs.nonneg
+    norm_cast
+    apply pow_le_pow_of_le_left
+    apply Complex.abs.nonneg
     simp only [norm_nonneg]
     have :=
       BoundedContinuousFunction.norm_coe_le_norm
-        (BoundedContinuousFunction.mkOfCompact (funn K hK1 hK2)) t
+        (BoundedContinuousFunction.mkOfCompact (cts_exp_two_pi_n K)) t
     simp at *
     exact this
   apply mul_le_mul
   simp
   simp at ineqe 
   convert ineqe
-  apply complex.abs.nonneg
+  apply Complex.abs.nonneg
   apply pow_nonneg (cray n)
 
 theorem iter_deriv_comp_bound3 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact K) (k : ℕ) :
@@ -290,56 +312,71 @@ theorem iter_deriv_comp_bound3 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
   have : CompactSpace K := by
     rw [← isCompact_univ_iff]; rw [isCompact_iff_isCompact_univ] at hK2 
     apply hK2
-  have hg := BoundedContinuousFunction.mkOfCompact (funn K hK1 hK2)
-  set r : ℝ := ‖BoundedContinuousFunction.mkOfCompact (funn K hK1 hK2)‖
-  have hr : ‖BoundedContinuousFunction.mkOfCompact (funn K hK1 hK2)‖ < 1 :=
+  set r : ℝ := ‖BoundedContinuousFunction.mkOfCompact (cts_exp_two_pi_n K)‖
+  have hr : ‖BoundedContinuousFunction.mkOfCompact (cts_exp_two_pi_n K)‖ < 1 :=
     by
     rw [BoundedContinuousFunction.norm_lt_iff_of_compact]
-    intro x; rw [BoundedContinuousFunction.mkOfCompact_apply]; simp_rw [funn]
+    intro x; rw [BoundedContinuousFunction.mkOfCompact_apply]; simp_rw [cts_exp_two_pi_n]
     simp only [ContinuousMap.coe_mk, norm_eq_abs]
     apply exp_upperHalfPlane_lt_one ⟨x.1, hK1 x.2⟩; linarith
   have hr2 : 0 ≤ r := by simp only [norm_nonneg]
-  have hu : Summable fun n : ℕ => Complex.abs ((2 * ↑π * I * n) ^ k * r ^ n) :=
+  have hu : Summable fun n : ℕ => Complex.abs ((2 * ↑π * I * n) ^ (k ) * r ^ n) :=
     by
-    simp only [AbsoluteValue.map_mul, Complex.abs_pow, Complex.abs_two, abs_of_real, abs_I, mul_one,
-      abs_cast_nat, BoundedContinuousFunction.norm_mkOfCompact, abs_norm]
-    simp_rw [mul_pow]
-    have h2ne : (2 : ℝ) ^ k ≠ 0 := by apply pow_ne_zero; exact NeZero.ne 2
-    simp_rw [mul_assoc]
-    rw [summable_mul_left_iff h2ne]
-    rw [summable_mul_left_iff _]
+    have : ∀ (n : ℕ), ((2 * ↑π)^(k))* ((n) ^ (k ) *Complex.abs (r ^ n)) =
+      Complex.abs ((2 * ↑π * I * n) ^ (k ) * r ^ n) := by
+        intro n
+        rw [←mul_assoc]
+        norm_cast
+        simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal,
+          abs_norm, map_mul, mul_eq_mul_right_iff]
+        constructor
+        norm_cast
+        simp only [Nat.cast_pow, ofReal_mul, ofReal_ofNat, map_pow, map_mul, Complex.abs_two, abs_ofReal, abs_I,
+          mul_one, abs_cast_nat]
+        have hh : |π| = π := by simp [Real.pi_pos.le]
+        rw [hh]
+        ring
+    apply Summable.congr _ this
+    rw [summable_mul_left_iff]
+    norm_cast
+    simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal, abs_norm]
     apply summable_pow_mul_geometric_of_norm_lt_1
-    simp only [norm_norm, BoundedContinuousFunction.norm_mkOfCompact, norm_nonneg, Ne.def] at *
+    simp only [norm_norm]
     apply hr
-    exact TopologicalSemiring.mk
+    norm_cast
     apply pow_ne_zero
-    simpa using Real.pi_ne_zero
+    apply mul_ne_zero
+    linarith
+    apply Real.pi_ne_zero
   refine' ⟨fun n : ℕ => Complex.abs ((2 * ↑π * I * n) ^ k * r ^ n), hu, _⟩
   intro n t
   have ineqe : Complex.abs (Complex.exp (2 * π * I * n * t)) ≤ ‖r‖ ^ n :=
     by
     have hw1 :
       Complex.abs (Complex.exp (2 * π * I * n * t)) =
-        Complex.abs (Complex.exp (2 * π * I * t)) ^ n :=
-      by rw [← Complex.abs_pow]; congr; rw [← exp_nat_mul]; ring_nf
+        Complex.abs (Complex.exp (2 * π * I * t)) ^ n := by
+        norm_cast 
+        rw [← Complex.abs_pow]; congr; rw [← exp_nat_mul]; ring_nf
     rw [hw1]
-    apply le_of_pow'
-    apply complex.abs.nonneg
+    norm_cast
+    apply pow_le_pow_of_le_left
+    apply Complex.abs.nonneg
     simp only [norm_nonneg]
     have :=
       BoundedContinuousFunction.norm_coe_le_norm
-        (BoundedContinuousFunction.mkOfCompact (funn K hK1 hK2)) t
-    simp only [norm_norm, BoundedContinuousFunction.norm_mkOfCompact, norm_nonneg,
-      AbsoluteValue.map_mul, Complex.abs_pow, Complex.abs_two, abs_of_real, abs_I, mul_one,
+        (BoundedContinuousFunction.mkOfCompact (cts_exp_two_pi_n K)) t
+    simp  [norm_norm, BoundedContinuousFunction.norm_mkOfCompact, norm_nonneg,
+      AbsoluteValue.map_mul, Complex.abs_pow, Complex.abs_two,  abs_I, mul_one,
       abs_cast_nat, BoundedContinuousFunction.mkOfCompact_apply, norm_eq_abs, abs_norm] at *
     exact this
-  simp only [AbsoluteValue.map_mul, Complex.abs_pow, Complex.abs_two, abs_of_real, abs_I, mul_one,
+  simp [AbsoluteValue.map_mul, Complex.abs_pow, Complex.abs_two,  abs_I, mul_one,
     abs_cast_nat, BoundedContinuousFunction.norm_mkOfCompact, abs_norm]
   apply mul_le_mul
-  simp only
+  rfl
   simp only [norm_norm, BoundedContinuousFunction.norm_mkOfCompact] at ineqe 
   convert ineqe
-  apply complex.abs.nonneg
+  norm_cast
+  apply Complex.abs.nonneg
   apply pow_nonneg (cray n)
 
 theorem exp_series_ite_deriv_uexp2 (k : ℕ) (x : ℍ') :
@@ -362,7 +399,7 @@ theorem exp_series_ite_deriv_uexp2 (k : ℕ) (x : ℍ') :
     apply IH ⟨y, hy⟩
     apply IH x
   simp_rw [HH]
-  rw [deriv_tsum_fun']
+  rw [deriv_tsum_fun'] 
   simp only
   apply tsum_congr
   intro b
@@ -410,7 +447,7 @@ theorem tsum_uexp_contDiffOn (k : ℕ) :
     ContDiffOn ℂ k (fun z : ℂ => ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z)) ℍ' :=
   by
   apply contDiffOn_of_differentiableOn_deriv
-  intro m hm
+  intro m _
   apply DifferentiableOn.congr _ (exp_series_ite_deriv_uexp''' m)
   intro x hx
   apply HasDerivWithinAt.differentiableWithinAt
@@ -424,14 +461,30 @@ theorem tsum_uexp_contDiffOn (k : ℕ) :
   refine' ⟨u, hu, _⟩
   intro n r
   have HU2 := hu2 n r
-  simp
+  simp only [cpow_nat_cast, deriv_const_mul_field', map_mul, map_pow, Complex.abs_two, abs_ofReal, 
+    abs_I, mul_one,abs_cast_nat, ge_iff_le]
   apply le_trans _ HU2
   apply le_of_eq
+  norm_cast
+  rw [deriv_cexp]
+  rw [deriv_const_mul]
+  simp only [ofReal_mul, ofReal_ofNat, deriv_id'', mul_one, map_mul, Complex.abs_two, abs_ofReal, 
+    abs_I, abs_cast_nat]
   ring
+  apply differentiable_id.differentiableAt
+  apply Differentiable.differentiableAt
+  apply Differentiable.const_mul
+  apply differentiable_id'
   intro n r
   apply Differentiable.differentiableAt
-  simp only [Differentiable.mul, differentiable_const, Differentiable.cexp, differentiable_id']
-  exact at_top_ne_bot
+  apply Differentiable.mul
+  simp only [cpow_nat_cast]
+  apply Differentiable.pow
+  apply differentiable_const
+  apply Differentiable.cexp
+  apply differentiable_id'.const_mul
+
+ 
 
 theorem iter_der_within_add (k : ℕ+) (x : ℍ') :
     iteratedDerivWithin k

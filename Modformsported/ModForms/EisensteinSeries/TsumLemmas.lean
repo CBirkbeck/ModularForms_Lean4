@@ -391,7 +391,7 @@ theorem int_tsum_pNat [UniformSpace α] [CommRing α]  [ UniformAddGroup α] [Co
   ring_nf
 
 /- ./././Mathport/Syntax/Translate/Basic.lean:635:2: warning: expanding binder collection (K «expr ⊆ » s) -/
-theorem hasDerivAt_tsum_fun {α : Type _} [NeBot (atTop : Filter (Finset α))] (f : α → ℂ → ℂ)
+theorem hasDerivAt_tsum_fun {α : Type _} (f : α → ℂ → ℂ)
     {s : Set ℂ} (hs : IsOpen s) (x : ℂ) (hx : x ∈ s)
     (hf : ∀ y : ℂ, y ∈ s → Summable fun n : α => f n y)
     (hu :∀ (K) (_ : K ⊆ s), IsCompact K →
@@ -426,10 +426,10 @@ theorem hasDerivAt_tsum_fun {α : Type _} [NeBot (atTop : Filter (Finset α))] (
   intro q _
   rw [hasDerivAt_deriv_iff]
   simp
-  apply hf2 q ⟨r, hr⟩
+  apply hf2 q ⟨r, hr⟩ 
 
 /- ./././Mathport/Syntax/Translate/Basic.lean:635:2: warning: expanding binder collection (K «expr ⊆ » s) -/
-theorem hasDerivWithinAt_tsum_fun {α : Type _} [NeBot (atTop : Filter (Finset α))] (f : α → ℂ → ℂ)
+theorem hasDerivWithinAt_tsum_fun {α : Type _} (f : α → ℂ → ℂ)
     {s : Set ℂ} (hs : IsOpen s) (x : ℂ) (hx : x ∈ s)
     (hf : ∀ y : ℂ, y ∈ s → Summable fun n : α => f n y)
     (hu :
@@ -438,10 +438,10 @@ theorem hasDerivWithinAt_tsum_fun {α : Type _} [NeBot (atTop : Filter (Finset �
           ∃ u : α → ℝ, Summable u ∧ ∀ (n : α) (k : K), Complex.abs (deriv (f n) k) ≤ u n)
     (hf2 : ∀ (n : α) (r : s), DifferentiableAt ℂ (f n) r) :
     HasDerivWithinAt (fun z => ∑' n : α, f n z) (∑' n : α, deriv (fun z => f n z) x) s x := by
-  apply (hasDerivAt_tsum_fun f hs x hx hf hu hf2).hasDerivWithinAt
+  apply (hasDerivAt_tsum_fun f hs x hx hf hu hf2).hasDerivWithinAt 
 
 /- ./././Mathport/Syntax/Translate/Basic.lean:635:2: warning: expanding binder collection (K «expr ⊆ » s) -/
-theorem hasDerivWithinAt_tsum_fun' {α : Type _} [NeBot (atTop : Filter (Finset α))] (f : α → ℂ → ℂ)
+theorem hasDerivWithinAt_tsum_fun' {α : Type _} (f : α → ℂ → ℂ)
     {s : Set ℂ} (hs : IsOpen s) (x : ℂ) (hx : x ∈ s)
     (hf : ∀ y : ℂ, y ∈ s → Summable fun n : α => f n y)
     (hu :
@@ -464,7 +464,7 @@ theorem hasDerivWithinAt_tsum_fun' {α : Type _} [NeBot (atTop : Filter (Finset 
   convert this
 
 /- ./././Mathport/Syntax/Translate/Basic.lean:635:2: warning: expanding binder collection (K «expr ⊆ » s) -/
-theorem deriv_tsum_fun' {α : Type _} [NeBot (atTop : Filter (Finset α))] (f : α → ℂ → ℂ) {s : Set ℂ}
+theorem deriv_tsum_fun' {α : Type _} (f : α → ℂ → ℂ) {s : Set ℂ}
     (hs : IsOpen s) (x : ℂ) (hx : x ∈ s) (hf : ∀ y : ℂ, y ∈ s → Summable fun n : α => f n y)
     (hu :
       ∀ (K) (_ : K ⊆ s),
@@ -474,5 +474,5 @@ theorem deriv_tsum_fun' {α : Type _} [NeBot (atTop : Filter (Finset α))] (f : 
     derivWithin (fun z => ∑' n : α, f n z) s x = ∑' n : α, derivWithin (fun z => f n z) s x := by
   apply
     HasDerivWithinAt.derivWithin (hasDerivWithinAt_tsum_fun' f hs x hx hf hu hf2)
-      (IsOpen.uniqueDiffWithinAt hs hx)
+      (IsOpen.uniqueDiffWithinAt hs hx) 
 
