@@ -1,14 +1,12 @@
-import Mathbin.Data.Complex.Exponential
-import Mathbin.Analysis.Calculus.IteratedDeriv
-import Mathbin.Analysis.Calculus.Series
-import Project.ModForms.EisensteinSeries.TsumLemmas
-import Project.ForMathlib.ModForms2
-import Project.ModForms.HolomorphicFunctions
-import Mathbin.Analysis.Complex.UpperHalfPlane.Basic
-import Project.ModForms.EisensteinSeries.EisenIsHolo
-import Project.ModForms.EisensteinSeries.IteratedDerivLemmas
-
-#align_import mod_forms.Eisenstein_Series.auxp_lemmas
+import Mathlib.Data.Complex.Exponential
+import Mathlib.Analysis.Calculus.IteratedDeriv
+import Mathlib.Analysis.Calculus.Series
+import Modformsported.ModForms.EisensteinSeries.TsumLemmas
+import Modformsported.ForMathlib.ModForms2
+import Modformsported.ModForms.HolomorphicFunctions
+import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
+import Modformsported.ModForms.EisensteinSeries.EisenIsHolo
+import Modformsported.ModForms.EisensteinSeries.IteratedDerivLemmas
 
 noncomputable section
 
@@ -16,26 +14,26 @@ open ModularForm EisensteinSeries UpperHalfPlane TopologicalSpace Set Metric Fil
 
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
 
-local notation "ℍ" => UpperHalfPlane
+--local notation "ℍ" => UpperHalfPlane
 
-local notation "ℍ'" => (⟨UpperHalfPlane.upperHalfSpace, upper_half_plane_isOpen⟩ : OpenSubs)
+local notation "ℍ'" =>
+  (TopologicalSpace.Opens.mk UpperHalfPlane.upperHalfSpace upper_half_plane_isOpen)
 
 theorem upper_ne_int (x : ℍ') (d : ℤ) : (x : ℂ) + d ≠ 0 :=
   by
-  by_contra
+  by_contra h
   rw [add_eq_zero_iff_eq_neg] at h 
   have h1 : 0 < (x : ℂ).im := by simp [x.2]; exact im_pos x
   rw [h] at h1 
-  simp at h1 
-  exact h1
+  simp only [neg_im, int_cast_im, neg_zero, lt_self_iff_false] at h1  
 
 theorem upper_ne_nat (x : ℍ') (d : ℕ) : (x : ℂ) ≠ d :=
   by
-  by_contra
+  by_contra h
   have h1 : 0 < (x : ℂ).im := by simp [x.2]; exact im_pos x
   rw [h] at h1 
-  simp at h1 
-  exact h1
+  simp only [nat_cast_im, lt_self_iff_false] at h1  
+
 
 theorem aut_iter_deriv (d : ℤ) (k : ℕ) :
     EqOn (iteratedDerivWithin k (fun z : ℂ => 1 / (z + d)) ℍ')
@@ -45,34 +43,71 @@ theorem aut_iter_deriv (d : ℤ) (k : ℕ) :
   induction' k with k IH generalizing x
   simp only [iteratedDerivWithin_zero, pow_zero, Nat.factorial_zero, algebraMap.coe_one, pow_one,
     one_mul]
+  norm_cast at *
+  simp  at *
   rw [iteratedDerivWithin_succ]
-  rw [derivWithin_congr _ (IH hx)]
-  simp
-  rw [DifferentiableAt.derivWithin]
-  simp
-  rw [deriv_inv'']
-  simp only [deriv_pow'', differentiableAt_add_const_iff, differentiableAt_id', Nat.cast_add,
+  simp only [one_div, Opens.coe_mk, Nat.cast_succ, Nat.factorial, Nat.cast_mul]
+  have := (IH hx)
+  have H : derivWithin (fun (z : ℂ) => (-1: ℂ) ^ k * ↑k ! * ((z + ↑d) ^ (k + 1))⁻¹) ℍ' x =
+   (-1) ^ (↑k + 1) * ((↑k + 1) * ↑k !) * ((x + ↑d) ^ (↑k + 1 + 1))⁻¹ := by 
+    simp only [cpow_nat_cast, Opens.coe_mk]
+    rw [DifferentiableAt.derivWithin]
+    simp only [deriv_const_mul_field']
+    rw [deriv_inv'']
+    norm_cast
+    rw [deriv_pow'']
+    rw [deriv_add_const']
+    rw  [deriv_id'']
+    simp [deriv_pow'', differentiableAt_add_const_iff, differentiableAt_id', Nat.cast_add,
     algebraMap.coe_one, Nat.add_succ_sub_one, add_zero, deriv_add_const', deriv_id'', mul_one]
-  rw [← pow_mul]
-  have : -((↑k + 1) * (x + ↑d) ^ k) / (x + ↑d) ^ ((k + 1) * 2) = -(↑k + 1) / (x + ↑d) ^ (k + 2) :=
-    by
-    rw [div_eq_div_iff]
+    rw [← pow_mul]
+    norm_cast
+    rw [pow_add]
+    simp only [Int.cast_mul, Int.cast_pow, Int.cast_negSucc, zero_add, Nat.cast_one, 
+      Int.cast_ofNat, Nat.cast_add,pow_one, Nat.cast_mul, mul_neg, mul_one, Int.cast_add, 
+        Int.cast_one, neg_mul]
+    have Hw : -(((k: ℂ) + 1) * (x + ↑d) ^ k) / (x + ↑d) ^ ((k + 1) * 2) = -(↑k + 1) / (x + ↑d) ^ (k + 2) :=
+      by 
+      rw [div_eq_div_iff]
+      norm_cast
+      simp
+      ring
+      norm_cast
+      apply pow_ne_zero ((k + 1) * 2) (upper_ne_int ⟨x, hx⟩ d)
+      norm_cast
+      apply pow_ne_zero (k + 2) (upper_ne_int ⟨x, hx⟩ d)
+    norm_cast at *
+    simp at *
+    rw [Hw]
     ring
-    apply pow_ne_zero ((k + 1) * 2) (upper_ne_int ⟨x, hx⟩ d)
-    apply pow_ne_zero (k + 2) (upper_ne_int ⟨x, hx⟩ d)
-  rw [this]
-  ring
-  simp
-  apply pow_ne_zero (k + 1) (upper_ne_int ⟨x, hx⟩ d)
-  apply DifferentiableAt.const_mul
-  apply DifferentiableAt.inv
-  simp
-  apply pow_ne_zero (k + 1) (upper_ne_int ⟨x, hx⟩ d)
+    rw [differentiableAt_add_const_iff]
+    apply differentiableAt_id'
+    norm_cast
+    apply DifferentiableAt.pow
+    rw [differentiableAt_add_const_iff]
+    apply differentiableAt_id'
+    norm_cast
+    apply pow_ne_zero (k + 1) (upper_ne_int ⟨x, hx⟩ d)
+    apply DifferentiableAt.const_mul
+    apply DifferentiableAt.inv
+    norm_cast
+    apply DifferentiableAt.pow
+    rw [differentiableAt_add_const_iff]
+    apply differentiableAt_id'
+    norm_cast
+    apply pow_ne_zero (k + 1) (upper_ne_int ⟨x, hx⟩ d)
+    apply IsOpen.uniqueDiffWithinAt upper_half_plane_isOpen hx
+  rw [←H]
+  apply derivWithin_congr
+  norm_cast at *
+  simp at *
+  intro r hr
+  apply IH hr
+  norm_cast at *
+  simp at *
+  apply this
   apply IsOpen.uniqueDiffWithinAt upper_half_plane_isOpen hx
-  intro x hxx
-  apply IH hxx
-  repeat' apply IsOpen.uniqueDiffWithinAt upper_half_plane_isOpen hx
-
+  
 theorem aut_iter_deriv' (d : ℤ) (k : ℕ) :
     EqOn (iteratedDerivWithin k (fun z : ℂ => 1 / (z - d)) ℍ')
       (fun t : ℂ => (-1) ^ k * k ! * (1 / (t - d) ^ (k + 1))) ℍ' :=
@@ -97,62 +132,88 @@ theorem ineq11 (x y d : ℝ) :
   by
   have h1 :
     d ^ 2 * (x ^ 2 + y ^ 2) ^ 2 - 2 * d * x * (x ^ 2 + y ^ 2) + x ^ 2 =
-      (d * (x ^ 2 + y ^ 2) - x) ^ 2 :=
-    by ring
+      (d * (x ^ 2 + y ^ 2) - x) ^ 2 :=by 
+        norm_cast
+        ring
   rw [h1]
-  nlinarith
+  have := pow_two_nonneg  (d * (x ^ 2 + y ^ 2) - x)
+  simp at *
+  norm_cast at *
 
 theorem lowboundd (z : ℍ) (δ : ℝ) :
     (z.1.2 ^ 4 + (z.1.1 * z.1.2) ^ 2) / (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 ≤
       (δ * z.1.1 - 1) ^ 2 + (δ * z.1.2) ^ 2 :=
   by
-  simp only [UpperHalfPlane.coe_im, Subtype.val_eq_coe, UpperHalfPlane.coe_re]
+  simp only [UpperHalfPlane.coe_im,  UpperHalfPlane.coe_re]
   have H1 :
     (δ * z.1.1 - 1) ^ 2 + (δ * z.1.2) ^ 2 = δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) - 2 * δ * z.1.1 + 1 :=
-    by ring
-  simp only [UpperHalfPlane.coe_im, Subtype.val_eq_coe, UpperHalfPlane.coe_re] at H1 
+    by 
+    norm_cast
+    ring
+  simp only [UpperHalfPlane.coe_im,  UpperHalfPlane.coe_re] at H1 
   rw [H1]
   rw [div_le_iff]
   simp only
   have H2 :
-    (δ ^ 2 * ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) - 2 * δ * (z : ℂ).re + 1) *
-        ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) ^ 2 =
-      δ ^ 2 * ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) ^ 3 -
-          2 * δ * (z : ℂ).re * ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) ^ 2 +
-        ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) ^ 2 :=
-    by ring
-  simp only [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at H2 
+     (δ ^ 2 * ((z.1.1) ^ 2 + z.1.2 ^ 2) - 2 * δ * z.1.1 + 1) *
+        (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 =
+      δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 3 -
+          2 * δ * z.1.1 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 +
+        (z.1.1^ 2 + z.1.2 ^ 2) ^ 2:=       
+    by 
+    norm_cast
+    ring
+  norm_cast at H2
+  simp at *
   rw [H2]
   rw [← sub_nonneg]
   have H3 :
-    ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) ^ 2 - ((z : ℂ).im ^ 4 + ((z : ℂ).re * (z : ℂ).im) ^ 2) =
-      (z : ℂ).re ^ 2 * ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) :=
-    by ring
+      (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 - (z.1.2 ^ 4 + (z.1.1 * z.1.2) ^ 2) =
+      z.1.1 ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2)  :=
+  
+    by 
+    norm_cast
+    ring
   have H4 :
-    δ ^ 2 * ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) ^ 3 -
-            2 * δ * (z : ℂ).re * ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) ^ 2 +
-          ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) ^ 2 -
-        ((z : ℂ).im ^ 4 + ((z : ℂ).re * (z : ℂ).im) ^ 2) =
-      ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) *
-        (δ ^ 2 * ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) ^ 2 -
-            2 * δ * (z : ℂ).re * ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) +
-          (z : ℂ).re ^ 2) :=
-    by ring
-  simp only [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at H4 
+    δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 3 -
+            2 * δ * z.1.1 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 +
+          (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 -
+        (z.1.2 ^ 4 + (z.1.1 * z.1.2) ^ 2) =
+      (z.1.1 ^ 2 + z.1.2 ^ 2) *
+        (δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 -
+            2 * δ * z.1.1 * (z.1.1 ^ 2 + z.1.2 ^ 2) +
+          z.1.1 ^ 2)   :=by 
+          norm_cast
+          ring
+  norm_cast at *
   rw [H4]
   have H5 :
     0 ≤
-      δ ^ 2 * ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) ^ 2 -
-          2 * δ * (z : ℂ).re * ((z : ℂ).re ^ 2 + (z : ℂ).im ^ 2) +
-        (z : ℂ).re ^ 2 :=
+        δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 -
+          2 * δ * z.1.1 * (z.1.1 ^ 2 + z.1.2 ^ 2) +
+        z.1.1 ^ 2  :=
     by apply ineq11
-  have H6 : 0 ≤ (z : ℂ).re ^ 2 + (z : ℂ).im ^ 2 := by nlinarith
-  apply mul_nonneg H6 H5
-  have H7 := z.property; simp at H7 
-  have H8 : 0 < (z : ℂ).im ^ 2 := by simp only [H7, pow_pos, UpperHalfPlane.coe_im]
-  have H9 : 0 < (z : ℂ).im ^ 2 + (z : ℂ).re ^ 2 := by nlinarith
-  apply pow_two_pos_of_ne_zero
-  nlinarith
+  have H6 : 0 ≤ z.1.1 ^ 2 + z.1.2 ^ 2 := by 
+    norm_cast
+    nlinarith 
+  norm_cast   
+  have HH :=mul_nonneg H6 H5
+  simp at *
+  norm_cast at *
+  have H8 : 0 < z.1.2 ^ 2 := by 
+    have := upper_half_im_pow_pos z 2
+    norm_cast at *
+  have H9 : 0 < z.1.2 ^ 2 + z.1.1 ^ 2 := by 
+    norm_cast
+    rw [add_comm]
+    apply add_pos_of_nonneg_of_pos
+    apply pow_two_nonneg
+    norm_cast at *
+  norm_cast  
+  apply sq_pos_of_ne_zero
+  simp at H9
+  norm_cast at H9
+  linarith    
 
 theorem rfunt_bnd (z : ℍ) (δ : ℝ) : rfunct z ≤ Complex.abs (δ * (z : ℂ) - 1) :=
   by
@@ -168,14 +229,12 @@ theorem rfunt_bnd (z : ℍ) (δ : ℝ) : rfunct z ≤ Complex.abs (δ * (z : ℂ
     have := lowboundd z δ
     rw [← pow_two]
     rw [← pow_two]
-    simp only [UpperHalfPlane.coe_im, Subtype.val_eq_coe, UpperHalfPlane.coe_re] at *
-    apply this
+    norm_cast at *
     nlinarith
-  simp only [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at H1 
-  rw [norm_sq_apply]
   right
   simp
-  simp_rw [H1]
+  rw [Complex.normSq_apply]
+  simpa using H1
 
 theorem upbnd (z : ℍ) (d : ℤ) : (d ^ 2 : ℝ) * rfunct z ^ 2 ≤ Complex.abs (z ^ 2 - d ^ 2) :=
   by
@@ -185,10 +244,22 @@ theorem upbnd (z : ℍ) (d : ℤ) : (d ^ 2 : ℝ) * rfunct z ^ 2 ≤ Complex.abs
   simp only [one_div, AbsoluteValue.map_mul, Complex.abs_pow]
   have h2 := rfunt_bnd z (1 / d)
   have h3 := (EisensteinSeries.auxlem z (1 / d)).2
-  have h4 := mul_le_mul h2 h3 (rfunct_pos z).le (complex.abs.nonneg _)
+  have h4 := mul_le_mul h2 h3 (rfunct_pos z).le (Complex.abs.nonneg _)
   rw [← AbsoluteValue.map_mul] at h4 
   rw [← pow_two] at h4 
-  have h5 : Complex.abs ↑d ^ 2 = d ^ 2 := by norm_cast; rw [pow_abs]; rw [abs_eq_self]; nlinarith
+  have h5 : Complex.abs (d: ℂ)^ 2 = d ^ 2 := by 
+    have := Complex.int_cast_abs (d^2)
+    simp only [Int.cast_pow, _root_.abs_pow, map_pow] at this 
+    apply symm
+    convert this
+    norm_cast
+    rw [←   _root_.abs_pow]
+    symm
+    rw [abs_eq_self]
+    apply pow_two_nonneg
+    simp
+  norm_cast at *
+  simp at *  
   rw [h5]
   refine' mul_le_mul _ _ _ _
   simp
