@@ -30,19 +30,19 @@ theorem exp_upperHalfPlane_lt_one (z : ℍ) : Complex.abs (Complex.exp (2 * ↑�
     ring_nf
   rw [h1]
   norm_cast
-  have := abs_exp_of_real_mul_I (2 * π * z.re)
+  have := abs_exp_ofReal_mul_I (2 * ↑π * ↑z.re)
+  simp at this
   rw [this]
-  simp only [of_real_mul, of_real_bit0, of_real_one, one_mul]
-  have h2 :
-    Complex.abs (exp (2 * ↑π * I * (↑z.im * I))) = Complex.abs (exp (2 * ↑π * (↑z.im * I ^ 2))) :=
-    by ring_nf
-  rw [h2]
+  simp only [ofReal_mul,  ofReal_one, one_mul]
+  ring_nf
   simp only [I_sq, mul_neg, mul_one]
   norm_cast
-  simp only [Real.abs_exp, Real.exp_lt_one_iff, Right.neg_neg_iff]
+  simp  [Real.abs_exp, Real.exp_lt_one_iff, Right.neg_neg_iff]
   apply mul_pos
   apply Real.two_pi_pos
   exact z.2
+
+
 
 theorem summable_iter_derv' (k : ℕ) (y : ℍ') :
     Summable fun n : ℕ => (2 * ↑π * I * n) ^ k * Complex.exp (2 * ↑π * I * n * y) :=
@@ -55,20 +55,32 @@ theorem summable_iter_derv' (k : ℕ) (y : ℍ') :
         b ^ k * Complex.abs (Complex.exp (2 * ↑π * I * b * y)) :=
     by
     intro b
-    rw [← Complex.abs_pow]; congr; rw [← exp_nat_mul]; ring_nf
+    norm_cast
+    rw [← Complex.abs_pow]; 
+    congr; 
+    rw [← exp_nat_mul]; 
+    ring_nf
   simp_rw [mul_pow]
-  have h2ne : (2 : ℝ) ^ k ≠ 0 := by apply pow_ne_zero; exact NeZero.ne 2
+  have h2ne : (2 : ℝ) ^ (k : ℕ) ≠ 0 := by 
+    norm_cast
+    apply pow_ne_zero; 
+    exact NeZero.ne 2
   simp_rw [mul_assoc]
-  rw [summable_mul_left_iff h2ne]
+  norm_cast at h2ne
+  rw [summable_mul_left_iff]
   rw [summable_mul_left_iff _]
   simp_rw [← mul_assoc]
+  norm_cast at hv1
+  simp only [Opens.coe_mk, Nat.cast_pow] at hv1 
   apply Summable.congr _ hv1
   apply summable_pow_mul_geometric_of_norm_lt_1
-  simp
+  simp only [Real.norm_eq_abs, Complex.abs_abs]
   apply exp_upperHalfPlane_lt_one
-  exact TopologicalSemiring.mk
   apply pow_ne_zero
   simpa using Real.pi_ne_zero
+  norm_cast at *
+
+
 
 theorem summable_pow_mul_exp {k : ℕ} (z : ℍ) :
     Summable fun i : ℕ+ => Complex.abs (2 * ↑i ^ (k + 1) * exp (2 * ↑π * I * ↑z * ↑i)) :=
@@ -77,24 +89,26 @@ theorem summable_pow_mul_exp {k : ℕ} (z : ℍ) :
   have h2ne : (2 : ℝ) ≠ 0 := NeZero.ne 2
   simp_rw [mul_assoc]
   rw [summable_mul_left_iff h2ne]
-  simp_rw [← coe_coe]
   have hv1 :
     ∀ b : ℕ+,
       Complex.abs (Complex.exp (2 * ↑π * I * z * b)) =
         Complex.abs (Complex.exp (2 * ↑π * I * z)) ^ (b : ℕ) :=
     by
     intro b
+    norm_cast
     rw [← Complex.abs_pow]; congr; rw [← exp_nat_mul]; ring_nf
   simp_rw [← mul_assoc]
   simp_rw [hv1]
-  simp_rw [coe_coe]
   have lj :=
-    nat_pos_tsum fun x : ℕ => (x : ℝ) ^ (k + 1) * Complex.abs (Complex.exp (2 * ↑π * I * z)) ^ x
-  simp at lj 
-  rw [lj]
+    nat_pos_tsum2 fun x : ℕ => (x : ℝ) ^ (k + 1) * Complex.abs (Complex.exp (2 * ↑π * I * z)) ^ x 
+  norm_cast at *
+  simp only [PNat.pow_coe, Nat.cast_pow, map_pow, abs_cast_nat, ofReal_mul, ofReal_ofNat] at *
+  rw [lj ]
   apply summable_pow_mul_geometric_of_norm_lt_1
   simp
   apply exp_upperHalfPlane_lt_one
+  simp
+
 
 theorem exp_iter_deriv (n m : ℕ) :
     (iteratedDeriv n fun s : ℂ => Complex.exp (2 * ↑π * I * m * s)) = fun t =>
@@ -106,21 +120,27 @@ theorem exp_iter_deriv (n m : ℕ) :
   rw [iteratedDeriv_succ]
   rw [IH]
   simp
+  rw [deriv_cexp ]
+  rw [deriv_const_mul]
+  simp
+  norm_cast
   ring
+  exact differentiableAt_id'
+  apply differentiableAt_id'.const_mul
 
 theorem iteratedDerivWithin_of_is_open (n m : ℕ) :
     EqOn (iteratedDerivWithin n (fun s : ℂ => Complex.exp (2 * ↑π * I * m * s)) ℍ')
       (iteratedDeriv n fun s : ℂ => Complex.exp (2 * ↑π * I * m * s)) ℍ' :=
   by
   induction' n with n IH
-  · intro x hx
+  · intro x _
     simp
   · intro x hx
     rw [iteratedDeriv_succ, iteratedDerivWithin_succ]
     dsimp
     rw [derivWithin_of_open upper_half_plane_isOpen]
     apply Filter.EventuallyEq.deriv_eq
-    filter_upwards [upper_half_plane_is_open.mem_nhds hx]
+    filter_upwards [upper_half_plane_isOpen.mem_nhds hx]
     apply IH
     exact hx
     apply IsOpen.uniqueDiffWithinAt upper_half_plane_isOpen hx
@@ -129,9 +149,9 @@ theorem exp_iter_deriv_within (n m : ℕ) :
     EqOn (iteratedDerivWithin n (fun s : ℂ => Complex.exp (2 * ↑π * I * m * s)) ℍ')
       (fun t => (2 * ↑π * I * m) ^ n * Complex.exp (2 * ↑π * I * m * t)) ℍ' :=
   by
-  apply eq_on.trans (iteratedDerivWithin_of_is_open n m)
-  rw [eq_on]
-  intro x hx
+  apply EqOn.trans (iteratedDerivWithin_of_is_open n m)
+  rw [EqOn]
+  intro x _
   apply congr_fun (exp_iter_deriv n m)
 
 theorem exp_iter_deriv_apply (n m : ℕ) (x : ℂ) :
@@ -141,7 +161,7 @@ theorem exp_iter_deriv_apply (n m : ℕ) (x : ℂ) :
 
 def uexp (n : ℕ) : ℍ' → ℂ := fun z => Complex.exp (2 * ↑π * I * z * n)
 
-def funn (K : Set ℂ) (hk1 : K ⊆ upperHalfSpace) (hk2 : IsCompact K) : ContinuousMap K ℂ
+def funn (K : Set ℂ) : ContinuousMap K ℂ
     where toFun := fun r : K => Complex.exp (2 * ↑π * I * r)
 
 def funnN (K : Set ℂ) (hk1 : K ⊆ upperHalfSpace) (hk2 : IsCompact K) (n k : ℕ) : ContinuousMap K ℂ
@@ -156,12 +176,17 @@ theorem der_iter_eq_der_aux2 (k n : ℕ) (r : ↥upperHalfSpace) :
   simp at *
   have hh :
     DifferentiableOn ℂ (fun t => (2 * ↑π * I * n) ^ k * Complex.exp (2 * ↑π * I * n * t)) ℍ' := by
-    apply Differentiable.differentiableOn; simp
+    apply Differentiable.differentiableOn; 
+    apply Differentiable.const_mul
+    apply Differentiable.cexp
+    apply Differentiable.const_mul
+    apply differentiable_id
   apply DifferentiableOn.differentiableAt
   apply DifferentiableOn.congr hh
   intro x hx
   apply exp_iter_deriv_within k n hx
-  apply upper_half_plane_is_open.mem_nhds r.2
+  apply upper_half_plane_isOpen.mem_nhds r.2
+
 
 theorem der_iter_eq_der2 (k n : ℕ) (r : ↥upperHalfSpace) :
     deriv (iteratedDerivWithin k (fun s : ℂ => Complex.exp (2 * ↑π * I * n * s)) ℍ') ↑r =
