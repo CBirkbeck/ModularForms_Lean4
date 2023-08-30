@@ -114,6 +114,8 @@ theorem nat_pos_tsum2' [TopologicalSpace α] [AddCommMonoid α]  (f : ℕ → α
   intro b
   simp
 
+
+
 theorem tsum_pNat {α : Type _} [AddCommGroup α] [UniformSpace α] [UniformAddGroup α] [T2Space α] 
   [CompleteSpace α] (f : ℕ → α) (hf : f 0 = 0) : ∑' n : ℕ+, f n = ∑' n, f n :=
   by
@@ -245,7 +247,7 @@ theorem sumaux [TopologicalSpace α] [AddCommMonoid α]  (f : ℕ × ℕ → α)
   apply Finset.sum_finset_coe
 
 theorem int_nat_sum [AddCommGroup α] [UniformSpace α] [ UniformAddGroup α]  [CompleteSpace α]
-  (f : ℤ → α  ) : Summable f → Summable fun x : ℕ => f x :=
+  (f : ℤ → α) : Summable f → Summable fun x : ℕ => f x :=
   by
   have : IsCompl (Set.range (Int.ofNat : ℕ → ℤ)) (Set.range Int.negSucc) :=
     by
@@ -269,6 +271,11 @@ theorem int_nat_sum [AddCommGroup α] [UniformSpace α] [ UniformAddGroup α]  [
   apply congr_arg
   exact Eq.symm (Equiv.apply_ofInjective_symm Nat.cast_injective b)
   
+theorem int_pnat_sum [AddCommGroup α] [UniformSpace α] [ UniformAddGroup α]  [CompleteSpace α]
+  (f : ℤ → α) : Summable f → Summable fun x : ℕ+ => f x := by
+  intro h
+  have :=int_nat_sum f h
+  apply this.subtype
 
 theorem sum_int_even  [UniformSpace α] [CommRing α]  [ UniformAddGroup α] [CompleteSpace α] 
   [T2Space α] (f : ℤ → α) (hf : ∀ n : ℤ, f n = f (-n)) (hf2 : Summable f) :
