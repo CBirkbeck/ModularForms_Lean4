@@ -1,9 +1,8 @@
-import Mathbin.Data.Complex.Exponential
-import Mathbin.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathbin.Analysis.Complex.UpperHalfPlane.Basic
-import Project.ModForms.EisensteinSeries.ExpSummableLemmas
+import Mathlib.Data.Complex.Exponential
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
+import Modformsported.ModForms.EisensteinSeries.ExpSummableLemmas
 
-#align_import mod_forms.Eisenstein_Series.cotangent
 
 noncomputable section
 
@@ -58,11 +57,13 @@ theorem div_one_sub_exp (z : ℍ) :
     by
     apply tsum_congr
     intro b
+    norm_cast
     rw [← exp_nat_mul]
     ring_nf
   rw [h]
+  norm_cast
   apply tsum_geometric_of_norm_lt_1
-  apply exp_upperHalfPlane_lt_one
+  simpa using exp_upperHalfPlane_lt_one z
 
 variable {R : Type _} [NormedRing R] [CompleteSpace R]
 
@@ -77,27 +78,26 @@ theorem geo_succ (x : R) (h : ‖x‖ < 1) : ∑' i : ℕ, x ^ (i + 1) = ∑' i 
 
 theorem geom_series_mul_add (x : R) (h : ‖x‖ < 1) : x * ∑' i : ℕ, x ^ i = ∑' i : ℕ, x ^ (i + 1) :=
   by
-  have := (NormedRing.summable_geometric_of_norm_lt_1 x h).HasSum.mul_left x
+  have := (NormedRing.summable_geometric_of_norm_lt_1 x h).hasSum.mul_left x
   refine' tendsto_nhds_unique this.tendsto_sum_nat _
   have :
-    tendsto (fun n : ℕ => ∑ i in Finset.range (n + 1), x ^ i - 1) at_top
+    Tendsto (fun n : ℕ => ∑ i in Finset.range (n + 1), x ^ i - 1) atTop
       (𝓝 (∑' i : ℕ, x ^ (i + 1))) :=
     by
-    have hu := (NormedRing.summable_geometric_of_norm_lt_1 x h).HasSum
     have hj := geo_succ x h
     rw [hj]
-    apply tendsto.sub_const
+    apply Tendsto.sub_const
     simp_rw [Finset.sum_range_succ]
-    have hp : tsum (pow x) = tsum (pow x) + 0 := by simp
+    have hp : tsum (fun (i : ℕ)=> x^i) = tsum (fun (i : ℕ)=> x^i) + 0 := by simp
     rw [hp]
-    apply tendsto.add
+    apply Tendsto.add
     apply HasSum.tendsto_sum_nat
     apply Summable.hasSum
     apply NormedRing.summable_geometric_of_norm_lt_1 x h
     apply tendsto_pow_atTop_nhds_0_of_norm_lt_1 h
   convert ← this
-  ext n
-  have hh := @geom_sum_succ _ _ x n
+  simp
+  have hh := @geom_sum_succ _ _ x 
   rw [hh]
   simp only [add_sub_cancel]
   exact Finset.mul_sum
@@ -126,15 +126,18 @@ theorem pi_cot_q_exp (z : ℍ) :
   rw [h1]
   rw [div_one_sub_exp z]
   rw [add_comm]
-  have := geom_series_mul_one_add (exp (2 * ↑π * I * ↑z)) (exp_upperHalfPlane_lt_one _)
+  have := geom_series_mul_one_add (Complex.exp (2 * π * I * (z : ℂ))) (exp_upperHalfPlane_lt_one _)
   have hh :
     ∑' n : ℕ, Complex.exp (2 * ↑π * I * z * n) = ∑' n : ℕ, Complex.exp (2 * ↑π * I * z) ^ n :=
     by
     apply tsum_congr
     intro b
+    norm_cast
     rw [← exp_nat_mul]
     ring_nf
   rw [hh]
+  norm_cast at *
+  simp at *
   rw [this]
   ring
 
