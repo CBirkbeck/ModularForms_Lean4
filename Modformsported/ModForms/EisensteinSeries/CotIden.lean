@@ -1,14 +1,14 @@
-import Mathbin.Data.Complex.Exponential
-import Project.ModForms.EisensteinSeries.EisenIsHolo
-import Project.ModForms.EisensteinSeries.ExpSummableLemmas
-import Project.ModForms.EisensteinSeries.AuxpLemmas
-import Mathbin.Analysis.SpecialFunctions.Trigonometric.EulerSineProd
-import Mathbin.Analysis.Complex.LocallyUniformLimit
-import Mathbin.Analysis.SpecialFunctions.Trigonometric.Bounds
-import Project.ModForms.EisensteinSeries.LogDeriv
-import Project.ModForms.EisensteinSeries.Cotangent
+import Mathlib.Data.Complex.Exponential
+import Modformsported.ModForms.EisensteinSeries.EisenIsHolo
+import Modformsported.ModForms.EisensteinSeries.ExpSummableLemmas
+import Modformsported.ModForms.EisensteinSeries.AuxpLemmas
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.EulerSineProd
+import Mathlib.Analysis.Complex.LocallyUniformLimit
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
+import Modformsported.ModForms.EisensteinSeries.LogDeriv
+import Modformsported.ModForms.EisensteinSeries.Cotangent
 
-#align_import mod_forms.Eisenstein_Series.cot_iden
+
 
 noncomputable section
 
@@ -17,9 +17,10 @@ open ModularForm EisensteinSeries UpperHalfPlane TopologicalSpace Set MeasureThe
 
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
 
-local notation "ℍ'" => (⟨UpperHalfPlane.upperHalfSpace, upper_half_plane_isOpen⟩ : OpenSubs)
+local notation "ℍ'" =>
+  (TopologicalSpace.Opens.mk UpperHalfPlane.upperHalfSpace upper_half_plane_isOpen)
 
-local notation "ℍ" => UpperHalfPlane
+--local notation "ℍ" => UpperHalfPlane
 
 theorem logDeriv_sine (z : ℍ) : logDeriv (Complex.sin ∘ fun t => π * t) z = π * cot (π * z) :=
   by
@@ -27,10 +28,17 @@ theorem logDeriv_sine (z : ℍ) : logDeriv (Complex.sin ∘ fun t => π * t) z =
   simp
   rw [logDeriv]
   simp
+  rw [deriv_const_mul]
+  rw [deriv_id'']
+  simp
   rw [cot]
   apply mul_comm
-  simp
-  simp
+  apply differentiable_id.differentiableAt
+  apply differentiable_sin.differentiableAt
+  apply Differentiable.differentiableAt
+  apply Differentiable.const_mul
+  apply differentiable_id
+  
 
 theorem logDeriv_eq_1 (x : ℍ) (n : ℕ) :
     logDeriv (fun z => 1 - z ^ 2 / (n + 1) ^ 2) x = 1 / (x - (n + 1)) + 1 / (x + (n + 1)) :=
@@ -38,9 +46,9 @@ theorem logDeriv_eq_1 (x : ℍ) (n : ℕ) :
   have h1 : logDeriv (fun z => 1 - z ^ 2 / (n + 1) ^ 2) x = -2 * x / ((n + 1) ^ 2 - x ^ 2) :=
     by
     rw [logDeriv]
-    simp only [Pi.div_apply, deriv_sub, differentiableAt_const, DifferentiableAt.div_const,
-      DifferentiableAt.pow, differentiableAt_id', deriv_const', deriv_div_const, deriv_pow'',
-      Nat.cast_bit0, algebraMap.coe_one, pow_one, deriv_id'', mul_one, zero_sub, neg_mul]
+    simp 
+    rw [deriv_sub]
+    simp  
     field_simp
     congr
     rw [mul_one_sub]
@@ -49,6 +57,10 @@ theorem logDeriv_eq_1 (x : ℍ) (n : ℕ) :
     apply pow_ne_zero
     norm_cast
     linarith
+    apply differentiableAt_const
+    apply DifferentiableAt.div_const
+    apply DifferentiableAt.pow
+    apply differentiable_id.differentiableAt
   rw [h1]
   rw [one_div_add_one_div]
   simp only [neg_mul, sub_add_add_cancel]
@@ -56,6 +68,8 @@ theorem logDeriv_eq_1 (x : ℍ) (n : ℕ) :
   simp only [neg_neg, neg_sub]
   congr
   ring
+  norm_cast
+  simp
   ring
   have := upper_ne_nat x (n + 1)
   rw [sub_ne_zero]
@@ -65,23 +79,24 @@ theorem logDeriv_eq_1 (x : ℍ) (n : ℕ) :
 
 theorem upper_half_ne_nat_pow_two (z : ℍ) : ∀ n : ℕ, (z : ℂ) ^ 2 ≠ n ^ 2 :=
   by
-  by_contra h
-  simp at h 
-  obtain ⟨n, hn⟩ := h
-  have := abs_pow_two_upp_half z n
-  rw [hn] at this 
-  simp at this 
-  exact this
+  intro n
+  have := upper_half_plane_ne_int_pow_two z n
+  simp at this
+  norm_cast at *
+  rw [sub_eq_zero] at this
+  norm_cast 
+
 
 theorem factor_ne_zero (x : ℍ) (n : ℕ) : (1 : ℂ) - x ^ 2 / (n + 1) ^ 2 ≠ 0 :=
   by
-  by_contra
+  by_contra h
   rw [sub_eq_zero] at h 
   have hs := h.symm
   rw [div_eq_one_iff_eq] at hs 
   have hr := upper_half_ne_nat_pow_two x (n + 1)
   simp only [Nat.cast_add, algebraMap.coe_one, Ne.def] at *
-  apply absurd hs hr
+  norm_cast at *
+  norm_cast
   apply pow_ne_zero
   norm_cast
   linarith
@@ -90,16 +105,19 @@ theorem DifferentiableOn.product (F : ℕ → ℂ → ℂ) (n : ℕ) (s : Set �
     (hd : ∀ i : Finset.range n, DifferentiableOn ℂ (fun z => F i z) s) :
     DifferentiableOn ℂ (fun z => ∏ i in Finset.range n, F i z) s :=
   by
-  induction n
+  induction' n with n n_ih
   simp
-  apply (differentiable_const (1 : ℂ)).DifferentiableOn
+  apply differentiableOn_const
   simp_rw [Finset.prod_range_succ]
   apply DifferentiableOn.mul
   apply n_ih
   intro i
-  have hi := i.2
   simp at *
   apply hd
+  norm_cast
+  have hi := i.2
+  norm_cast at hi
+  rw [Finset.mem_range] at hi
   apply lt_trans hi
   apply Nat.lt_succ_self
   simp at *
@@ -112,10 +130,11 @@ theorem prod_diff_on' (n : ℕ) :
   apply DifferentiableOn.product
   intro i
   apply DifferentiableOn.sub
-  apply (differentiable_const (1 : ℂ)).DifferentiableOn
+  apply differentiableOn_const
   apply DifferentiableOn.div_const
+  norm_cast
   apply DifferentiableOn.pow
-  apply differentiable_id.differentiable_on
+  apply differentiable_id.differentiableOn
 
 theorem product_diff_on_H (n : ℕ) :
     DifferentiableOn ℂ (fun z => ↑π * (z : ℂ) * ∏ j in Finset.range n, (1 - z ^ 2 / (j + 1) ^ 2))
@@ -123,12 +142,12 @@ theorem product_diff_on_H (n : ℕ) :
   by
   apply DifferentiableOn.mul
   apply DifferentiableOn.const_mul
-  apply differentiable_id.differentiable_on
+  apply differentiable_id.differentiableOn
   apply prod_diff_on'
 
 theorem logDeriv_of_prod (x : ℍ) (n : ℕ) :
     logDeriv (fun z => ↑π * z * ∏ j in Finset.range n, (1 - z ^ 2 / (j + 1) ^ 2)) x =
-      1 / x + ∑ j in Finset.range n, (1 / (x - (j + 1)) + 1 / (x + (j + 1))) :=
+      1 / x + ∑ j in Finset.range n, (1 / ((x : ℂ) - (j + 1)) + 1 / (x + (j + 1))) :=
   by
   rw [log_derv_mul]
   rw [logDeriv_pi_z]
@@ -136,24 +155,36 @@ theorem logDeriv_of_prod (x : ℍ) (n : ℕ) :
   have := logDeriv_prod (Finset.range n) fun n : ℕ => fun z : ℂ => 1 - z ^ 2 / (n + 1) ^ 2
   simp at this 
   rw [← Finset.prod_fn]
+  norm_cast at *
   rw [this]
-  simp_rw [logDeriv_eq_1]
+  have :=logDeriv_eq_1 x n
+  norm_cast at *
+  simp at *
   congr
-  ext1
-  field_simp
-  intro m hm
-  apply factor_ne_zero x m
+  ext1 y
+  have :=logDeriv_eq_1 x y
+  simp at this
+  norm_cast at *
+  intro m _
+  have := factor_ne_zero x m
+  norm_cast at *
+  swap
   apply mul_ne_zero
   apply mul_ne_zero
   norm_cast
   apply Real.pi_ne_zero
   apply UpperHalfPlane.ne_zero x
   rw [Finset.prod_ne_zero_iff]
-  intro a ha
+  intro a _
   apply factor_ne_zero x a
+  intro m _
+  apply DifferentiableAt.div_const
+  apply DifferentiableAt.pow
+  apply differentiable_id.differentiableAt
   apply DifferentiableAt.const_mul
-  apply differentiable_id.differentiable_at
-  apply (prod_diff_on' n).DifferentiableAt
+  apply differentiable_id.differentiableAt
+  apply DifferentiableOn.differentiableAt
+  apply (prod_diff_on' n)
   apply isOpen_iff_mem_nhds.1
   apply upper_half_plane_isOpen
   apply x.2
@@ -163,22 +194,22 @@ theorem prod_be_exp (f : ℕ → ℂ) (s : Finset ℕ) :
   by
   rw [Real.exp_sum]
   apply Finset.prod_le_prod
-  intro i hi
+  intro i _
   apply add_nonneg
   linarith
-  apply complex.abs.nonneg
-  intro i hi
+  apply Complex.abs.nonneg
+  intro i _
   rw [add_comm]
-  apply Real.add_one_le_exp_of_nonneg (complex.abs.nonneg _)
+  apply Real.add_one_le_exp_of_nonneg (Complex.abs.nonneg _)
 
 theorem prod_le_prod_abs (f : ℕ → ℂ) (n : ℕ) :
     Complex.abs (∏ i in Finset.range n, (f i + 1) - 1) ≤
       ∏ i in Finset.range n, (Complex.abs (f i) + 1) - 1 :=
   by
-  induction' n with h
-  simp only [Finset.range_zero, Finset.prod_empty, sub_self, AbsoluteValue.map_zero]
+  induction' n with h n_ih
+  simp  [Finset.range_zero, Finset.prod_empty, sub_self, AbsoluteValue.map_zero]
   have HH :
-    ∏ i in Finset.range (h + 1), (f i + 1) - 1 =
+    ∏ i in Finset.range (h + 1 ), (f i + 1) - 1 =
       (∏ i in Finset.range h, (f i + 1) - 1) * (f h + 1) + f h :=
     by
     simp_rw [Finset.prod_range_succ]
@@ -188,8 +219,8 @@ theorem prod_le_prod_abs (f : ℕ → ℂ) (n : ℕ) :
     Complex.abs ((∏ i in Finset.range h, (f i + 1) - 1) * (f h + 1) + f h) ≤
       Complex.abs ((∏ i in Finset.range h, (f i + 1) - 1) * (f h + 1)) + Complex.abs (f h) :=
     by
-    apply le_trans (complex.abs.add_le _ _)
-    simp only
+    apply le_trans (Complex.abs.add_le _ _)
+    simp 
   apply le_trans H3
   have H4 :
     Complex.abs ((∏ i in Finset.range h, (f i + 1) - 1) * (f h + 1)) + Complex.abs (f h) ≤
@@ -203,16 +234,21 @@ theorem prod_le_prod_abs (f : ℕ → ℂ) (n : ℕ) :
       by apply n_ih
     have h2 : Complex.abs (f h + 1) ≤ Complex.abs (f h) + 1 :=
       by
-      apply le_trans (complex.abs.add_le _ _)
-      simp only [AbsoluteValue.map_one]
+      apply le_trans (Complex.abs.add_le _ _)
+      simp [AbsoluteValue.map_one]
     apply mul_le_mul h1 h2
-    apply complex.abs.nonneg
+    apply Complex.abs.nonneg
     apply le_trans _ n_ih
-    apply complex.abs.nonneg
+    apply Complex.abs.nonneg
   apply le_trans H4
   ring_nf
   rw [Finset.prod_range_succ]
   rw [mul_comm]
+  simp
+  norm_cast
+  simp
+  linarith
+
 
 --rw ←finset.prod_range_mul_prod_Ico
 theorem prod_le_prod_abs_Ico (f : ℕ → ℂ) (n m : ℕ) :
@@ -226,8 +262,21 @@ theorem prod_le_prod_abs_Ico_ond_add (f : ℕ → ℂ) (n m : ℕ) :
     Complex.abs (∏ i in Finset.Ico m n, (1 + f i) - 1) ≤
       ∏ i in Finset.Ico m n, (1 + Complex.abs (f i)) - 1 :=
   by
-  convert prod_le_prod_abs_Ico f n m
-  repeat' apply add_comm
+  have := prod_le_prod_abs_Ico f n m
+  norm_cast at *
+  simp at *
+  have h:(∏ i in Finset.Ico m n, (1 + f i) - 1) =(∏ i in Finset.Ico m n, (f i+ 1) - 1) := by 
+    congr
+    ext1
+    ring
+  rw [h]
+  have h2 : ∏ x in Finset.Ico m n, (1 + Complex.abs (f x)) - 1 = ∏ x in Finset.Ico m n, 
+    (Complex.abs (f x)+1) - 1 := by 
+    congr
+    ext1
+    ring
+  rw [h2]
+  apply this
 
 theorem unif_prod_bound (F : ℕ → ℂ → ℂ) (K : Set ℂ)
     (hb : ∃ T : ℝ, ∀ x : ℂ, x ∈ K → ∑' n : ℕ, Complex.abs (F n x) ≤ T)
@@ -240,8 +289,8 @@ theorem unif_prod_bound (F : ℕ → ℂ → ℂ) (K : Set ℂ)
     by
     intro n a
     apply sum_le_tsum
-    intro b hb
-    apply complex.abs.nonneg
+    intro b _
+    apply Complex.abs.nonneg
     apply hs a
   have hexp : 0 < Real.exp T := by have := Real.exp_pos T; apply this
   refine' ⟨Real.exp T, _⟩
@@ -262,8 +311,8 @@ theorem fin_prod_le_exp_sum (F : ℕ → ℂ → ℂ)
     by
     intro n a
     apply sum_le_tsum
-    intro b hb
-    apply complex.abs.nonneg
+    intro b _
+    apply Complex.abs.nonneg
     apply hs a
   intro s x
   apply le_trans (prod_be_exp _ _)
@@ -281,14 +330,14 @@ theorem tsum_unif (F : ℕ → ℂ → ℂ) (K : Set ℂ)
           ∀ (n : ℕ) (x : ℂ),
             x ∈ K → N ≤ n → Complex.abs (∑' i : ℕ, Complex.abs (F (i + N) x)) < ε :=
   by
-  rw [tendsto_uniformly_on_iff] at hf 
+  rw [Metric.tendstoUniformlyOn_iff] at hf 
   simp at hf 
   intro ε hε
   have HF := hf ε hε
   obtain ⟨N, hN⟩ := HF
   refine' ⟨N, _⟩
-  intro n x hx hn
-  have hnn : N ≤ N := by linarith
+  intro n x hx _
+  have hnn : N ≤ N := by rfl
   have HN2 := hN N hnn x hx
   simp_rw [dist_eq_norm] at *
   convert HN2
@@ -315,14 +364,14 @@ theorem abs_tsum_of_pos (F : ℕ → ℂ → ℂ) :
       Complex.abs (∑' i : ℕ, Complex.abs (F (i + N) x) : ℂ) = ∑' i : ℕ, Complex.abs (F (i + N) x) :=
   by
   intro x N
-  have := abs_tsum_of_poss (fun n : ℕ => fun x : ℂ => Complex.abs (F (n + N) x)) _ x
+  have := abs_tsum_of_poss (fun n : ℕ => fun x : ℂ => Complex.abs (F (n + N) x)) ?_ x
   rw [← this]
   simp
-  rw [← abs_of_real _]
+  rw [←Complex.abs_ofReal _]
   congr
   rw [tsum_coe]
   intro n c
-  apply complex.abs.nonneg
+  apply Complex.abs.nonneg
 
 theorem add_eq_sub_add (a b c d : ℝ) : b = c - a + d ↔ a + b = c + d :=
   by
@@ -341,7 +390,7 @@ theorem sum_subtype_le_tsum (f : ℕ → ℝ) (m n N : ℕ) (hmn : m ≤ n ∧ N
     rw [Finset.sum_union]
     simp
     apply Finset.sum_nonneg
-    intro i hi
+    intro i _
     apply hg i
     exact Finset.Ico_disjoint_Ico_consecutive N m n
   apply le_trans h1
@@ -394,7 +443,6 @@ theorem tsum_unifo (F : ℕ → ℂ → ℂ) (K : Set ℂ)
     have := hs x
     rw [← summable_nat_add_iff N] at this 
     apply this
-    exact TopologicalAddGroup.mk
   have := abs_tsum _ hss
   rw [abs_tsum_of_pos F x N]
   have := sum_add_tsum_nat_add N (hs x)
@@ -403,11 +451,11 @@ theorem tsum_unifo (F : ℕ → ℂ → ℂ) (K : Set ℂ)
   apply h.2.2
   apply h.2.1
   intro b
-  apply complex.abs.nonneg
+  apply Complex.abs.nonneg
   exact hs x
 
 theorem auxreal (e : ℂ) : Complex.abs (1 - e) = Complex.abs (e - 1) :=
-  map_sub_rev abs 1 e
+  map_sub_rev Complex.abs 1 e
 
 theorem sum_prod_unif_conv (F : ℕ → ℂ → ℂ) (g : ℂ → ℂ) (K : Set ℂ)
     (hf :
@@ -421,7 +469,7 @@ theorem sum_prod_unif_conv (F : ℕ → ℂ → ℂ) (g : ℂ → ℂ) (K : Set 
       K :=
   by
   apply UniformCauchySeqOn.tendstoUniformlyOn_of_tendsto
-  rw [uniform_cauchy_seq_on_iff]
+  rw [Metric.uniformCauchySeqOn_iff]
   intro ε hε
   have H := tsum_unifo F K hf hs
   have H2 := unif_prod_bound F K hb hs
@@ -444,11 +492,11 @@ theorem sum_prod_unif_conv (F : ℕ → ℂ → ℂ) (g : ℂ → ℂ) (K : Set 
     by
     apply le_trans _ (hCm hx)
     apply Finset.prod_le_prod
-    intro i hi
-    apply complex.abs.nonneg
-    intro i hi
-    apply le_trans (complex.abs.add_le _ _)
-    simp only [AbsoluteValue.map_one]
+    intro i _
+    apply Complex.abs.nonneg
+    intro i _
+    apply le_trans (Complex.abs.add_le _ _)
+    simp 
   have B : Complex.abs (∏ i : ℕ in Finset.Ico m n, (1 + F i x) - 1) ≤ δ :=
     by
     have HI := HN n m x hx
@@ -458,23 +506,23 @@ theorem sum_prod_unif_conv (F : ℕ → ℂ → ℂ) (g : ℂ → ℂ) (K : Set 
     simp at this 
     apply le_trans this
     exact HI2
-  have AB := mul_le_mul A B _ hCp.le
+  have AB := mul_le_mul A B ?_ hCp.le
   apply lt_of_le_of_lt AB
   apply hδ.2
-  apply complex.abs.nonneg
+  apply Complex.abs.nonneg
   simp at hmn 
   rw [← Finset.prod_range_mul_prod_Ico _ hmn.le]
   rw [← mul_one_sub]
-  simp only [AbsoluteValue.map_mul, abs_prod]
+  simp 
   have A : ∏ i : ℕ in Finset.range n, Complex.abs (1 + F i x) ≤ C :=
     by
     apply le_trans _ (hCn hx)
     apply Finset.prod_le_prod
-    intro i hi
-    apply complex.abs.nonneg
-    intro i hi
-    apply le_trans (complex.abs.add_le _ _)
-    simp only [AbsoluteValue.map_one]
+    intro i _
+    apply Complex.abs.nonneg
+    intro i _
+    apply le_trans (Complex.abs.add_le _ _)
+    simp 
   have B : Complex.abs (∏ i : ℕ in Finset.Ico n m, (1 + F i x) - 1) ≤ δ :=
     by
     have HI := HN m n x hx
@@ -484,53 +532,59 @@ theorem sum_prod_unif_conv (F : ℕ → ℂ → ℂ) (g : ℂ → ℂ) (K : Set 
     simp at this 
     apply le_trans this
     exact HI2
-  have AB := mul_le_mul A B _ hCp.le
+  have AB := mul_le_mul A B ?_ hCp.le
   rw [auxreal _]
   apply lt_of_le_of_lt AB
   apply hδ.2
-  apply complex.abs.nonneg
+  apply Complex.abs.nonneg
   exact hp
 
 theorem tendsto_unif_on_restrict (f : ℕ → ℂ → ℝ) (g : ℂ → ℝ) (K : Set ℂ) :
     TendstoUniformlyOn f g atTop K ↔
       TendstoUniformly (fun n : ℕ => fun k : K => f n k) (fun k : K => g k) atTop :=
   by
-  rw [tendsto_uniformly_iff]
-  rw [tendsto_uniformly_on_iff]
+  rw [Metric.tendstoUniformly_iff]
+  rw [Metric.tendstoUniformlyOn_iff]
   simp
 
 theorem tendst_unif_coe (K : Set ℂ) (f : ℕ → K → ℝ) (g : K → ℝ) :
     TendstoUniformly (fun n : ℕ => fun k : K => (f n k : ℂ)) (fun n : K => (g n : ℂ)) atTop ↔
       TendstoUniformly (fun n : ℕ => fun k : K => f n k) (fun k : K => g k) atTop :=
   by
-  simp_rw [tendsto_uniformly_iff]
+  simp_rw [Metric.tendstoUniformly_iff]
   simp_rw [dist_eq_norm] at *
   simp
   constructor
   repeat'
-    intro h
-    intro e he
-    have hh := h e he
-    obtain ⟨a, ha⟩ := hh
-    refine' ⟨a, _⟩
-    intro b hb x hx
-    have H := ha b hb x hx
-    convert H
-    rw [← abs_of_real]
-    congr
-    simp only [of_real_sub]
+  intro h
+  intro e he
+  have hh := h e he
+  obtain ⟨a, ha⟩ := hh
+  refine' ⟨a, _⟩
+  intro b hb x hx
+  have H := ha b hb x hx
+  convert H
+  simp
+  rw [← Complex.abs_ofReal _]
+  congr
+  simp only [Complex.ofReal_sub]
 
-theorem assa (r : ℝ) (z : ℂ) (x : ball z r) : Complex.abs x < Complex.abs z + r :=
+    
+--was called assa
+theorem ball_abs_le_center_add_rad (r : ℝ) (z : ℂ) (x : ball z r) : Complex.abs x < Complex.abs z + r :=
   by
   have hx : (x : ℂ) = x - z + z := by ring
   rw [hx]
-  apply lt_of_le_of_lt (complex.abs.add_le (x - z) z)
+  apply lt_of_le_of_lt (Complex.abs.add_le (x - z) z)
+  norm_cast
+  simp
   rw [add_comm]
   simp only [add_lt_add_iff_left]
   have hxx := x.2
-  simp only [Subtype.val_eq_coe, mem_ball] at hxx 
+  simp  at hxx 
   rw [dist_eq_norm] at hxx 
-  simpa only using hxx
+  norm_cast at *
+  
 
 theorem summable_rie_twist (x : ℂ) : Summable fun n : ℕ => Complex.abs (x ^ 2 / (↑n + 1) ^ 2) :=
   by
@@ -543,18 +597,20 @@ theorem summable_rie_twist (x : ℂ) : Summable fun n : ℕ => Complex.abs (x ^ 
     simp
     have h2 : (1 : ℤ) < 2 := by linarith
     have := int_RZ_is_summmable 2 h2
-    rw [rie] at this 
+    simp_rw [rie] at this 
     rw [← summable_nat_add_iff 1] at this 
     norm_cast at this 
     simpa using this
-    exact TopologicalAddGroup.mk
   apply Summable.congr hs
   intro b
   simp
   rw [← Complex.abs_pow]
-  norm_cast
+  have := Complex.abs_of_nat ((b+1)^2)
+  symm
+  simp at *
+  norm_cast at *
 
-theorem rie_twist_bounded_on_ball (z : ℂ) (r : ℝ) (hr : 0 < r) :
+theorem rie_twist_bounded_on_ball (z : ℂ) (r : ℝ) :
     ∃ T : ℝ, ∀ x : ℂ, x ∈ ball z r → ∑' n : ℕ, Complex.abs (-x ^ 2 / (↑n + 1) ^ 2) ≤ T :=
   by
   refine' ⟨∑' n : ℕ, (Complex.abs z + r) ^ 2 / Complex.abs ((n + 1) ^ 2), _⟩
@@ -565,17 +621,17 @@ theorem rie_twist_bounded_on_ball (z : ℂ) (r : ℝ) (hr : 0 < r) :
   intro b
   simp only
   apply div_le_div_of_le
-  apply pow_two_nonneg
+  norm_cast
+  apply Complex.abs.nonneg 
+  simp
   apply pow_le_pow_of_le_left
-  apply complex.abs.nonneg
-  apply (assa r z ⟨x, hx⟩).le
+  apply Complex.abs.nonneg
+  apply (ball_abs_le_center_add_rad r z ⟨x, hx⟩).le
   convert this
-  ext1
   field_simp
   simp_rw [div_eq_mul_inv]
   apply Summable.mul_left
   convert summable_rie_twist (1 : ℂ)
-  ext1
   field_simp
 
 theorem euler_sin_prod' (x : ℂ) (h0 : x ≠ 0) :
@@ -586,7 +642,8 @@ theorem euler_sin_prod' (x : ℂ) (h0 : x ≠ 0) :
   rw [Metric.tendsto_atTop] at *
   intro ε hε
   have hh : ↑π * x ≠ 0 := by apply mul_ne_zero; norm_cast; apply Real.pi_ne_zero; apply h0
-  have hex : 0 < ε * Complex.abs (π * x) := by apply mul_pos; apply hε; apply complex.abs.pos;
+  have hex : 0 < ε * Complex.abs (π * x) := by 
+    apply mul_pos; apply hε; apply Complex.abs.pos;
     apply hh
   have h1 := this (ε * Complex.abs (π * x)) hex
   obtain ⟨N, hN⟩ := h1
@@ -604,10 +661,17 @@ theorem euler_sin_prod' (x : ℂ) (h0 : x ≠ 0) :
     simp at *
     rw [this]
     ring
+  norm_cast at *  
   rw [this]
   --have hpix : 0 ≠ complex.abs (↑π * x), by {sorry},
   field_simp
   rw [div_lt_iff]
+  simp at *
+  norm_cast at *
+  have hr : Complex.abs (↑π * x * ∏ x_1 in Finset.range n, (1 + -x ^ 2 / (((x_1 + 1) : ℕ) ^ 2))) =
+    Complex.abs (↑π * x * ∏ x_1 in Finset.range n, (1 -x ^ 2 / ((x_1 + 1) ^ 2)) ):= by sorry
+
+  rw [hr] 
   convert h2
   ext1
   rw [sub_eq_add_neg]
@@ -649,7 +713,7 @@ theorem tendsto_locally_uniformly_euler_sin_prod' (z : ℍ') (r : ℝ) (hr : 0 <
   apply pow_two_nonneg
   apply pow_le_pow_of_le_left (complex.abs.nonneg _)
   have hxx : (x : ℂ) ∈ ball (z : ℂ) r := by have := x.2; rw [mem_inter_iff] at this ; apply this.1
-  have A := assa r z (⟨x, hxx⟩ : ball (z : ℂ) r)
+  have A := ball_abs_le_center_add_rad r z (⟨x, hxx⟩ : ball (z : ℂ) r)
   simp at *
   apply le_trans A.le
   norm_cast
@@ -698,7 +762,7 @@ theorem aux_ineq (ε : ℝ) (hε : 0 < ε) (x y : ℍ) (hxy : Complex.abs (y - x
     rw [← mul_add]
     have hh : Complex.abs ↑y < Complex.abs ↑x + ε :=
       by
-      have := assa ε (x : ℂ)
+      have := ball_abs_le_center_add_rad ε (x : ℂ)
       simp at this 
       apply this y
       simpa using hxy

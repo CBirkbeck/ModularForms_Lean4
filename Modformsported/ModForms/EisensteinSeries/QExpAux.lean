@@ -1,13 +1,13 @@
-import Project.ModForms.EisensteinSeries.EisenIsHolo
-import Mathbin.Data.Complex.Exponential
-import Mathbin.Analysis.Complex.UpperHalfPlane.Basic
-import Project.ModForms.Riemzeta
-import Mathbin.Analysis.Calculus.IteratedDeriv
-import Mathbin.Analysis.Calculus.Series
-import Project.ModForms.EisensteinSeries.CotIden
-import Project.ModForms.EisensteinSeries.TsumLemmas
-import Project.ModForms.EisensteinSeries.AuxpLemmas
-import Project.ModForms.EisensteinSeries.ExpSummableLemmas
+import Modformsported.ModForms.EisensteinSeries.EisenIsHolo
+import Mathlib.Data.Complex.Exponential
+import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
+import Modformsported.ModForms.Riemzeta
+import Mathlib.Analysis.Calculus.IteratedDeriv
+import Mathlib.Analysis.Calculus.Series
+import Modformsported.ModForms.EisensteinSeries.CotIden
+import Modformsported.ModForms.EisensteinSeries.TsumLemmas
+import Modformsported.ModForms.EisensteinSeries.AuxpLemmas
+import Modformsported.ModForms.EisensteinSeries.ExpSummableLemmas
 
 #align_import mod_forms.Eisenstein_Series.q_exp_aux
 
