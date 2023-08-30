@@ -264,14 +264,19 @@ theorem upbnd (z : ℍ) (d : ℤ) : (d ^ 2 : ℝ) * rfunct z ^ 2 ≤ Complex.abs
   refine' mul_le_mul _ _ _ _
   simp
   convert h4
-  ring
+  norm_cast
+  rw [← map_mul]
+  congr
+  norm_cast
+  ring_nf
   simp
+  apply mul_comm
   apply pow_nonneg
   apply (rfunct_pos z).le
   nlinarith
   simp at hd 
   rw [hd]
-  simp [complex.abs.nonneg]
+  simp [Complex.abs.nonneg]
 
 theorem upp_half_not_ints (z : ℍ) (n : ℤ) : (z : ℂ) ≠ n :=
   by
@@ -283,16 +288,18 @@ theorem upp_half_not_ints (z : ℍ) (n : ℤ) : (z : ℂ) ≠ n :=
   rw [h] at h1 
   rw [h2] at h1 
   simp at *
-  exact h1
 
-theorem abs_pow_two_upp_half (z : ℍ) (n : ℤ) : 0 < Complex.abs ((z : ℂ) ^ 2 - n ^ 2) :=
-  by
-  simp
+lemma upper_half_plane_ne_int_pow_two (z : ℍ) (n : ℤ) : (z : ℂ) ^ 2 - n ^ 2 ≠ 0 := by
   intro h
-  have h1 : (z : ℂ) ^ 2 - n ^ 2 = (z - n) * (z + n) := by ring
+  have h1 : (z : ℂ) ^ 2 - n ^ 2 = (z - n) * (z + n) := by 
+    norm_cast
+    simp
+    ring
+  norm_cast at *
+  simp
   rw [h1] at h 
   simp at h 
-  cases h
+  cases' h with h h
   have := upp_half_not_ints z n
   rw [sub_eq_zero] at h 
   apply absurd h this
@@ -301,23 +308,50 @@ theorem abs_pow_two_upp_half (z : ℍ) (n : ℤ) : 0 < Complex.abs ((z : ℂ) ^ 
   simp at *
   apply absurd h this
 
+/-
+theorem abs_pow_two_upp_half (z : ℍ) (n : ℤ) : 0 < Complex.abs ((z : ℂ) ^ 2 - n ^ 2) :=
+  by
+  simp
+  intro h
+  have h1 : (z : ℂ) ^ 2 - n ^ 2 = (z - n) * (z + n) := by 
+    norm_cast
+    simp
+    ring
+  norm_cast at *
+  simp
+  rw [h1] at h 
+  simp at h 
+  cases' h with h h
+  have := upp_half_not_ints z n
+  rw [sub_eq_zero] at h 
+  apply absurd h this
+  have := upp_half_not_ints z (-n)
+  rw [add_eq_zero_iff_eq_neg] at h 
+  simp at *
+  apply absurd h this
+-/
+
 theorem lhs_summable (z : ℍ) : Summable fun n : ℕ+ => 1 / ((z : ℂ) - n) + 1 / (z + n) :=
   by
   have h1 :
-    (fun n : ℕ+ => 1 / ((z : ℂ) - n) + 1 / (z + n)) = fun n : ℕ+ => 2 * z * (1 / (z ^ 2 - n ^ 2)) :=
+    (fun n : ℕ+ => 1 / ((z : ℂ) - n) + 1 / (z + n)) = fun n : ℕ+ => 2 * z.1 * (1 / (z ^ 2 - n ^ 2)) :=
     by
-    funext
+    funext n
     field_simp
     rw [one_div_add_one_div]
+    norm_cast
     ring_nf
     have h2 := upp_half_not_ints z n
     simp [h2] at *
     rw [sub_eq_zero]
-    exact h2
+    left
+    rfl
+    have h1 := upp_half_not_ints z (n)
+    simp at *
+    norm_cast at *
     have h1 := upp_half_not_ints z (-n)
     simp at *
-    rw [add_eq_zero_iff_eq_neg]
-    exact h1
+    norm_cast at *
   rw [h1]
   apply Summable.mul_left
   apply _root_.summable_if_complex_abs_summable
@@ -330,14 +364,13 @@ theorem lhs_summable (z : ℍ) : Summable fun n : ℕ+ => 1 / ((z : ℂ) - n) + 
     have h1 := int_RZ_is_summmable 2 h12
     simp_rw [rie] at h1 
     simp_rw [one_div] at h1 
-    simp_rw [← coe_coe]
     norm_cast at *
-    have h3 : (fun b : ℕ+ => (↑b ^ 2)⁻¹) = fun b : ℕ+ => ((b ^ 2 : ℕ) : ℝ)⁻¹ :=
+    have h3 : (fun b : ℕ+ => ((b : ℝ) ^ 2)⁻¹) = fun b : ℕ+ => ((b ^ 2 : ℕ) : ℝ)⁻¹ :=
       by
       funext
       congr
       simp
-    rw [h3]
+    simp
     apply h1.subtype
     apply inv_ne_zero
     apply pow_ne_zero
@@ -346,7 +379,7 @@ theorem lhs_summable (z : ℍ) : Summable fun n : ℕ+ => 1 / ((z : ℂ) - n) + 
   apply summable_of_nonneg_of_le _ _ hs
   intro b
   rw [inv_nonneg]
-  apply complex.abs.nonneg
+  apply Complex.abs.nonneg
   intro b
   rw [inv_le_inv]
   rw [mul_comm]
