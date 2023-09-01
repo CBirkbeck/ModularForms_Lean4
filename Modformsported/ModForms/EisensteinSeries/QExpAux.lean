@@ -9,7 +9,6 @@ import Modformsported.ModForms.EisensteinSeries.TsumLemmas
 import Modformsported.ModForms.EisensteinSeries.AuxpLemmas
 import Modformsported.ModForms.EisensteinSeries.ExpSummableLemmas
 
-#align_import mod_forms.Eisenstein_Series.q_exp_aux
 
 --import mod_forms.Eisenstein_Series.Eisenstein_series_q_expansions
 --import mod_forms.Eisenstein_Series.Eisenstein_series_q_expansions
@@ -20,9 +19,10 @@ open ModularForm EisensteinSeries UpperHalfPlane TopologicalSpace Set MeasureThe
 
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
 
-local notation "ℍ'" => (⟨UpperHalfPlane.upperHalfSpace, upper_half_plane_isOpen⟩ : OpenSubs)
 
-local notation "ℍ" => UpperHalfPlane
+local notation "ℍ'" =>
+  (TopologicalSpace.Opens.mk UpperHalfPlane.upperHalfSpace upper_half_plane_isOpen)
+--local notation "ℍ" => UpperHalfPlane
 
 theorem iter_eqOn_cong (f g : ℂ → ℂ) (hfg : EqOn f g ℍ') (k : ℕ) :
     EqOn (iteratedDerivWithin k f ℍ') (iteratedDerivWithin k g ℍ') ℍ' :=
@@ -59,7 +59,7 @@ theorem pos_sum_eq (k : ℕ) (hk : 0 < k) :
       fun x : ℂ =>
       -(2 * ↑π * I) * ∑' n : ℕ+, (2 * ↑π * I * n) ^ (k : ℕ) * Complex.exp (2 * ↑π * I * n * x) :=
   by
-  ext1
+  ext1 x
   simp
   left
   apply symm
@@ -69,96 +69,135 @@ theorem pos_sum_eq (k : ℕ) (hk : 0 < k) :
 
 theorem series_eql' (z : ℍ) :
     ↑π * I - 2 * ↑π * I * ∑' n : ℕ, Complex.exp (2 * ↑π * I * z * n) =
-      1 / z + ∑' n : ℕ+, (1 / (z - n) + 1 / (z + n)) :=
+      1 / z + ∑' n : ℕ+, (1 / ((z : ℂ) - n) + 1 / (z + n)) :=
   by
   rw [← pi_cot_q_exp z]
   have h := cot_series_rep z
   rw [sub_eq_iff_eq_add'] at h 
   exact h
 
+@[simp]
+lemma uhc (z : ℍ) : (z : ℂ) = z.1 := by rfl
+
 theorem q_exp_iden'' (k : ℕ) (hk : 3 ≤ k) :
     EqOn (fun z : ℂ => (-1 : ℂ) ^ (k - 1) * (k - 1)! * ∑' d : ℤ, 1 / ((z : ℂ) + d) ^ k)
       (fun z : ℂ =>
-        -(2 * ↑π * I) * ∑' n : ℕ+, (2 * ↑π * I * n) ^ (k - 1) * Complex.exp (2 * ↑π * I * n * z))
+        -(2 * ↑π * I) * ∑' n : ℕ+, (2 * ↑π * I * n) ^ ((k - 1) : ℕ) * Complex.exp (2 * ↑π * I * n * z))
       ℍ' :=
   by
   have := (aux_iter_der_tsum_eqOn k hk).symm
-  apply eq_on.trans this
+  apply EqOn.trans this
   have hkpos : 0 < k - 1 := by
     apply Nat.sub_pos_of_lt
     linarith
   have h2 := (iter_exp_eqOn (⟨k - 1, hkpos⟩ : ℕ+)).symm
-  simp only [one_div, coe_coe, Subtype.coe_mk, neg_mul, Algebra.id.smul_eq_mul] at *
+  simp  [one_div,  Subtype.coe_mk, neg_mul, Algebra.id.smul_eq_mul] at *
   have h3 := pos_sum_eq (k - 1) hkpos
   simp at h3 
   rw [h3] at h2 
-  apply eq_on.symm
-  apply eq_on.trans h2
+  apply EqOn.symm
+  apply EqOn.trans h2
   apply iter_eqOn_cong
   intro z hz
   have H := series_eql' ⟨z, hz⟩
-  simp only [Pi.add_apply, tsub_pos_iff_lt, Subtype.coe_mk, one_div, coe_coe] at *
-  convert H
-  ext1
+  simp  [Pi.add_apply, tsub_pos_iff_lt, Subtype.coe_mk, one_div] at *
+  simp_rw [uhc] at H
+  norm_cast at *  
+  simp at *
+  rw [← H]
+  simp
+  left
+  apply tsum_congr
+  intro b
   apply congr_arg
   ring
+  
 
 theorem exp_comm (n : ℕ) (z : ℍ') : exp (2 * ↑π * I * ↑z * n) = exp (2 * ↑π * I * n * z) :=
   by
   apply congr_arg
   ring
 
+lemma nat_pow_aux  (k : ℕ) (hk : 3 ≤ k) (z : ℂ) :  z^(k-1) = z^((k-1) : ℕ) := by  
+    have hkk : 1 ≤ (k: ℤ) := by linarith
+    have := Int.le.dest_sub hkk
+    simp at *
+    norm_cast
+    
+
+
 theorem q_exp_iden (k : ℕ) (hk : 3 ≤ k) (z : ℍ) :
     ∑' d : ℤ, 1 / ((z : ℂ) + d) ^ k =
-      (-2 * ↑π * I) ^ k / (k - 1)! * ∑' n : ℕ+, n ^ (k - 1) * Complex.exp (2 * ↑π * I * z * n) :=
+      (-2 * ↑π * I) ^ k / (k - 1)! * ∑' n : ℕ+, n ^ ((k - 1) ) * Complex.exp (2 * ↑π * I * z * n) :=
   by
   have := q_exp_iden'' k hk z.2
-  simp only [one_div, neg_mul, coe_coe, Subtype.val_eq_coe] at *
-  have hk2 : (-1 : ℂ) ^ (k - 1) * (k - 1)! ≠ 0 := by
-    simp only [Nat.factorial_ne_zero, Ne.def, neg_one_pow_mul_eq_zero_iff, Nat.cast_eq_zero,
+  have he : ∀ (t : ℂ), t^(k-1) = t^((k-1) : ℕ) := by 
+    intro t; 
+    apply nat_pow_aux k hk t
+  simp [one_div, neg_mul] at *
+  have hk2 : (-1 : ℂ) ^ ((k - 1) ) * (k - 1)! ≠ 0 := by
+    simp  [Nat.factorial_ne_zero, Ne.def, neg_one_pow_mul_eq_zero_iff, Nat.cast_eq_zero,
       not_false_iff]
   rw [← mul_right_inj' hk2]
+  rw [he] at *
   rw [this]
-  have h3 : (-1) ^ (k - 1) * ↑(k - 1)! * ((-(2 * ↑π * I)) ^ k / ↑(k - 1)!) = -(2 * ↑π * I) ^ k :=
+  have h3 : (-1) ^ ((k - 1) ) * ↑(k - 1)! * ((-(2 * ↑π * I)) ^ k / ↑(k - 1)!) = -(2 * ↑π * I) ^ k :=
     by
     rw [mul_div]; rw [div_eq_mul_one_div]; rw [div_eq_inv_mul]; simp_rw [← mul_assoc];
-    nth_rw 2 [neg_pow]
-    ring_nf; nth_rw 2 [mul_comm]; simp_rw [← mul_assoc]; rw [mul_inv_cancel]; simp
-    have hf : (-1 : ℂ) ^ k * (-1) ^ (k - 1) = -1 :=
-      by
-      rw [← pow_add]
-      have hkk : k + (k - 1) = 2 * k - 1 :=
+    simp
+    have hj :  (-1) ^ (↑k - 1) * ↑(k - 1)! * (-(2 * ↑π * I)) ^ (k : ℕ) * (↑(k - 1)!)⁻¹ =
+       (-1) ^ (↑k - 1) * (-(2 * ↑π * I)) ^ (k : ℕ) * (↑(k - 1)!  * (↑(k - 1)!)⁻¹) := by ring
+    norm_cast at *
+    rw [hj]   
+    rw [mul_inv_cancel]
+    simp
+    rw [he]
+    rw [mul_comm]
+    rw [neg_pow]
+    rw [mul_comm, ←mul_assoc]
+    simp
+    rw [←pow_add]
+    
+    rw [Odd.neg_one_pow]
+    ring
+    have hkk : (k - 1) + k = 2 * k - 1 :=
         by
+        rw [add_comm]
         rw [← Nat.add_sub_assoc]
         rw [two_mul]
         linarith
-      rw [hkk]
-      apply Odd.neg_one_pow
-      apply Nat.Even.sub_odd
-      nlinarith
-      rw [Nat.even_mul]
-      left
-      exact even_two
-      exact odd_one
-    rw [mul_assoc]
-    rw [hf]
-    ring
+    rw [hkk]
+    apply Nat.Even.sub_odd
+    nlinarith
+    simp
+    exact odd_one
     norm_cast
     apply Nat.factorial_ne_zero
   rw [← mul_assoc]
+  norm_cast at *
+  simp at *
+  rw [he] at *
   rw [h3]
   have hee :
-    ∑' n : ℕ+, (2 * ↑π * I * ((n : ℕ) : ℂ)) ^ (k - 1) * exp (2 * ↑π * I * ((n : ℕ) : ℂ) * ↑z) =
+    ∑' n : ℕ+, (2 * ↑π * I * ((n : ℕ) : ℂ)) ^ ((k - 1) : ℕ) * exp (2 * ↑π * I * ((n : ℕ) : ℂ) * ↑z) =
       (2 * ↑π * I) ^ (k - 1) * ∑' n : ℕ+, n ^ (k - 1) * exp (2 * ↑π * I * ↑z * n) :=
     by
     rw [← tsum_mul_left]
     apply tsum_congr
     intro b
     rw [← mul_assoc]
-    rw [← mul_pow]
-    simp only [coe_coe, mul_eq_mul_left_iff]
+    simp
+    have : (2 * ↑π * I) ^ (↑k - 1) * ↑↑b ^ (↑k - 1) = (2 * ↑π * I * b) ^ (↑k - 1) := by 
+      norm_cast
+      simp_rw [he]
+      ring
+    rw [this]
+    norm_cast
+    rw [he]
+    simp [mul_eq_mul_left_iff]
     left
     exact (exp_comm b z).symm
+  simp at *
   rw [hee]
   rw [← mul_assoc]
   have he2 : 2 * ↑π * I * (2 * ↑π * I) ^ (k - 1) = (2 * ↑π * I) ^ k :=
@@ -167,8 +206,13 @@ theorem q_exp_iden (k : ℕ) (hk : 3 ≤ k) (z : ℍ) :
       apply symm; apply Nat.add_sub_of_le
       linarith
     nth_rw 2 [hke]
+    simp
+    norm_cast
     rw [pow_add]
     simp
+    left
+    rw [he]
   rw [he2]
-  simp
+  norm_cast
+
 
