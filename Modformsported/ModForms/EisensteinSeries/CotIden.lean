@@ -663,23 +663,25 @@ theorem euler_sin_prod' (x : ℂ) (h0 : x ≠ 0) :
     ring
   norm_cast at *  
   rw [this]
-  --have hpix : 0 ≠ complex.abs (↑π * x), by {sorry},
   field_simp
   rw [div_lt_iff]
-  simp at *
+  simp at * 
   norm_cast at *
-  have hr : Complex.abs (↑π * x * ∏ x_1 in Finset.range n, (1 + -x ^ 2 / (((x_1 + 1) : ℕ) ^ 2))) =
-    Complex.abs (↑π * x * ∏ x_1 in Finset.range n, (1 -x ^ 2 / ((x_1 + 1) ^ 2)) ):= by sorry
-
+  have hr : Complex.abs ((↑π * x * ∏ x_1 in Finset.range n, (1 + -x ^ 2 / (((x_1 + 1) : ℕ) ^ 2))) 
+    - sin (↑π * x)) =
+    Complex.abs ((↑π * x * ∏ x_1 in Finset.range n, (1 -x ^ 2 / ((x_1 + 1) ^ 2)) - sin (↑π * x)) ):= 
+    by 
+      congr
+      ext1
+      norm_cast
+      ring
+  norm_cast at *
+  simp at *
   rw [hr] 
   convert h2
-  ext1
-  rw [sub_eq_add_neg]
-  field_simp
-  simp only [AbsoluteValue.map_mul, abs_of_real]
   apply mul_pos
   simpa using Real.pi_ne_zero
-  apply complex.abs.pos
+  apply Complex.abs.pos
   exact h0
 
 theorem tendsto_locally_uniformly_euler_sin_prod' (z : ℍ') (r : ℝ) (hr : 0 < r) :
@@ -687,13 +689,12 @@ theorem tendsto_locally_uniformly_euler_sin_prod' (z : ℍ') (r : ℝ) (hr : 0 <
       (fun t => Complex.sin (π * t) / (↑π * t)) atTop (ball z r ∩ ℍ') :=
   by
   apply sum_prod_unif_conv _ (fun t => Complex.sin (π * t) / (↑π * t)) (ball z r ∩ ℍ')
-  have := tendsto_unif_on_restrict _ _ (ball z r ∩ ℍ')
-  rw [this]
+  rw [tendsto_unif_on_restrict _ _ (ball z r ∩ ℍ')]
   simp only [map_div₀, AbsoluteValue.map_neg, Complex.abs_pow]
   set s : ℝ := Complex.abs z + r
   have HH :=
-    M_test_uniform _ (fun (n : ℕ) (x : ball (z : ℂ) r ∩ ℍ') => Complex.abs (x ^ 2 / (n + 1) ^ 2))
-      (fun n : ℕ => Complex.abs (s ^ 2 / (n + 1) ^ 2)) _ _
+    M_test_uniform ?_ (fun (n : ℕ) (x : ((ball z r ∩ ℍ'): Set ℂ)) => Complex.abs (x ^ 2 / (n + 1) ^ 2))
+      (fun n : ℕ => Complex.abs (s ^ 2 / (n + 1) ^ 2)) ?_ ?_
   rw [← tendst_unif_coe _ _ _]
   convert HH
   simp only [coe_finset_sum, map_div₀, Complex.abs_pow]
@@ -702,24 +703,26 @@ theorem tendsto_locally_uniformly_euler_sin_prod' (z : ℍ') (r : ℝ) (hr : 0 <
   congr
   simp only [map_div₀, Complex.abs_pow]
   simp [hr, nonempty_coe_sort, nonempty_ball]
-  rw [nonempty_def]
+ 
   refine' ⟨z, _⟩
   simp [hr, z.2]
-  exact z.2
+
   intro n x
-  simp only [map_div₀, Complex.abs_pow, of_real_div, of_real_pow, abs_of_real, Complex.abs_abs,
-    of_real_add]
+  simp only [map_div₀, Complex.abs_pow, ofReal_div, ofReal_pow, abs_ofReal, Complex.abs_abs,
+    ofReal_add]
   apply div_le_div_of_le
-  apply pow_two_nonneg
-  apply pow_le_pow_of_le_left (complex.abs.nonneg _)
+  apply Complex.abs.nonneg
+  norm_cast
+  rw [ Complex.abs_pow]
+  simp
+  apply pow_le_pow_of_le_left (Complex.abs.nonneg _)
   have hxx : (x : ℂ) ∈ ball (z : ℂ) r := by have := x.2; rw [mem_inter_iff] at this ; apply this.1
   have A := ball_abs_le_center_add_rad r z (⟨x, hxx⟩ : ball (z : ℂ) r)
   simp at *
   apply le_trans A.le
   norm_cast
-  apply le_abs_self
   apply summable_rie_twist s
-  have B := rie_twist_bounded_on_ball z r hr
+  have B := rie_twist_bounded_on_ball z.1 r 
   obtain ⟨T, hT⟩ := B
   refine' ⟨T, _⟩
   intro x hx
@@ -727,9 +730,11 @@ theorem tendsto_locally_uniformly_euler_sin_prod' (z : ℍ') (r : ℝ) (hr : 0 <
   rw [mem_inter_iff] at hx 
   apply hx.1
   intro x
-  convert summable_rie_twist x
-  ext1
-  field_simp
+  have HH := summable_rie_twist x
+  apply HH.congr
+  intro b
+  norm_cast
+  norm_num
   intro x hx
   have := euler_sin_prod' x
   apply this
@@ -770,7 +775,7 @@ theorem aux_ineq (ε : ℝ) (hε : 0 < ε) (x y : ℍ) (hxy : Complex.abs (y - x
     rw [← mul_add]
     apply mul_pos
     exact hp
-    exact lt_add_of_le_of_pos (complex.abs.nonneg x) hε
+    exact lt_add_of_le_of_pos (Complex.abs.nonneg x) hε
   apply mul_lt_of_lt_one_right hε h1
 
 theorem sin_pi_z_ne_zero (z : ℍ) : Complex.sin (π * z) ≠ 0 :=
@@ -778,13 +783,13 @@ theorem sin_pi_z_ne_zero (z : ℍ) : Complex.sin (π * z) ≠ 0 :=
   apply Complex.sin_ne_zero_iff.2
   intro k
   rw [mul_comm]
-  by_contra
+  by_contra h
   simp at h 
-  cases h
+  cases' h with h h
   have hk : (k : ℂ).im = 0 := by simp
   have hz : 0 < (z : ℂ).im := by simpa using z.2
   rw [h, hk] at hz 
-  simpa using hz
+  simp at hz
   have := Real.pi_ne_zero
   exact this h
 
@@ -802,7 +807,7 @@ theorem tendsto_euler_log_derv_sin_prodd (x : ℍ) :
   rw [Metric.tendstoLocallyUniformlyOn_iff]
   intro ε hε x hx
   have H := tendsto_locally_uniformly_euler_sin_prod' ⟨x, hx⟩ ε hε
-  rw [tendsto_uniformly_on_iff] at H 
+  rw [Metric.tendstoUniformlyOn_iff] at H 
   have hxe : 0 < ε / (Complex.abs (π * x) + |π| * ε) :=
     by
     apply div_pos hε
@@ -810,43 +815,50 @@ theorem tendsto_euler_log_derv_sin_prodd (x : ℍ) :
     rw [← mul_add]
     apply mul_pos
     · rw [abs_pos]; exact Real.pi_ne_zero
-    exact lt_add_of_le_of_pos (complex.abs.nonneg x) hε
+    exact lt_add_of_le_of_pos (Complex.abs.nonneg x) hε
   have HH := H (ε / (Complex.abs (π * x) + |π| * ε)) hxe
   refine' ⟨ball x ε ∩ ℍ', _⟩
-  simp only [Subtype.coe_mk, eventually_at_top, ge_iff_le, mem_inter_iff, mem_ball, comp_app,
+  simp  [Subtype.coe_mk ge_iff_le, mem_inter_iff, mem_ball,
     and_imp, exists_prop, Ne.def, forall_exists_index, gt_iff_lt] at *
   constructor
-  rw [mem_nhds_within_iff]
-  refine' ⟨ε, hε, _⟩
-  rfl
+  rw [Metric.mem_nhdsWithin_iff]
+  constructor
+  norm_cast 
+  simp
+  use ε
+  simp [hε]
+  exact self_mem_nhdsWithin  
   obtain ⟨N, hN⟩ := HH
   refine' ⟨N, _⟩
   intro b hb y hy hyy
   have := hN b hb y hy hyy
   rw [dist_eq_norm] at *
   rw [div_sub'] at this 
-  simp only [norm_eq_abs, Subtype.coe_mk, AbsoluteValue.map_mul, abs_of_real, map_div₀] at *
+  simp only [norm_eq_abs, Subtype.coe_mk, AbsoluteValue.map_mul, abs_ofReal, map_div₀] at *
   rw [div_lt_iff] at this 
-  rw [sub_add_prod_aux b y]
+  have htest := sub_add_prod_aux b y
+  norm_cast at *
+  rw [htest]
   apply lt_trans this
   apply aux_ineq ε hε ⟨x, hx⟩ ⟨y, hyy⟩ hy
   apply mul_pos
   · rw [abs_pos]; exact Real.pi_ne_zero
-  · apply complex.abs.pos; apply UpperHalfPlane.ne_zero ⟨y, hyy⟩
+  · apply Complex.abs.pos; apply UpperHalfPlane.ne_zero ⟨y, hyy⟩
   apply mul_ne_zero
   norm_cast
   apply Real.pi_ne_zero
   apply UpperHalfPlane.ne_zero ⟨y, hyy⟩
-  simp only [Subtype.coe_mk, eventually_at_top, ge_iff_le]
+  simp  
   refine' ⟨1, _⟩
-  intro b hn
-  apply product_diff_on_H b
-  simp only [comp_app]
+  intro b _
+  have := product_diff_on_H b
+  norm_cast at *
+  simp 
   exact sin_pi_z_ne_zero x
 
 theorem tendsto_euler_log_derv_sin_prodd' (x : ℍ) :
     Tendsto
-      (fun n : ℕ => 1 / (x : ℂ) + ∑ j in Finset.range n, (1 / (x - (j + 1)) + 1 / (x + (j + 1))))
+      (fun n : ℕ => 1 / (x : ℂ) + ∑ j in Finset.range n, (1 / ((x : ℂ) - (j + 1)) + 1 / (x + (j + 1))))
       atTop (𝓝 <| π * cot (π * x)) :=
   by
   have := tendsto_euler_log_derv_sin_prodd x
@@ -858,13 +870,12 @@ theorem tendsto_euler_log_derv_sin_prodd' (x : ℍ) :
   exact this
 
 theorem cot_series_rep' (z : ℍ) :
-    ↑π * cot (↑π * z) - 1 / z = ∑' n : ℕ, (1 / (z - (n + 1)) + 1 / (z + (n + 1))) :=
+    ↑π * cot (↑π * z) - 1 / z = ∑' n : ℕ, (1 / ((z : ℂ) - (n + 1)) + 1 / (z + (n + 1))) :=
   by
   rw [HasSum.tsum_eq _]
-  exact T25Space.t2Space
   rw [Summable.hasSum_iff_tendsto_nat]
   have h := tendsto_euler_log_derv_sin_prodd' z
-  have := tendsto.sub_const h (1 / (z : ℂ))
+  have := Tendsto.sub_const h (1 / (z : ℂ))
   simp at *
   apply this
   have H := lhs_summable z
@@ -874,11 +885,11 @@ theorem cot_series_rep' (z : ℍ) :
   exact H
 
 theorem cot_series_rep (z : ℍ) :
-    ↑π * cot (↑π * z) - 1 / z = ∑' n : ℕ+, (1 / (z - n) + 1 / (z + n)) :=
+    ↑π * cot (↑π * z) - 1 / z = ∑' n : ℕ+, (1 / ((z : ℂ) - n) + 1 / (z + n)) :=
   by
-  have := tsum_pnat' fun n => 1 / (z - n) + 1 / (z + n)
+  have := tsum_pnat' fun n => 1 / ((z: ℂ) - n) + 1 / (z + n)
   have h1 := cot_series_rep' z
-  simp only [one_div, coe_coe, Nat.cast_add, algebraMap.coe_one] at *
+  simp [one_div, Nat.cast_add, algebraMap.coe_one] at *
   rw [this]
   apply h1
 
