@@ -1,5 +1,4 @@
 import Modformsported.ModForms.EisensteinSeries.EisensteinSeries 
-import Modformsported.ForMathlib.UnformLimitsOfHolomorphic
 import Mathlib.Geometry.Manifold.MFDeriv
 import Mathlib.Analysis.Complex.LocallyUniformLimit 
   

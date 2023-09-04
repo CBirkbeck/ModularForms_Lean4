@@ -1,6 +1,6 @@
-import Project.ForMathlib.ModForms2
-import Mathbin.NumberTheory.Modular
-import Project.ModForms.GeneralQExpansions.QExpansion
+import Modformsported.ForMathlib.ModForms2
+import Mathlib.NumberTheory.Modular
+import Modformsported.ModForms.GeneralQExpansions.QExpansion
 
 #align_import mod_forms.general_q_expansions.cuspform_bound
 

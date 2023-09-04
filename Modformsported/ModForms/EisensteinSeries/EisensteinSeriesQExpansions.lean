@@ -11,6 +11,7 @@ import Modformsported.ModForms.EisensteinSeries.AuxpLemmas
 import Modformsported.ModForms.EisensteinSeries.CotIden
 import Modformsported.ModForms.EisensteinSeries.QExpAux
 import Mathlib.NumberTheory.ZetaFunction
+import Mathlib.NumberTheory.ArithmeticFunction
 
 
 
@@ -20,6 +21,8 @@ open ModularForm EisensteinSeries UpperHalfPlane TopologicalSpace Set MeasureThe
   Metric Filter Function Complex
 
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
+
+open Nat.ArithmeticFunction
 
 local notation "ℍ'" =>
   (TopologicalSpace.Opens.mk UpperHalfPlane.upperHalfSpace upper_half_plane_isOpen)
@@ -109,33 +112,10 @@ theorem q_exp_iden_2 (k : ℕ) (hk : 3 ≤ k) (hk2 : Even k) (z : ℍ) :
   · apply prod_sum _ (Eisenstein_series_is_summable k z hk)
   · apply Eisenstein_series_is_summable k z hk
 
-def sigmaFn (k n : ℕ) : ℕ :=
-  ∑ d : ℕ in Nat.divisors n, d ^ k
-
-def sigmaFn' (k n : ℕ) : ℕ :=
-  ∑ d : ℕ in Nat.divisors n, (n / d) ^ k
-
-theorem sigmaFn_eql (k n : ℕ) : sigmaFn k n = sigmaFn' k n :=
+theorem sigma_eq_sum_div' (k n : ℕ) : sigma k n = ∑ d : ℕ in Nat.divisors n, (n / d) ^ k :=
   by
-  simp_rw [sigmaFn, sigmaFn']
+  simp [sigma]
   rw [← Nat.sum_div_divisors]
-
-def sigma' (k n : ℕ) : ℤ :=
-  ∑ x in Nat.divisorsAntidiagonal n, x.1 ^ k
-
-theorem sigme_fn_one (k : ℕ) : sigmaFn k 1 = 1 :=
-  by
-  rw [sigmaFn, Nat.divisors_one]
-  simp_rw [Finset.sum_singleton]
-  simp
-
-theorem sigmaFn_nonneg (k n : ℕ) : 0 ≤ sigmaFn k n :=
-  by
-  rw [sigmaFn]
-  apply Finset.sum_nonneg
-  intro i _
-  apply pow_nonneg
-  linarith
 
 theorem eisen_iden (k : ℕ) (hk : 3 ≤ (k : ℤ)) (z : ℍ) :
     (eisensteinSeriesOfWt_ k) z = eisensteinSeriesOfWeight_ k z :=
@@ -172,9 +152,9 @@ instance natPosMul :  MulAction ℕ+ ℍ where
 -/
 
 
-theorem auxnpm (c : ℕ+) (z : ℍ) : ((c  • z : ℍ) : ℂ) = (c : ℂ) * (z : ℂ) := by rfl
+theorem natPosSMul_apply (c : ℕ+) (z : ℍ) : ((c  • z : ℍ) : ℂ) = (c : ℂ) * (z : ℂ) := by rfl
 
-theorem ine (a b k : ℕ) (hb : 0 < b) (h : a ≤ b) : a ^ k ≤ 2 * b ^ (k + 1) :=
+theorem aux_inequality_one (a b k : ℕ) (hb : 0 < b) (h : a ≤ b) : a ^ k ≤ 2 * b ^ (k + 1) :=
   by
   have h1 : a ^ k ≤ b ^ k := pow_mono_right k h
   apply le_trans h1
@@ -185,7 +165,7 @@ theorem ine (a b k : ℕ) (hb : 0 < b) (h : a ≤ b) : a ^ k ≤ 2 * b ^ (k + 1)
   simp only [zero_le']
   linarith
 
-theorem ineqauxx (z : ℍ) (k : ℕ) (n : Σ x : ℕ+, Nat.divisorsAntidiagonal x) :
+theorem aux_inequality_two (z : ℍ) (k : ℕ) (n : Σ x : ℕ+, Nat.divisorsAntidiagonal x) :
     ‖(n.2.1.1 : ℂ) ^ k * Complex.exp (2 * ↑π * I * z * n.2.1.1 * n.2.1.2)‖ ≤
       Complex.abs (2 * n.1 ^ (k + 1) * Complex.exp (2 * ↑π * I * z * n.1)) :=
   by
@@ -196,7 +176,6 @@ theorem ineqauxx (z : ℍ) (k : ℕ) (n : Σ x : ℕ+, Nat.divisorsAntidiagonal 
   norm_cast
   simp_rw [← hn]
   have gt : ∀ a b : ℕ, ((a * b : ℕ) : ℂ) = (a : ℂ) * (b : ℂ) := Nat.cast_mul
-
   rw [gt]
   rw [← mul_assoc]
   simp  [Nat.cast_pow, ofReal_mul, PNat.pow_coe, Nat.cast_mul, algebraMap.coe_one]
@@ -206,7 +185,7 @@ theorem ineqauxx (z : ℍ) (k : ℕ) (n : Σ x : ℕ+, Nat.divisorsAntidiagonal 
     and_true_iff] at J 
   have J2 := Nat.le_of_dvd ?_ J
   norm_cast
-  apply ine
+  apply aux_inequality_one
   apply n.1.2
   exact J2
   apply n.1.2
@@ -233,7 +212,7 @@ theorem summable1 {k : ℕ} (z : ℍ) :
           (2 * ↑π * I * ↑z * (sigmaAntidiagonalEquivProd p).fst *
             (sigmaAntidiagonalEquivProd p).snd) :=
   by
-  have := summable_of_norm_bounded _ ?_ (ineqauxx z k)
+  have := summable_of_norm_bounded _ ?_ (aux_inequality_two z k)
   apply this
   rw [summable_sigma_of_nonneg]
   constructor
@@ -303,19 +282,18 @@ theorem div_mul_aux (k : ℕ) (z : ℍ) (n : ℕ) :
   rw [Nat.mem_divisors] at hx 
   exact hx.1
 
-theorem sum_sigmaFn_eqn {k : ℕ} (z : ℍ) :
+theorem sum_sigma_eqn {k : ℕ} (z : ℍ) :
     ∑' c : ℕ+ × ℕ+, (c.1 ^ k : ℂ) * Complex.exp (2 * ↑π * I * z * c.1 * c.2) =
-      ∑' e : ℕ+, sigmaFn k e * Complex.exp (2 * ↑π * I * z * e) :=
+      ∑' e : ℕ+, sigma k e * Complex.exp (2 * ↑π * I * z * e) :=
   by
-  simp_rw [sigmaFn_eql]
-  rw [sum_sigma_fn_eq z]
-  congr
-  funext n
-  rw [sigmaFn']
+  simp_rw [sigma_eq_sum_div',sum_sigma_fn_eq z]
+  apply tsum_congr
+  intro n
   have :=
     @Nat.sum_divisorsAntidiagonal' ℂ _ (fun (x : ℕ) => fun (y : ℕ) =>
       (x : ℂ) ^ (k : ℕ) * Complex.exp (2 * ↑π * I * z * x * y)) n
-  simp only [Finset.univ_eq_attach, cpow_nat_cast, uhc, Nat.cast_sum, Nat.cast_pow, Nat.isUnit_iff] at *
+  simp only [Finset.univ_eq_attach, cpow_nat_cast, uhc, Nat.cast_sum, Nat.cast_pow, 
+    Nat.isUnit_iff] at *
   simp_rw [mul_assoc] at *
   norm_cast at *
   simp at *
@@ -329,10 +307,8 @@ theorem sum_sigmaFn_eqn {k : ℕ} (z : ℍ) :
     simp
     apply Finset.sum_mul
   simp at *  
-  rw [hr]
-  rw [← this]
-  rw [←(sumaux _)]
-  simp
+  rw [hr, ← this, ←(sumaux _)]
+  simp only [Finset.univ_eq_attach]
 
 
 theorem a1 {k : ℕ} (e : ℕ+) (z : ℍ) :
@@ -444,7 +420,7 @@ theorem Eisenstein_Series_q_expansion (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : Ev
     (eisensteinSeriesOfWt_ k) z =
       2 * rZ k +
         2 * ((-2 * ↑π * I) ^ k / (k - 1)!) *
-          ∑' n : ℕ+, sigmaFn (k - 1) n * Complex.exp (2 * ↑π * I * z * n) :=
+          ∑' n : ℕ+, sigma (k - 1) n * Complex.exp (2 * ↑π * I * z * n) :=
   by
   have hkk : 1 ≤ (k : ℤ) := by linarith
   rw [eisen_iden k hk]
@@ -458,10 +434,10 @@ theorem Eisenstein_Series_q_expansion (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : Ev
       ∑' e : ℕ+,
         (-2 * ↑π * I) ^ k / (k - 1)! *
           ∑' n : ℕ+, n ^ (k - 1) * Complex.exp (2 * ↑π * I * e * z * n) :=
-    by congr; funext c; rw [t2 (c • z : ℍ)]; rw [auxnpm c z]; rw [← mul_assoc]
+    by congr; funext c; rw [t2 (c • z : ℍ)]; rw [natPosSMul_apply c z]; rw [← mul_assoc]
   simp only [uhc, Int.cast_ofNat, cpow_nat_cast, one_div, neg_mul, ge_iff_le] at *
   rw [this]
-  simp [auxnpm,  one_div, ofReal_mul, Int.cast_neg, 
+  simp [natPosSMul_apply,  one_div, ofReal_mul, Int.cast_neg, 
     algebraMap.coe_one, neg_mul, ofReal_neg, add_right_inj] at *
   rw [mul_assoc]
   congr
@@ -472,7 +448,7 @@ theorem Eisenstein_Series_q_expansion (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : Ev
   rw [tsum_mul_left]
   simp 
   left
-  have H := @sum_sigmaFn_eqn (k - 1) z
+  have H := @sum_sigma_eqn (k - 1) z
   simp [ge_iff_le, ofReal_mul, ofReal_ofNat, PNat.pow_coe, Nat.cast_pow] at *
   rw [← H]
   rw [tsum_comm']
@@ -519,7 +495,7 @@ theorem Eisenstein_Series_q_expansion' (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : E
     (eisensteinSeriesOfWt_ k) z =
       2 * riemannZeta k +
         2 * ((-2 * ↑π * I) ^ k / (k - 1)!) *
-          ∑' n : ℕ+, sigmaFn (k - 1) n * Complex.exp (2 * ↑π * I * z * n) :=
+          ∑' n : ℕ+, sigma (k - 1) n * Complex.exp (2 * ↑π * I * z * n) :=
   by
   have := Eisenstein_Series_q_expansion k hk hk2 z
   convert this
@@ -537,7 +513,7 @@ theorem Eisenstein_Series_q_expansion_Bernoulli (k : ℕ) (hk : 3 ≤ (k : ℤ))
     (eisensteinSeriesOfWt_ k) z =
       2 * ((-1) ^ (k / 2 + 1) * 2 ^ (2 * (k / 2) - 1) * π ^ k * bernoulli k / k !) +
         2 * ((-2 * ↑π * I) ^ k / (k - 1)!) *
-          ∑' n : ℕ+, sigmaFn (k - 1) n * Complex.exp (2 * ↑π * I * z * n) :=
+          ∑' n : ℕ+, sigma (k - 1) n * Complex.exp (2 * ↑π * I * z * n) :=
   by
   have := Eisenstein_Series_q_expansion' k hk hk2 z
   norm_cast at *
@@ -620,8 +596,6 @@ theorem ineq : 0 ≤ 16 * π ^ 4 / ((2 + 1) * 2) :=
   apply Real.pi_pos.le
   linarith
 
-example : ( 1 : ℂ) + 1 = 2 := by exact one_add_one_eq_two
-
 theorem Eisen_4_non_zero : G[(4 : ℕ)] ≠ 0 := by
   by_contra h
   have H : (G[(4 : ℕ)] : ℍ → ℂ) = 0 := by simp only [h, coe_zero]
@@ -639,7 +613,7 @@ theorem Eisen_4_non_zero : G[(4 : ℕ)] ≠ 0 := by
     norm_cast at this
     rw [this]
     simp only [one_mul]
-    simp
+    simp 
     field_simp
     norm_cast
     ring
@@ -657,8 +631,8 @@ theorem Eisen_4_non_zero : G[(4 : ℕ)] ≠ 0 := by
     ring  
   simp at H3
   have r3 :
-    ∑' n : ℕ+, ↑(sigmaFn 3 n) * Complex.exp (2 * ↑π * I * I * n) =
-      ∑' n : ℕ+, sigmaFn 3 n * Complex.exp (-2 * ↑π * n) :=
+    ∑' n : ℕ+, ↑(sigma 3 n) * Complex.exp (2 * ↑π * I * I * n) =
+      ∑' n : ℕ+, sigma 3 n * Complex.exp (-2 * ↑π * n) :=
     by
       apply tsum_congr
       intro b
@@ -667,26 +641,24 @@ theorem Eisen_4_non_zero : G[(4 : ℕ)] ≠ 0 := by
       have := r2 b
       simp at *
       rw [this]
- 
+  simp at *
   rw [r3] at H3 
   norm_cast at H3 
-  have H4 : 0 ≤ ∑' n : ℕ+, ↑(sigmaFn 3 n) * Real.exp (↑(-2 : ℤ) * π * ↑n) :=
+  have H4 : 0 ≤ ∑' n : ℕ+, ↑(sigma 3 n) * Real.exp (↑(-2 : ℤ) * π * ↑n) :=
     by
-    apply tsum_nonneg; intro b; apply mul_nonneg; norm_cast; apply sigmaFn_nonneg
+    apply tsum_nonneg; intro b; apply mul_nonneg; norm_cast; 
+    simp only [zero_le]
     apply (Real.exp_pos _).le
   have H5 : 0 < 2 * rZ 4 := by apply mul_pos; linarith; apply rZ_pos; linarith
   let ε :=
     2 * rZ 4 +
-      2 * (16 * π ^ 4 / ↑((2 + 1) * 2)) * ∑' n : ℕ+, ↑(sigmaFn 3 n) * Real.exp (-(2 : ℕ)  * π * ↑n)
+      2 * (16 * π ^ 4 / ↑((2 + 1) * 2)) * ∑' n : ℕ+, ↑(sigma 3 n) * Real.exp (-(2 : ℕ)  * π * ↑n)
   have H7 : G[(4 : ℕ)] (⟨I, by simp only [I_im, zero_lt_one]⟩ : ℍ) = ↑ε := by 
     simp at *
     rw [H3]
     congr
     norm_cast
     exact one_add_one_eq_two
-    ext1 b
-    ring_nf
-
   have H5 : 0 < ε := by 
     apply Left.add_pos_of_pos_of_nonneg H5; 
     apply mul_nonneg; 

@@ -1,9 +1,8 @@
-import Project.ForMathlib.ModForms2
+import Modformsported.ForMathlib.ModForms2
 import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups
 import Mathlib.AlgebraicGeometry.EllipticCurve.Weierstrass
-import Project.ForMathlib.UnformLimitsOfHolomorphic
+import Modformsported.ForMathlib.UnformLimitsOfHolomorphic
 
-#align_import mod_forms.modularity_conjecture
 
 open ModularForm Complex
 
@@ -17,7 +16,7 @@ def mapToUpper (x : ℝ) : ℍ :=
   ⟨x + I, by simp only [Complex.add_im, Complex.ofReal_im, Complex.I_im, zero_add, zero_lt_one]⟩
 
 def modularFormAn (n : ℕ) {N : ℕ} {k : ℤ} (f : CuspForm (Gamma0 N) k) : ℂ :=
-  ∫ x : ℝ in 0 ..1, exp (-2 * π * I * n * (x + I)) * f.1 (mapToUpper x)
+  ∫ x : ℝ in (0 : ℝ)..1, exp (-2 * π * I * n * (x + I)) * f.1 (mapToUpper x)
 
 local notation:73 "a_[" n:0 "]" f:72 => modularFormAn n f
 
@@ -35,14 +34,10 @@ instance apFintype (E : EllipticCurve ℚ) (p : ℕ+) : Fintype (setOfPointsModN
   by
   rw [setOfPointsModN]
   apply Subtype.fintype _
-  exact
-    Classical.decPred fun x : ZMod ↑p × ZMod ↑p =>
-      x ∈ {P : ZMod ↑p × ZMod ↑p | SetOfPointsModN._Match1 E (↑p) P}
-  apply Prod.fintype _ _
-  repeat' apply ZMod.fintype
+
 
 def EllipticCurve.ap (E : EllipticCurve ℚ) (p : ℕ) : ℕ :=
-  p - (Cardinal.mk (setOfPointsModN E p)).toNat
+  p - Cardinal.toNat  (Cardinal.mk (setOfPointsModN E p))
 
 def IsNormalisedEigenform {N : ℕ} {k : ℤ} (f : CuspForm (Gamma0 N) k) : Prop :=
   a_[1]f = 1 ∧

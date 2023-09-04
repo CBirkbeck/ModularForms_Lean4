@@ -75,6 +75,14 @@ open scoped Topology Manifold UpperHalfPlane
 
 variable (F : Type _) (Γ : Subgroup SL(2, ℤ)) (k : ℤ)
 
+instance : Coe  (CuspForm Γ k) (ModularForm Γ k) := by 
+  refine { coe := ?coe }
+  intro h
+  use h
+  apply h.holo'
+  intro A 
+  apply (h.zero_at_infty' A).boundedAtFilter
+
 --cast for modular forms, which is useful for removing `heq`'s.
 def mcast {a b : ℤ} {Γ : Subgroup SL(2, ℤ)} (h : a = b) (f : ModularForm Γ a) : ModularForm Γ b
     where

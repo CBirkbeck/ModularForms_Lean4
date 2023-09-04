@@ -1,15 +1,15 @@
-import Project.ModForms.EisensteinSeries.EisenIsHolo
-import Mathbin.Data.Complex.Exponential
-import Mathbin.Analysis.Complex.UpperHalfPlane.Basic
-import Project.ModForms.Riemzeta
-import Mathbin.Analysis.Calculus.IteratedDeriv
-import Mathbin.Analysis.Calculus.Series
+import Modformsported.ModForms.EisensteinSeries.EisenIsHolo 
+import Mathlib.Data.Complex.Exponential
+import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
+import Modformsported.ModForms.Riemzeta
+import Mathlib.Analysis.Calculus.IteratedDeriv
+import Mathlib.Analysis.Calculus.Series
 
-#align_import mod_forms.discriminant_form
+
 
 noncomputable section
 
-open ModularForm eisensteinSeries UpperHalfPlane TopologicalSpace Set MeasureTheory intervalIntegral
+open ModularForm EisensteinSeries UpperHalfPlane TopologicalSpace Set MeasureTheory intervalIntegral
   Metric Filter Function Complex
 
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat
@@ -29,8 +29,11 @@ local notation "E₄" => eisenstein4
 
 local notation "E₆" => eisenstein6
 
-def discriminantForm : ModularForm ⊤ 12 :=
-  E₄.mul (E₄.mul E₄) - 27 • E₆.mul E₆
+def E_4_cubed : ModularForm ⊤ 12 := (E₄).mul ((E₄).mul E₄) 
+
+def E_6_sq : ModularForm ⊤ 12 := (E₆).mul E₆
+
+def discriminantForm : ModularForm ⊤ 12 := E_4_cubed - 27 • E_6_sq
 
 open scoped DirectSum BigOperators
 
@@ -58,7 +61,7 @@ theorem eqvs_of_defs : DirectSum.of _ 12 discriminantForm = delta :=
   rw [e4]
   rw [e6]
   rw [discriminantForm]
-  simp only [map_sub, map_nsmul, nsmul_eq_mul, Nat.cast_bit1, Nat.cast_bit0, algebraMap.coe_one]
+  simp [map_sub, map_nsmul, nsmul_eq_mul, algebraMap.coe_one]
   congr
   rw [pow_three]
   simp_rw [DirectSum.of_mul_of]
