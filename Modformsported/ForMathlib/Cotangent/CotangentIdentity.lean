@@ -4,7 +4,7 @@ import Modformsported.ForMathlib.AuxpLemmas
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.EulerSineProd
 import Mathlib.Analysis.Complex.LocallyUniformLimit
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
-import Modformsported.ModForms.EisensteinSeries.LogDeriv
+import Modformsported.ForMathlib.LogDeriv
 import Modformsported.ForMathlib.Cotangent.basic 
 
 
