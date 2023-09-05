@@ -3,7 +3,6 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Modformsported.ForMathlib.ExpSummableLemmas
 
-
 noncomputable section
 
 open Metric Filter Function Complex

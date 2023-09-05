@@ -22,7 +22,7 @@ theorem tendsto_coe {α : Type _} {f : Filter α} {m : α → ℝ} {a : ℝ} :
   embedding_coer.tendsto_nhds_iff.symm
 
 @[simp, norm_cast]
-theorem coe_finset_sum {α : Type _} {s : Finset α} {f : α → ℝ} :
+theorem coe_finset_sum' {α : Type _} {s : Finset α} {f : α → ℝ} :
     ↑(∑ a in s, f a) = (∑ a in s, f a : ℂ) :=
   ofReal.map_sum f s
 
@@ -33,7 +33,7 @@ theorem hasSum_coe {α : Type _} {f : α → ℝ} {r : ℝ} :
   have :
     (fun s : Finset α => ∑ a in s, ↑(f a)) = 
       (Complex.ofReal' : ℝ → ℂ) ∘ fun s : Finset α => ∑ a in s, f a :=
-    funext fun s => coe_finset_sum.symm
+    funext fun s => coe_finset_sum'.symm
   unfold HasSum 
   rw [this]
   apply tendsto_coe

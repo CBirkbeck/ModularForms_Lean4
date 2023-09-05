@@ -9,7 +9,7 @@ import Modformsported.ModForms.HolomorphicFunctions
 
 open Complex
 
-open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold
+open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold Set
 
 open ModularForm
 
@@ -200,6 +200,54 @@ theorem closedBall_in_slice (z : ℍ') :
   simp only [abs_ofReal, Int.ofNat_eq_coe, Nat.cast_ofNat, Int.int_cast_ofNat, Nat.cast_one, Int.cast_one, 
     sub_pos, gt_iff_lt, abs_pos, ne_eq]
   linarith
+
+open Set Metric UpperHalfPlane
+
+theorem mem_uhs (x : ℂ) : x ∈ ℍ'.1 ↔ 0 < x.im := by rfl
+
+theorem compact_in_slice' (S : Set ℂ) (hne : Set.Nonempty S) (hs : S ⊆ ℍ') (hs2 : IsCompact S) :
+    ∃ A B : ℝ, 0 < B ∧ Set.image (Set.inclusion hs) ⊤ ⊆ upperHalfSpaceSlice A B :=
+  by
+  have hcts : ContinuousOn (fun t => Complex.im t) S := by apply Continuous.continuousOn; continuity
+  have := IsCompact.exists_isMinOn hs2 hne hcts
+  obtain ⟨b, hb, HB⟩ := this
+  have hh : IsCompact (Set.image (inclusion hs) ⊤) :=
+    by
+    apply IsCompact.image_of_continuousOn
+    simp; exact isCompact_iff_isCompact_univ.mp hs2;
+    apply Continuous.continuousOn 
+    apply  (continuous_inclusion hs)
+  let t := (⟨Complex.I, by simp⟩ : ℍ)
+  have hb2 := Bounded.subset_ball_lt hh.bounded 0 t
+  obtain ⟨r, hr, hr2⟩ := hb2
+  refine' ⟨r + 1, b.im, _⟩
+  constructor
+  have hbim := hs hb
+  simp at hbim 
+  rw [mem_uhs b] at hbim 
+  exact hbim
+  intro z hz
+  simp  [slice_mem, coe_re, coe_im, ge_iff_le, top_eq_univ,
+    image_univ, range_inclusion] at *
+  constructor
+  have hr3 := hr2 hz
+  simp  at hr3 
+  norm_cast at *
+  apply le_trans (abs_re_le_abs z)
+  have := Complex.abs.sub_le (z : ℂ) (t : ℂ) 0
+  simp only [sub_zero, Subtype.coe_mk, abs_I] at this 
+  have hds : dist z t = Complex.abs ((z : ℂ) - t) := by rfl
+  rw [hds] at hr3 
+  apply le_trans this
+  simp only [add_le_add_iff_right]
+  apply hr3
+  have hbz := HB  hz
+  simp at *
+  convert hbz
+  simp
+  have hhf := hs hz
+  rw [mem_uhs _] at hhf 
+  apply hhf.le  
 
 /-- The sum of Eise over the `square`'s-/
 def eisenSquare (k : ℤ) (n : ℕ) : ℍ → ℂ := fun z => ∑ x in square n, eise k z x

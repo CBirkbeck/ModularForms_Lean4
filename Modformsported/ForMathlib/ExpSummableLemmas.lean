@@ -3,8 +3,6 @@ import Mathlib.Analysis.Calculus.IteratedDeriv
 import Mathlib.Analysis.Calculus.Series
 import Modformsported.ForMathlib.TsumLemmas
 import Modformsported.ForMathlib.IteratedDerivLemmas
-import Modformsported.ForMathlib.ModForms2
-import Modformsported.ModForms.HolomorphicFunctions
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic 
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 
