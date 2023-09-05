@@ -1,11 +1,11 @@
-import Modformsported.ForMathlib.ModForms2 
+import Modformsported.ForMathlib.ModForms2  
 import Modformsported.ModForms.HolomorphicFunctions
 import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.NumberTheory.Modular
 import Mathlib.GroupTheory.Index
-import Modformsported.ModForms.EisensteinSeries.EisenIsHolo
+import Modformsported.ForMathlib.EisensteinSeries.ModularForm
 import Mathlib.Analysis.Calculus.Inverse
 
 
@@ -584,7 +584,7 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
     apply (@tendsto_comap'_iff _ _ _ F _ _ _ _).mpr
     · have := tendsto_rpow_mul_exp_neg_mul_atTop_nhds_0 ((k : ℝ) / 2) (2 * π) Real.two_pi_pos
       refine' Tendsto.congr' _ this; apply eventually_of_mem (Ioi_mem_atTop (0 : ℝ))
-      intro y hy;  simp; apply mul_comm; 
+      intro y _;  simp; apply mul_comm; 
     · convert Ioi_mem_atTop (0 : ℝ); ext1 x; rw [Set.mem_range]
       constructor; · rintro ⟨y, hy⟩; rw [← hy]; exact y.2
       · intro h; 

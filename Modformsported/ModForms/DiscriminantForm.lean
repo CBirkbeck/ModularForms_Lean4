@@ -1,4 +1,4 @@
-import Modformsported.ModForms.EisensteinSeries.EisenIsHolo 
+import Modformsported.ForMathlib.EisensteinSeries.ModularForm 
 import Mathlib.Data.Complex.Exponential
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Modformsported.ModForms.Riemzeta
@@ -15,7 +15,7 @@ open ModularForm EisensteinSeries UpperHalfPlane TopologicalSpace Set MeasureThe
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat
 
 def eisensteinSeries (k : ℤ) :=
-  if h : 3 ≤ k then eisensteinSeriesIsModularForm k h else 0
+  if h : 3 ≤ k then EisensteinSeriesModularForm k h else 0
 
 local notation "G[" k "]" => eisensteinSeries k
 

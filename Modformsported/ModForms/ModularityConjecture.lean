@@ -1,8 +1,7 @@
 import Modformsported.ForMathlib.ModForms2
 import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups
 import Mathlib.AlgebraicGeometry.EllipticCurve.Weierstrass
-import Modformsported.ForMathlib.UnformLimitsOfHolomorphic
-
+import Mathlib.MeasureTheory.Integral.CircleTransform 
 
 open ModularForm Complex
 
