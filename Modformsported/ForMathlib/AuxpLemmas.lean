@@ -121,14 +121,6 @@ theorem aut_iter_deriv' (d : ℤ) (k : ℕ) :
   simp_rw [h2]
   simpa using aut_iter_deriv (-d : ℤ) k hx
 
-/-
-lemma exp_iter_deriv_apply (n m : ℕ) (x : ℂ) :
-  (iterated_fderiv ℂ n (λ (s : ℂ), complex.exp ( 2 *↑π * I * m * s))) x (λ(i : fin n), 1) =
-   (2 *↑π * I * m)^n * complex.exp ( 2 *↑π * I * m * x) :=
-begin
-  apply congr_fun (exp_iter_deriv n m),
-end
--/
 theorem ineq11 (x y d : ℝ) :
     0 ≤ d ^ 2 * (x ^ 2 + y ^ 2) ^ 2 - 2 * d * x * (x ^ 2 + y ^ 2) + x ^ 2 :=
   by
