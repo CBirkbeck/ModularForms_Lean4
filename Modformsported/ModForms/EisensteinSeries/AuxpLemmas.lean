@@ -1070,7 +1070,7 @@ theorem tsum_aexp_contDiffOn (k : ℕ) :
 theorem summable_factor (n : ℤ) (z : ℍ) (k : ℕ) (hk : 3 ≤ k) :
     Summable fun d : ℤ => ((-((n : ℂ) * z) + d) ^ k)⁻¹ :=
   by
-  have H := Eisenstein_series_is_summable k z hk
+  have H := Eisenstein_tsum_summable k z hk
   have H2 := H.prod_factor (-n)
   simp_rw [eise] at H2 
   simp at *

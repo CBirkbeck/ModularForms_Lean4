@@ -1,6 +1,6 @@
 import Modformsported.ModForms.EisensteinSeries.EisensteinSeries 
 import Mathlib.Geometry.Manifold.MFDeriv
-import Mathlib.Analysis.Complex.LocallyUniformLimit 
+import Mathlib.Analysis.Complex.LocallyUniformLimit  
   
 universe u v w
 
@@ -59,7 +59,7 @@ theorem Eisen_partial_tends_to_uniformly_on_ball (k : ℕ) (h : 3 ≤ k) (z : �
         Metric.closedBall z ε ⊆ upperHalfSpaceSlice A B ∧
           0 < B ∧
             ε < B ∧
-              TendstoUniformlyOn (eisenSquare' k) (eisensteinSeriesOfWeight_ k) Filter.atTop
+              TendstoUniformlyOn (eisenSquare' k) (Eisenstein_tsum k) Filter.atTop
                 (Metric.closedBall z ε) :=
   by
   have h1 := closedBall_in_slice z
@@ -103,7 +103,7 @@ theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℕ) (h : 3 ≤ k) (z : �
           0 < B ∧
             ε < B ∧
               TendstoUniformlyOn (fun n => extendByZero (eisenSquare' k n))
-                (extendByZero (eisensteinSeriesOfWeight_ k)) Filter.atTop (Metric.closedBall z ε) :=
+                (extendByZero (Eisenstein_tsum k)) Filter.atTop (Metric.closedBall z ε) :=
   by
   have H := Eisen_partial_tends_to_uniformly_on_ball k h z
   obtain ⟨A, B, ε, hε, hball, hB, hεB, hunif⟩ := H
@@ -120,7 +120,7 @@ theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℕ) (h : 3 ≤ k) (z : �
   have Hba := ball_in_upper_half z A B ε hε hεB hball
   intro b hb x hx
   have hxx : x ∈ ℍ'.1 := by apply Hba; simp [hx]
-  have hf := ext_by_zero_apply ℍ' (eisensteinSeriesOfWeight_ k) ⟨x, hxx⟩
+  have hf := ext_by_zero_apply ℍ' (Eisenstein_tsum k) ⟨x, hxx⟩
   let F : ℕ → ℍ' → ℂ := fun n => eisenSquare' k n
   have hFb := ext_by_zero_apply ℍ' (F b) ⟨x, hxx⟩
   simp  at *
@@ -131,7 +131,7 @@ theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℕ) (h : 3 ≤ k) (z : �
 
 /-
 lemma eisenSquare_tendstolocunif (k : ℕ) (h : 3 ≤ k):
-  TendstoLocallyUniformly (eisenSquare' k) (eisensteinSeriesOfWeight_ k) Filter.atTop := by
+  TendstoLocallyUniformly (eisenSquare' k) (Eisenstein_tsum k) Filter.atTop := by
   rw [Metric.tendstoLocallyUniformly_iff]
   intros ε hε z 
   have := Eisen_partial_tends_to_uniformly_on_ball k h z
@@ -142,7 +142,7 @@ lemma eisenSquare_tendstolocunif (k : ℕ) (h : 3 ≤ k):
 
 lemma eisenSquare_tendstolocunif' (k : ℕ) (h : 3 ≤ k):
   TendstoLocallyUniformlyOn (fun (n: ℕ) => (eisenSquare' k n) ∘ ⇑(chartAt ℂ z).symm) 
-  ((eisensteinSeriesOfWeight_ k) ∘ ⇑(chartAt ℂ z).symm) Filter.atTop ℍ' := by
+  ((Eisenstein_tsum k) ∘ ⇑(chartAt ℂ z).symm) Filter.atTop ℍ' := by
   have H := eisenSquare_tendstolocunif k h
   have HH := tendstoLocallyUniformlyOn_univ.2 H
   sorry
@@ -151,7 +151,7 @@ lemma eisenSquare_tendstolocunif' (k : ℕ) (h : 3 ≤ k):
 
 lemma eisenSquare_tendstolocunif'' (k : ℕ) (h : 3 ≤ k):
   TendstoLocallyUniformlyOn (fun (n: ℕ) => extendByZero (eisenSquare' k n))
-  (extendByZero (eisensteinSeriesOfWeight_ k)) Filter.atTop UpperHalfPlane.upperHalfSpace := by
+  (extendByZero (Eisenstein_tsum k)) Filter.atTop UpperHalfPlane.upperHalfSpace := by
   have H := eisenSquare_tendstolocunif k h
   rw [Metric.tendstoLocallyUniformlyOn_iff]
   rw [Metric.tendstoLocallyUniformly_iff] at H
@@ -189,17 +189,17 @@ lemma tsum_circ {ι : Type} (f : ι → ℍ → ℂ) :
 
 
 theorem Eisenstein_is_mdiff (k : ℕ) (hk : 3 ≤ k) :
-    MDifferentiable 𝓘(ℂ) 𝓘(ℂ) (eisensteinSeriesOfWeight_ k) :=
+    MDifferentiable 𝓘(ℂ) 𝓘(ℂ) (Eisenstein_tsum k) :=
   by
   rw [mdiff_iff_diffOn]
-  simp_rw [eisensteinSeriesOfWeight_ ]
+  simp_rw [Eisenstein_tsum ]
   have H:=eisenSquare_tendstolocunif'' k h
   have HH :=H.differentiableOn ?_ ?_
   apply HH.congr
   intros x hx
-  have := ext_chart (eisensteinSeriesOfWeight_ k) ⟨x, hx⟩
+  have := ext_chart (Eisenstein_tsum k) ⟨x, hx⟩
   rw [this]
-  simp_rw [eisensteinSeriesOfWeight_ ]
+  simp_rw [Eisenstein_tsum ]
   rfl
   sorry
 
@@ -208,7 +208,7 @@ theorem Eisenstein_is_mdiff (k : ℕ) (hk : 3 ≤ k) :
   
 
 theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
-    IsHolomorphicOn (↑ₕ (eisensteinSeriesOfWeight_ k)) :=
+    IsHolomorphicOn (↑ₕ (Eisenstein_tsum k)) :=
   by
   rw [← isHolomorphicOn_iff_differentiableOn]
   apply diff_on_diff
@@ -245,7 +245,7 @@ theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
   
 
 theorem Eisenstein_is_holomorphic (k : ℤ) (hk : 3 ≤ k) :
-    IsHolomorphicOn (↑ₕ (eisensteinSeriesOfWeight_ k)) :=
+    IsHolomorphicOn (↑ₕ (Eisenstein_tsum k)) :=
   by
   have : ∃ n : ℕ, (n : ℤ) = k :=
     haveI hk' : 0 ≤ k := by linarith
@@ -385,27 +385,27 @@ theorem upp_half_translation (z : ℍ) :
   apply le_abs_self
 
 theorem eis_bound_by_real_eis (k : ℕ) (z : ℍ) (hk : 3 ≤ k) :
-    Complex.abs (eisensteinSeriesOfWeight_ k z) ≤ realEisensteinSeriesOfWeight_ k z :=
+    Complex.abs (Eisenstein_tsum k z) ≤ AbsEisenstein_tsum k z :=
   by
-  simp_rw [eisensteinSeriesOfWeight_]
-  simp_rw [realEisensteinSeriesOfWeight_]
-  simp_rw [realEise]
+  simp_rw [Eisenstein_tsum]
+  simp_rw [AbsEisenstein_tsum]
+  simp_rw [AbsEise]
   simp_rw [eise]
   apply abs_tsum'
   have := real_eise_is_summable k z hk
-  simp_rw [realEise] at this 
+  simp_rw [AbsEise] at this 
   simp only [one_div, Complex.abs_pow, abs_inv, norm_eq_abs, zpow_ofNat] at *
   apply this
 
 theorem Eisenstein_is_bounded' (k : ℕ) (hk : 3 ≤ k) :
-    UpperHalfPlane.IsBoundedAtImInfty ((eisensteinIsSlashInv ⊤ k)) :=
+    UpperHalfPlane.IsBoundedAtImInfty ((Eisenstein_SIF ⊤ k)) := 
   by
   simp only [UpperHalfPlane.bounded_mem, Subtype.forall, UpperHalfPlane.coe_im]
   let M : ℝ := 8 / rfunct (lbpoint 1 2 <| by linarith) ^ k * rZ (k - 1)
   use M, 2
   intro z hz
   obtain ⟨n, hn⟩ := upp_half_translation z
-  have := mod_form_periodic k (eisensteinIsSlashInv ⊤ k) z n
+  have := mod_form_periodic k (Eisenstein_SIF ⊤ k) z n
   rw [← this]
   let Z := (ModularGroup.T^n) • z
   apply le_trans (eis_bound_by_real_eis k Z hk)
@@ -421,11 +421,11 @@ theorem Eisenstein_is_bounded' (k : ℕ) (hk : 3 ≤ k) :
       congr
     rw [this]
     apply le_abs_self
-  convert Real_Eisenstein_bound_unifomly_on_stip k hk 1 2 (by linarith) ⟨Z, hZ⟩
+  convert  AbsEisenstein_bound_unifomly_on_stip k hk 1 2 (by linarith) ⟨Z, hZ⟩
 
 
 theorem Eisenstein_is_bounded (k : ℤ) (hk : 3 ≤ k) :
-    UpperHalfPlane.IsBoundedAtImInfty ((eisensteinIsSlashInv ⊤ k)) :=
+    UpperHalfPlane.IsBoundedAtImInfty ((Eisenstein_SIF ⊤ k)) :=
   by
   have : ∃ n : ℕ, (n : ℤ) = k :=
     haveI hk' : 0 ≤ k := by linarith
@@ -438,34 +438,30 @@ theorem Eisenstein_is_bounded (k : ℤ) (hk : 3 ≤ k) :
   apply hn.symm
   apply hn.symm
 
-
-example (k : ℤ) (hk : 0 ≤ k) : ∃ n : ℕ, (n : ℤ) = k :=
-  CanLift.prf k hk
-
 local notation:73 f "∣[" k:0 "," A "]" => SlashAction.map ℂ k A f
 
 open scoped Manifold
 
 theorem Eisenstein_series_is_mdiff (k : ℤ) (hk : 3 ≤ k) :
-    MDifferentiable 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ) (↑ₕ (eisensteinIsSlashInv ⊤ ↑k)) :=
+    MDifferentiable 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ) (↑ₕ (Eisenstein_SIF ⊤ ↑k)) :=
   by
   have := Eisenstein_is_holomorphic k hk
-  have h2 := (mdiff_iff_holo (↑ₕ (eisensteinIsSlashInv ⊤ k).toFun)).2 this
+  have h2 := (mdiff_iff_holo (↑ₕ (Eisenstein_SIF ⊤ k).toFun)).2 this
   convert h2
 
 theorem Eisenstein_series_is_bounded (k : ℤ) (hk : 3 ≤ k) (A : SL(2, ℤ)) :
-    IsBoundedAtImInfty ( (eisensteinIsSlashInv ⊤ k)∣[k,A]) :=
+    IsBoundedAtImInfty ( (Eisenstein_SIF ⊤ k)∣[k,A]) :=
   by
-  simp_rw [(eisensteinIsSlashInv ⊤ k).2]
+  simp_rw [(Eisenstein_SIF ⊤ k).2]
   have := Eisenstein_is_bounded k hk
   convert this
-  have hr := (eisensteinIsSlashInv ⊤ k).2 ⟨A, by tauto⟩
+  have hr := (Eisenstein_SIF ⊤ k).2 ⟨A, by tauto⟩
   convert hr
 
 def eisensteinSeriesIsModularForm (k : ℤ) (hk : 3 ≤ k) : ModularForm ⊤ k
     where
-  toFun := (eisensteinIsSlashInv ⊤ k)
-  slash_action_eq' := by convert (eisensteinIsSlashInv ⊤ k).2
+  toFun := (Eisenstein_SIF ⊤ k)
+  slash_action_eq' := by convert (Eisenstein_SIF ⊤ k).2
   holo' := Eisenstein_series_is_mdiff k hk
   bdd_at_infty' A :=  Eisenstein_series_is_bounded k hk A
   

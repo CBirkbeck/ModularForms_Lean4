@@ -1,4 +1,4 @@
-import Modformsported.ModForms.EisensteinSeries.EisenIsHolo
+import Modformsported.ModForms.EisensteinSeries.EisenIsHolo 
 import Mathlib.Data.Complex.Exponential
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Modformsported.ModForms.Riemzeta
@@ -109,8 +109,8 @@ theorem q_exp_iden_2 (k : ℕ) (hk : 3 ≤ k) (hk2 : Even k) (z : ℍ) :
     ring
     norm_cast
     ring
-  · apply prod_sum _ (Eisenstein_series_is_summable k z hk)
-  · apply Eisenstein_series_is_summable k z hk
+  · apply prod_sum _ (Eisenstein_tsum_summable k z hk)
+  · apply Eisenstein_tsum_summable k z hk
 
 theorem sigma_eq_sum_div' (k n : ℕ) : sigma k n = ∑ d : ℕ in Nat.divisors n, (n / d) ^ k :=
   by
@@ -118,7 +118,7 @@ theorem sigma_eq_sum_div' (k n : ℕ) : sigma k n = ∑ d : ℕ in Nat.divisors 
   rw [← Nat.sum_div_divisors]
 
 theorem eisen_iden (k : ℕ) (hk : 3 ≤ (k : ℤ)) (z : ℍ) :
-    (eisensteinSeriesOfWt_ k) z = eisensteinSeriesOfWeight_ k z :=
+    (eisensteinSeriesOfWt_ k) z = Eisenstein_tsum k z :=
   by
   simp_rw [eisensteinSeriesOfWt_]
   simp only [hk, dif_pos]
@@ -424,7 +424,7 @@ theorem Eisenstein_Series_q_expansion (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : Ev
   by
   have hkk : 1 ≤ (k : ℤ) := by linarith
   rw [eisen_iden k hk]
-  rw [eisensteinSeriesOfWeight_]
+  rw [Eisenstein_tsum]
   simp_rw [eise]
   norm_cast at hk 
   have := q_exp_iden_2 k hk hk2 z

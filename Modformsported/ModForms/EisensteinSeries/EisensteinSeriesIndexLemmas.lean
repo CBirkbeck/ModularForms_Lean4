@@ -1,4 +1,3 @@
-import Modformsported.ModForms.ModularGroup.ModGroup
 import Mathlib.LinearAlgebra.Matrix.GeneralLinearGroup
 import Modformsported.ForMathlib.ModForms2
 import Mathlib.Data.Matrix.Notation
@@ -16,20 +15,17 @@ import Mathlib.Order.LocallyFinite
 import Mathlib.Data.Int.Interval
 import Mathlib.Data.Finset.Basic
 
-
-universe u v w
-
 open Complex
 
 open ModularGroup
-
-open IntegralMatricesWithDeterminante
 
 open scoped BigOperators NNReal Classical Filter Matrix UpperHalfPlane
 
 attribute [-instance] Matrix.SpecialLinearGroup.instCoeFun
 
-local notation "SL2Z" => Matrix.SpecialLinearGroup (Fin 2) ℤ
+
+
+local notation "SL(" n ", " R ")" => Matrix.SpecialLinearGroup (Fin n) R
 
 local notation "GL(" n ", " R ")" "⁺" => Matrix.GLPos (Fin n) R
 
@@ -42,28 +38,22 @@ noncomputable section
 
 namespace EisensteinSeries
 
-/-
-theorem ridic (a b c d : ℤ) : a * d - b * c = 1 → a * d - c * b = 1 := by intro h; linarith
-
-theorem ridic2 (a b c d z : ℤ) (h : a * d - b * c = 1) : z * d * a - z * c * b = z := by ring_nf;
-  rw [h]; rw [one_mul]
-  -/
-
 -- This is the permutation of the summation index coming from the moebius action
-def indPerm (A : SL2Z) : ℤ × ℤ → ℤ × ℤ := fun z =>
+def MoebiusPerm (A : SL(2,ℤ)) : ℤ × ℤ → ℤ × ℤ := fun z =>
   (z.1 * A.1 0 0 + z.2 * A.1 1 0, z.1 * A.1 0 1 + z.2 * A.1 1 1)
 
-theorem det_sl_one (M : SL2Z) : M.1 0 0 * M.1 1 1 -(M.1 0 1 * M.1 1 0) = 1 := by apply det_m
+theorem det_SL_eq_one (M : SL(2,ℤ)) : M.1 0 0 * M.1 1 1 -(M.1 0 1 * M.1 1 0) = 1 := by 
+  have H := Matrix.det_fin_two M.1
+  simp at *
+  rw [← H]
 
-def indEquiv (A : SL2Z) : ℤ × ℤ ≃ ℤ × ℤ
-    where
-  toFun := indPerm A
-  invFun := indPerm A⁻¹
-  left_inv z := by
-    simp_rw [indPerm]
+lemma MoebiusPerm_left_inv (A : SL(2,ℤ)) (z : ℤ × ℤ) : MoebiusPerm A⁻¹ (MoebiusPerm A z) = z := by
+    simp_rw [MoebiusPerm]
     ring_nf
-    have hdet := det_sl_one A
-    simp only [SL2Z_inv_a, SL2Z_inv_c, neg_mul, SL2Z_inv_b, SL2Z_inv_d] at *
+    have hdet := det_SL_eq_one A
+    have hi := Matrix.SpecialLinearGroup.SL2_inv_expl A
+    rw [hi] at *
+    simp at *
     ring_nf
     have h1: z.fst * A.1 0 0 * A.1 1 1 - z.fst * A.1 0 1 * A.1 1 0 = z.fst := by
       trans (z.fst * (A.1 0 0 * A.1 1 1 -  A.1 0 1 * A.1 1 0))
@@ -76,63 +66,25 @@ def indEquiv (A : SL2Z) : ℤ × ℤ ≃ ℤ × ℤ
       rw [hdet]
       apply one_mul
     rw [h1,h2]  
-  right_inv z := by
-    simp_rw [indPerm]
-    ring_nf
-    have hdet := det_sl_one A
-    simp only [SL2Z_inv_a, SL2Z_inv_c, neg_mul, SL2Z_inv_b, SL2Z_inv_d] at *
-    ring_nf
-    have h1: z.fst * A.1 1 1 * A.1 0 0 - z.fst * A.1 0 1 * A.1 1 0 = z.fst := by
-      trans (z.fst * (A.1 0 0 * A.1 1 1 -  A.1 0 1 * A.1 1 0))
-      ring
-      rw [hdet]
-      apply mul_one
-    have h2 :  A.1 1 1 * A.1 0 0* z.snd -  A.1 0 1 * A.1 1 0 * z.snd = z.snd := by
-      trans ((A.1 0 0 * A.1 1 1 -  A.1 0 1 * A.1 1 0)* z.snd )
-      ring
-      rw [hdet]
-      apply one_mul
-    rw [h1,h2]   
 
-@[simp]
-theorem ind_simp (A : SL2Z) (z : ℤ × ℤ) :
-    indEquiv A z = (z.1 * A.1 0 0 + z.2 * A.1 1 0, z.1 * A.1 0 1 + z.2 * A.1 1 1) := by rfl
+lemma MoebiusPerm_right_inv (A : SL(2,ℤ)) (z : ℤ × ℤ) : MoebiusPerm A (MoebiusPerm A⁻¹ z) = z := by
+    have := MoebiusPerm_left_inv A⁻¹
+    rw [inv_inv] at this 
+    apply this
 
-theorem max_aux'' (a b n : ℕ) (h : max a b = n) : a = n ∨ b = n :=
-  by
-  rw [← h]
-  have hh := max_choice a b
-  cases hh
-  left
-  linarith
-  right
-  linarith
-  
+def MoebiusEquiv (A : SL(2,ℤ)) : ℤ × ℤ ≃ ℤ × ℤ
+    where
+  toFun := MoebiusPerm A
+  invFun := MoebiusPerm A⁻¹
+  left_inv z := by apply MoebiusPerm_left_inv A
+  right_inv z := by apply MoebiusPerm_right_inv A
 
-theorem max_aux3 (a b n : ℕ) (h : max a b = n) : a ≤ n ∧ b ≤ n := by 
-    rw [← h]
-    simp only [ge_iff_le, le_max_iff, le_refl, true_or, or_true, and_self]
 
 /-- For `m : ℤ` this is the finset of `ℤ × ℤ` of elements such that the maximum of the
 absolute values of the pair is `m` -/
 def square (m : ℤ) : Finset (ℤ × ℤ) :=
   ((Finset.Icc (-m) (m)) ×ˢ (Finset.Icc (-m) (m))).filter fun x =>
     max x.1.natAbs x.2.natAbs = m
-
-/-- For `m : ℤ` this is the finset of `ℤ × ℤ` of elements such that..-/
-def square2 (m : ℤ) : Finset (ℤ × ℤ) :=
-  ((Finset.Icc (-m) (m)) ×ˢ  {(m)}) ∪ 
-  (Finset.Icc (-m ) (m)) ×ˢ {-(m)} ∪
-  ({(m)} : Finset ℤ) ×ˢ (Finset.Icc (-(m) + 1) (m-1)) ∪
-  ({-(m)} : Finset ℤ) ×ˢ (Finset.Icc (-(m) + 1) (m-1))
-
-lemma Icc_sub (m : ℤ) (hm : 1 ≤ m) : (Finset.Icc (-(m) + 1) (m-1)) ⊆  (Finset.Icc (-m) (m)) := by 
-  refine Iff.mpr (Finset.Icc_subset_Icc_iff ?h₁) ?_
-  linarith
-  constructor
-  linarith
-  linarith
-
 
 -- a re-definition in simp-normal form
 lemma square_eq (m : ℤ) :
@@ -181,117 +133,6 @@ theorem square_size (n : ℕ) : Finset.card (square (n + 1)) = 8 * (n + 1) := by
   · linarith
   · linarith
 
-/-
-theorem square2_card (n : ℕ) (h : 1 ≤ n) : (Finset.card (square2 n) : ℤ) = 8 * n :=
-  by
-  rw [square2, Finset.card_union_eq, Finset.card_union_eq, Finset.card_union_eq]
-  simp_rw [Finset.card_product]
-    --Finset.card_product, Finset.card_product, Finset.card_product, Finset.card_product]
-  · simp only [Finset.card_singleton, mul_one, one_mul]
-    have hn : -(n : ℤ) ≤ n + 1 := by linarith
-    have hn2 : -(n : ℤ) +1  ≤ n-1 +1 := by linarith
-    have r1 := Int.card_Icc_of_le (-(n : ℤ)) (n) hn
-    have r2 := Int.card_Icc_of_le (-(n : ℤ) + 1) (n-1) hn2
-    simp only [Int.ofNat_add, Int.card_Ico, sub_neg_eq_add, neg_add_le_iff_le_add] at *
-    rw [r1, r2]
-    ring_nf
-  · rw [Finset.disjoint_iff_ne]
-    intro a ha b hb
-    simp only [Ne.def, Finset.mem_singleton, Finset.mem_product, Finset.mem_Ico] at *
-    by_contra H
-    have haa := ha.2
-    have hbb := hb.2
-    rw [H] at haa 
-    rw [hbb] at haa 
-    have hv := eq_zero_of_neg_eq haa
-    simp only [Int.coe_nat_eq_zero] at hv 
-    rw [hv] at h 
-    simp only [Nat.one_ne_zero, le_zero_iff] at h 
-  · rw [Finset.disjoint_iff_ne]
-    intro a ha b hb
-    simp only [Ne.def, Finset.mem_union, Finset.mem_singleton, neg_add_le_iff_le_add,
-      Finset.mem_product, Finset.mem_Icc] at * 
-    cases' ha with ha ha
-    have hbb := hb.2
-    have haa:=ha.2
-    by_contra H
-    rw [← H] at hbb 
-    rw [haa] at hbb 
-    have hbb2:= hbb.2
-    simp only [le_sub_self_iff] at hbb2 
-
-    by_contra H
-    have hbb := hb.2
-    have haa:=ha.2
-    rw [← H] at hbb 
-    rw [haa] at hbb 
-    have hbb1:= hbb.1
-    simp only [add_right_neg] at hbb1  
-  · rw [Finset.disjoint_iff_ne]
-    intro a ha b hb
-    simp only [Ne.def, Finset.mem_union, Finset.union_assoc, Finset.mem_singleton,
-      neg_add_le_iff_le_add, Finset.mem_product, Finset.mem_Ico] at *
-    by_contra H
-    cases' ha with ha ha
-    · have hbb := hb.2
-      have haa := ha.2
-      rw [← H] at hbb 
-      rw [← haa] at hbb 
-      simp [lt_self_iff_false, and_false_iff] at hbb 
-    cases' ha with ha ha
-    · have hbb := hb.2
-      have haa := ha.2
-      rw [← H] at hbb 
-      rw [haa] at hbb 
-      rw [Finset.mem_Icc] at hbb
-      have hbb1:= hbb.1
-      simp only [add_le_iff_nonpos_right] at hbb1 
-    · have hbb := hb.1
-      have haa := ha.1
-      rw [H] at haa 
-      rw [hbb] at haa 
-      have hv := eq_zero_of_neg_eq haa
-      simp only [Int.coe_nat_eq_zero] at hv 
-      rw [hv] at h 
-      simp only [Nat.one_ne_zero, le_zero_iff] at h 
-
-
-theorem natAbs_inter (a : ℤ) (n : ℕ) (h : a.natAbs < n) : a < (n : ℤ) ∧ 0 < (n : ℤ) + a :=
-  by
-  have := Int.natAbs_eq a
-  cases' this with this this
-  rw [this]
-  constructor
-  norm_cast
-  norm_cast
-  simp only [add_pos_iff]
-  left
-  have h1 : 0 ≤ Int.natAbs a := zero_le (Int.natAbs a)
-  linarith
-  rw [this]
-  constructor
-  rw [neg_lt_iff_pos_add]
-  norm_cast
-  simp only [add_pos_iff]
-  have h1 : 0 ≤ Int.natAbs a := zero_le (Int.natAbs a)
-  left
-  linarith
-  rw [← Int.ofNat_lt] at h 
-  rw [← sub_pos] at h 
-  simpa using h
-
-theorem natAbs_inter2 (a : ℤ) (n : ℕ) (h : a.natAbs ≤ n) : a ≤ (n : ℤ) ∧ 0 ≤ (n : ℤ) + a :=
-  by
-  have := lt_or_eq_of_le h; 
-  cases' this with this this
-  have H := natAbs_inter a n this; 
-  have H1 := le_of_lt H.1; have H2 := le_of_lt H.2; simp [H1, H2];
-  rw [← this]
-  constructor; exact Int.le_natAbs; rw [add_comm]; rw [← neg_le_iff_add_nonneg'];
-  rw [← Int.abs_eq_natAbs]
-  simp_rw [neg_le_abs_self]
-
--/
 theorem natAbs_le_mem_Icc (a : ℤ) (n : ℕ) (h : Int.natAbs a ≤ n) : a ∈ Finset.Icc (-(n : ℤ)) (n) :=
   by
   simp
@@ -304,20 +145,6 @@ theorem natAbs_le_mem_Icc (a : ℤ) (n : ℕ) (h : Int.natAbs a ≤ n) : a ∈ F
   constructor
   nlinarith
   exact hm.1
-
-theorem natAbs_lt_mem_Icc (a : ℤ) (n : ℕ) (h : Int.natAbs a < n) : a ∈ Finset.Icc (-(n : ℤ)+1) (n-1) :=
-  by
-  simp
-  have hm : max (a) (-a) < n := by 
-    have : ((Int.natAbs a) : ℤ) = |a| := by simp only [Int.coe_natAbs]
-    rw [← abs_eq_max_neg]
-    rw [← this]
-    norm_cast 
-  rw [max_lt_iff] at hm
-  constructor
-  nlinarith
-  nlinarith
-
 
 @[simp]
 theorem square_mem (n : ℕ) (x : ℤ × ℤ) : x ∈ square n ↔ max x.1.natAbs x.2.natAbs = n :=
@@ -342,216 +169,6 @@ theorem square_mem (n : ℕ) (x : ℤ × ℤ) : x ∈ square n ↔ max x.1.natAb
   simp only [ge_iff_le, le_max_iff, le_refl, or_true] 
   rw [H]
 
-
-theorem square_mem' (n : ℕ) (x : ℤ × ℤ) :
-    x ∈ square n ↔
-      x.1.natAbs = n ∧ x.2.natAbs < n ∨
-        x.2.natAbs = n ∧ x.1.natAbs < n ∨ x.1.natAbs = n ∧ x.2.natAbs = n :=
-  by
-  simp only [square_mem, ge_iff_le]
-  constructor
-  intro c1
-  have := max_aux3 _ _ _ c1
-  have H := max_aux'' _ _ _ c1
-  have h1 := this.1
-  have h2 := this.2
-  rw [le_iff_lt_or_eq] at h2 
-  rw [le_iff_lt_or_eq] at h1 
-  cases' H with H H
-  simp_rw [H]
-  simp only [true_and, lt_self_iff_false, and_false, false_or]
-  exact h2
-  simp_rw [H]
-  simp only [lt_self_iff_false, and_false, true_and, and_true, false_or]
-  exact h1
-  intro c2
-  cases' c2 with c2 c2
-  rw [c2.1]
-  simp only [ge_iff_le, max_eq_left_iff]
-  have := c2.2
-  linarith
-  cases' c2 with c2 c2
-  rw [c2.1]
-  simp only [ge_iff_le, max_eq_right_iff]
-  have := c2.2
-  linarith
-  rw [c2.1, c2.2]
-  simp only [max_self]
-
-/-
-theorem auxin (a : ℤ) (n : ℕ) (h : 0 < (n : ℤ) + a) : 1 ≤ (n : ℤ) + a := by assumption
-
-theorem auxin2 (a : ℤ) (n : ℕ) (h : 0 < (n : ℤ) + a) : -(n : ℤ) ≤ a := by linarith
-
-theorem cat (a b : ℤ) (n : ℕ) (h1 : b = (n : ℤ)) (h2 : -(n : ℤ) ≤ a ∧ a ≤ (n : ℤ)) :
-    b.natAbs = n ∧ (a.natAbs < n ∨ a.natAbs = n) :=
-  by
-  rw [h1]
-  simp
-  have := Int.natAbs_eq a
-  cases' this with this this
-  rw [this] at h2 
-  norm_cast at h2 
-  have h22 := h2.2
-  exact lt_or_eq_of_le h22
-  rw [this] at h2 
-  have h22 := h2.1
-  have H := lt_or_eq_of_le h22
-  simp only [neg_lt_neg_iff, neg_inj] at H 
-  norm_cast at H 
-  have h234 : n = a.natAbs ↔ a.natAbs = n := comm
-  rw [← h234]
-  exact H
-
-theorem cat1 (a b : ℤ) (n : ℕ) (h1 : b = -(n : ℤ)) (h2 : -(n : ℤ) ≤ a ∧ a ≤ (n : ℤ)) :
-    b.natAbs = n ∧ (a.natAbs < n ∨ a.natAbs = n) :=
-  by
-  rw [h1]
-  simp
-  have := Int.natAbs_eq a
-  cases' this with this this
-  rw [this] at h2 
-  norm_cast at h2 
-  have h22 := h2.2
-  exact lt_or_eq_of_le h22
-  rw [this] at h2 
-  have h22 := h2.1
-  have H := lt_or_eq_of_le h22
-  simp only [neg_lt_neg_iff, neg_inj] at H 
-  norm_cast at H 
-  have h234 : n = a.natAbs ↔ a.natAbs = n := comm
-  rw [← h234]
-  exact H
-
-
-    
-
-theorem dog (a b : ℤ) (n : ℕ) (h1 : a = (n : ℤ)) (h2 : 1 ≤ (n : ℤ) + b ∧ b ≤ ((n : ℤ)-1)) :
-    a.natAbs = n ∧ b.natAbs < n := by
-  rw [h1]; simp; have := Int.natAbs_eq b; 
-  cases' this with this this; 
-  rw [this] at h2 ; 
-  have hh : ((Int.natAbs b) : ℤ) < n := by linarith
-  norm_cast at hh
-  rw [this] at h2
-  have hh : ((Int.natAbs b) : ℤ) < n := by linarith
-  norm_cast at hh
-
-
-
-
-
-
-theorem dog1 (a b : ℤ) (n : ℕ) (h1 : a = -(n : ℤ)) (h2 : 1 ≤ (n : ℤ) + b ∧ b ≤ (n : ℤ)-1) :
-    a.natAbs = n ∧ b.natAbs < n := by
-  rw [h1]; simp;  have := Int.natAbs_eq b; 
-  cases' this with this this; 
-  rw [this] at h2 ; 
-  have hh : ((Int.natAbs b) : ℤ) < n := by linarith
-  norm_cast at hh
-  rw [this] at h2
-  have hh : ((Int.natAbs b) : ℤ) < n := by linarith
-  norm_cast at hh
-
-
--- example (s t : Set ℤ) (a : ℤ) (ha : a ∈ s) : ( s ⊆ t) →  a ∈ t := by exact fun a_1 => a_1 ha
--/
-theorem square_zero : square (0) = {(0, 0)} := by rfl
-
-/-
-theorem square2_zero : square2 (0) = {(0, 0)} := by rfl
-
-theorem sqr_eq_sqr2 (n : ℕ) : square n = square2 n :=
-  by
-  ext1
-  by_cases hn0 : 1 ≤ n
-  constructor
-  intro H
-  have HH := H
-  rw [square_mem'] at HH
-  rw [square2]
-  rw [square] at H
-  simp only [ge_iff_le, Nat.cast_max, Int.coe_natAbs, gt_iff_lt, lt_neg_self_iff, Finset.mem_product, 
-    and_imp, Prod.forall, Finset.mem_filter] at H 
-  simp only [Finset.mem_union, Finset.union_assoc, Finset.mem_product]
-  rw [max_eq_iff] at H
-  simp only [gt_iff_lt, lt_neg_self_iff] at H 
-  have H1 := H.1
-  cases' HH with H H
-  have h1 := Int.natAbs_eq_iff.1 H.1
-  cases' h1 with h1 h1
-  right
-  right
-  left
-  constructor
-  simp [h1]
-  exact (natAbs_lt_mem_Icc _ n) H.2
-  right;right;right
-  constructor
-  simp [h1]
-  exact (natAbs_lt_mem_Icc _ n) H.2
-  cases' H with H H
-  have h1 := Int.natAbs_eq_iff.1 H.1
-  cases' h1 with h1 h1
-  left
-  constructor
-  apply H1.1
-  simp [h1]
-  right; left
-  constructor
-  apply H1.1
-  simp [h1]
-  have h1 := Int.natAbs_eq_iff.1 H.1
-  have h2 := Int.natAbs_eq_iff.1 H.2
-  cases' h1 with h1 h1
-  cases' h2 with h2 h2
-  left
-  constructor
-  simp  [h1]
-  simp [h2]
-  right
-  left
-  constructor
-  simp [h1]
-  simp [h2]
-  cases' h2 with h2 h2
-  left
-  constructor
-  simp [h1]
-  simp [h2]
-  right; left
-  constructor
-  simp [h1]
-  simp [h2]
-  intro ha
-  rw [square2] at ha 
-  simp only [Finset.mem_union, Finset.union_assoc, Finset.mem_product, Finset.mem_Icc,
-    neg_add_le_iff_le_add, Finset.mem_singleton] at ha 
-  rw [square_mem']
-  cases' ha with ha ha
-  have := cat _ _ _ ha.2 ha.1
-  simp_rw [this]
-  simp only [true_and_iff, lt_self_iff_false, and_true_iff, false_or_iff, eq_self_iff_true,
-    and_false_iff]
-  exact this.2
-  cases' ha with ha ha
-  have := cat1 _ _ _ ha.2 ha.1
-  simp_rw [this]
-  simp
-  exact this.2
-  cases' ha with ha ha
-  have := dog _ _ _ ha.1 ha.2
-  simp_rw [this]
-  simp only [true_or_iff, eq_self_iff_true, and_self_iff]
-  have := dog1 _ _ _ ha.1 ha.2
-  simp_rw [this]
-  simp only [true_or_iff, eq_self_iff_true, and_self_iff] 
-  simp at hn0
-  simp_rw [hn0]
-  rfl
-
--/
-
 theorem square_size' (n : ℕ) (h : 1 ≤ n) : Finset.card (square n) = 8 * n :=
   by
   have := square_size (n-1)
@@ -559,59 +176,60 @@ theorem square_size' (n : ℕ) (h : 1 ≤ n) : Finset.card (square n) = 8 * n :=
   norm_cast
   repeat {exact Nat.eq_add_of_sub_eq h rfl}
 
-
-
-theorem Squares_are_disjoint : ∀ i j : ℕ, i ≠ j → Disjoint (square i) (square j) :=
+theorem squares_cover_all (y : ℤ × ℤ) : ∃! i : ℕ, y ∈ square i :=
   by
-  intro i j hij
-  rw [Finset.disjoint_iff_ne]
-  intro a ha
-  simp at ha 
-  intro b hb
-  simp at hb 
-  by_contra h
-  rw [h] at ha 
-  rw [hb] at ha 
-  induction ha
-  induction h 
-  cases a
-  induction hb
-  cases b
-  dsimp at *
-  simp at *
- 
-
-theorem Squares_cover_all : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ square i :=
-  by
-  intro y
   use max y.1.natAbs y.2.natAbs
   simp only [square_mem, and_self_iff, forall_eq']
 
+theorem disjoint_aux (In : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ In i) :
+    ∀ i j : ℕ, i ≠ j → Disjoint (In i) (In j) :=
+  by
+  intro i j h
+  intro x h1 h2 a h3
+  cases' a with a_fst a_snd
+  dsimp at *
+  simp at *
+  have HI0 := HI a_fst a_snd
+  have := ExistsUnique.unique HI0 (h1 h3) (h2 h3)
+  rw [this] at h 
+  simp at *
+theorem squares_are_disjoint : ∀ i j : ℕ, i ≠ j → Disjoint (square i) (square j) := by
+  apply disjoint_aux 
+  apply squares_cover_all
+
+theorem square_zero : square (0) = {(0, 0)} := by rfl
 
 theorem square_zero_card : Finset.card (square 0) = 1 :=
   by
   rw [square_zero]
   rfl
 
+lemma Complex_abs_square_left_ne (n : ℕ) (x : ℤ × ℤ) (h : x ∈ square n) 
+  (hx : Complex.abs (x.1) ≠ n) : Complex.abs (x.2) = n := by 
+  simp at h
+  norm_cast at *
+  have ht := max_choice (Int.natAbs x.1) (Int.natAbs x.2)
+  rw [h] at ht
+  cases' ht with h1 h2
+  rw [h1] at hx
+  exfalso
+  have hh : Complex.abs (x.1) = Int.natAbs x.1 := by 
+    have := (int_cast_abs x.1).symm
+    convert this
+    rw [Int.cast_natAbs]
+    norm_cast
+  rw [hh] at hx
+  simp at hx
+  rw [h2]
+  have := (int_cast_abs x.2).symm
+  convert this
+  rw [Int.cast_natAbs]
+  norm_cast
+
+
 -- Some summable lemmas
 variable {α : Type u} {β : Type v} {γ : Type w} {i : α → Set β}
 
-/-
-instance (a : α) : HasLiftT (i a) (Set.iUnion i) :=
-  by
-  fconstructor
-  intro H
-  cases H
-  fconstructor
-  apply H_val
-  simp at *; fconstructor; on_goal 2 => assumption
-
-instance : CoeTC (Finset (ℤ × ℤ)) (Set (ℤ × ℤ)) :=
-  inferInstance
-
-def coef (s : Finset (ℤ × ℤ)) : Set (ℤ × ℤ) :=
-  (s : Set (ℤ × ℤ))
--/
 def fn (In : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ In i) (x : ℤ × ℤ) :
     x ∈ ⋃ s : ℕ, (In s) := by
   have h1 := HI x
@@ -619,7 +237,6 @@ def fn (In : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ
   simp 
   obtain ⟨i, hi1,_⟩:= h1
   refine ⟨i,hi1⟩
-
 
 def fnn (In : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ In i) (x : ℤ × ℤ) :
     ⋃ s : ℕ, ((In s) : Set (ℤ × ℤ)) :=
@@ -637,8 +254,6 @@ theorem unionmem (i : α → Set β) (x : α) (y : i x) :  (y : β) ∈ ⋃ x, i
   by
   apply Set.mem_iUnion_of_mem 
   apply y.2
-
-
 
 theorem summable_disjoint_union_of_nonneg {i : α → Set β} {f : (⋃ x, i x) → ℝ}
     (h : ∀ a b, a ≠ b → Disjoint (i a) (i b)) (hf : ∀ x, 0 ≤ f x) :
@@ -672,20 +287,6 @@ theorem tsum_disjoint_union_of_nonneg' {γ : Type} [AddCommGroup γ]  [ UniformS
   rfl
   have h01 : Summable f ↔ Summable (f ∘ h0) := by rw [Equiv.summable_iff]
   convert (h01.1 h1)
-
-theorem disjoint_aux (In : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ In i) :
-    ∀ i j : ℕ, i ≠ j → Disjoint (In i) (In j) :=
-  by
-  intro i j h
-  intro x h1 h2 a h3
-  cases' a with a_fst a_snd
-  dsimp at *
-  simp at *
-  have HI0 := HI a_fst a_snd
-  have := ExistsUnique.unique HI0 (h1 h3) (h2 h3)
-  rw [this] at h 
-  simp at *
-  
 
 theorem sum_lemma (f : ℤ × ℤ → ℝ) (h : ∀ y : ℤ × ℤ, 0 ≤ f y) (In : ℕ → Finset (ℤ × ℤ))
     (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ In i) : Summable f ↔ Summable fun n : ℕ => ∑ x in In n, f x :=
@@ -743,10 +344,12 @@ theorem tsum_lemma {γ : Type} [AddCommGroup γ]  [ UniformSpace γ]
   simp
   norm_cast
 
+/-
 theorem realpow (n : ℕ) (k : ℤ) : (n : ℝ) ^ ((k : ℝ) - 1) = n ^ (k - 1) :=
   by
   have := Real.rpow_int_cast (n : ℝ) (k - 1)
   simp only [Int.cast_one, Int.cast_sub]
+-/
 
 theorem summable_if_complex_abs_summable {f : α → ℂ} :
     (Summable fun x => Complex.abs (f x)) → Summable f :=
@@ -756,7 +359,6 @@ theorem summable_if_complex_abs_summable {f : α → ℂ} :
   intro i
   rfl
  
-
 theorem complex_abs_sum_le {ι : Type _} (s : Finset ι) (f : ι → ℂ) :
     Complex.abs (∑ i in s, f i) ≤ ∑ i in s, Complex.abs (f i) :=
   abv_sum_le_sum_abv (fun k : ι => f k) s
@@ -810,6 +412,17 @@ theorem rfunct_ne_zero (z : ℍ) :  rfunct z ≠ 0 := by
   rw [h] at this
   norm_cast at *
 
+lemma rfunct_mul_n_pos (k : ℕ) (z : ℍ) (n : ℕ)  (hn : 1 ≤ n) : 
+  0 < (Complex.abs (rfunct z ^ (k : ℤ) * n ^ (k : ℤ))) := by
+  apply Complex.abs.pos
+  apply mul_ne_zero
+  norm_cast
+  apply pow_ne_zero
+  apply EisensteinSeries.rfunct_ne_zero  
+  norm_cast
+  apply pow_ne_zero 
+  linarith
+
 theorem ineq1 (x y d : ℝ) : 0 ≤ d ^ 2 * (x ^ 2 + y ^ 2) ^ 2 + 2 * d * x * (x ^ 2 + y ^ 2) + x ^ 2 :=
   by
   have h1 :
@@ -844,7 +457,6 @@ theorem lowbound (z : ℍ) (δ : ℝ) :
         (z.1.1^ 2 + z.1.2 ^ 2) ^ 2 := by 
           norm_cast
           ring
-  --simp only [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at H2
   norm_cast at *
   simp at *
   rw [H2]
