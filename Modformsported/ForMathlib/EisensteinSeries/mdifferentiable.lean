@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2023 Chris Birkbeck. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Birkbeck
+-/
 import Mathlib.Geometry.Manifold.MFDeriv
 import Mathlib.Analysis.Complex.LocallyUniformLimit  
 import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly 

@@ -87,17 +87,6 @@ theorem logDeriv_prod {α : Type _} (s : Finset α) (f : α → ℂ → ℂ) (t 
     simp [r.2]
     repeat' exact ha
 
-/-
-lemma log_derv_diff (f : ℂ → ℂ) (s : set ℂ) (hs : is_open s) (hf : differentiable_on ℂ f s) (x : s)
- (hf2 : ∀ x ∈ s, f x ≠ 0) : differentiable_on ℂ (log_deriv f) s :=
-begin
-rw log_deriv,
-apply differentiable_on.div,
-all_goals{sorry},
-
-
-end
--/
 theorem logDeriv_congr (f g : ℂ → ℂ) (hfg : f = g) : logDeriv f = logDeriv g :=
   by
   apply congr

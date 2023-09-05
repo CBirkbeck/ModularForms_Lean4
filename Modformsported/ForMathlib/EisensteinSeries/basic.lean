@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2023 Chris Birkbeck. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Birkbeck
+-/
 import Modformsported.ForMathlib.ModForms2
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
@@ -107,6 +112,7 @@ theorem eise_Moebius (k : ℤ) (z : ℍ) (A : SL(2,ℤ)) (i : ℤ × ℤ) :
   norm_cast at *
   apply UpperHalfPlane.denom_ne_zero A
 
+/--The Slash Invariant Form defined by an Eisenstein series-/
 def Eisenstein_SIF (Γ : Subgroup SL(2,ℤ)) (k : ℤ) : SlashInvariantForm Γ k
     where
   toFun := Eisenstein_tsum k
