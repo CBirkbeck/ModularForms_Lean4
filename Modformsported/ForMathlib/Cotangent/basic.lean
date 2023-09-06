@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2023 Chris Birkbeck. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
+Released under Apache 2.0 license as  described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
 import Mathlib.Data.Complex.Exponential
@@ -14,10 +14,10 @@ open Metric Filter Function Complex
 
 open scoped Interval Real Topology BigOperators Nat Classical
 
-local notation "ℍ" => UpperHalfPlane
+local notation "ℍ" => UpperHalfPlane 
 
 def cot (z : ℂ) :=
-  Complex.cos z / Complex.sin z
+  Complex.cos z / Complex.sin z 
 
 theorem cot_exp (z : ℂ) :
     cot (↑π * z) = (Complex.exp (2 * ↑π * I * z) + 1) / (I * (1 - Complex.exp (2 * ↑π * I * z))) :=
