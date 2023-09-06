@@ -17,7 +17,7 @@ open scoped Interval Real Topology BigOperators Nat Classical
 local notation "ℍ" => UpperHalfPlane 
 
 def cot (z : ℂ) :=
-  Complex.cos z / Complex.sin z 
+  Complex.cos z / Complex.sin z  
 
 theorem cot_exp (z : ℂ) :
     cot (↑π * z) = (Complex.exp (2 * ↑π * I * z) + 1) / (I * (1 - Complex.exp (2 * ↑π * I * z))) :=

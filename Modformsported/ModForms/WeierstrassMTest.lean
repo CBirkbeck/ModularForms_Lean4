@@ -3,6 +3,7 @@ import Mathlib.Data.Complex.Basic
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.Order.Filter.AtTopBot
 import Mathlib.Analysis.Normed.Group.InfiniteSum
+import Mathlib.Analysis.NormedSpace.FiniteDimension
 
 universe u v w
 
@@ -14,19 +15,11 @@ open scoped BigOperators Classical Filter
 
 variable {α : Type u} {β : Type v}
 
-theorem summable_if_complex_abs_summable {f : α → ℂ} :
-    (Summable fun x => Complex.abs (f x)) → Summable f :=
-  by
-  intro h
-  apply summable_of_norm_bounded (fun x => Complex.abs (f x)) h
-  intro i
-  rfl
-
 theorem M_test_summable (F : ℕ → α → ℂ) (M : ℕ → ℝ)
     (h1 : ∀ n : ℕ, ∀ a : α, Complex.abs (F n a) ≤ M n) (h2 : Summable M) :
     ∀ a : α, Summable fun n : ℕ => F n a := by
   intro a
-  apply summable_if_complex_abs_summable
+  rw [summable_norm_iff.symm]
   have c1 : ∀ n : ℕ, 0 ≤ Complex.abs (F n a) := by intro n; apply Complex.abs.nonneg (F n a)
   have H1 : ∀ n : ℕ, Complex.abs (F n a) ≤ M n := by simp only [h1, forall_const]
   apply summable_of_nonneg_of_le c1 H1

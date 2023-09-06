@@ -11,6 +11,7 @@ import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.NumberTheory.ModularForms.Basic
 import Mathlib.Analysis.Calculus.Deriv.ZPow 
 import Modformsported.ModForms.HolomorphicFunctions   
+import Mathlib.NumberTheory.ZetaFunction 
 
 open Complex
 
@@ -345,7 +346,8 @@ theorem rfunct_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfSpaceS
   apply pow_two_nonneg
 
 theorem rfunctbound (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice A B) :
-    8 / rfunct (z : ℍ') ^ k * rZ (k - 1) ≤ 8 / rfunct (lbpoint A B hb) ^ k * rZ (k - 1) :=
+    8 / rfunct (z : ℍ') ^ k * Complex.abs (riemannZeta (k - 1)) ≤ 
+      8 / rfunct (lbpoint A B hb) ^ k * Complex.abs (riemannZeta (k - 1))  :=
   by
   have h1 := rfunct_lower_bound_on_slice A B hb z
   simp only at h1 
@@ -353,11 +355,8 @@ theorem rfunctbound (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) (z : upperH
   have h2 := pow_le_pow_of_le_left v2 h1 k
   ring_nf
   rw [← inv_le_inv] at h2 
-  have h3 : 0 ≤ rZ (k - 1) := by
-    have hk : 1 < (k - 1 : ℤ) := by linarith
-    have hkk : 1 < ((k - 1 : ℤ) : ℝ) := by norm_cast; 
-    simp only [Int.cast_ofNat, Int.cast_one, Int.cast_sub] at hkk 
-    have := rZ_pos (k - 1) hkk; linarith
+  have h3 : 0 ≤ Complex.abs (riemannZeta (k - 1)) := by
+    apply Complex.abs.nonneg
   norm_cast
   simp only [Int.negSucc_add_ofNat, Int.cast_subNatNat, Nat.cast_one, gt_iff_lt, ge_iff_le]
   nlinarith
@@ -367,26 +366,28 @@ theorem rfunctbound (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) (z : upperH
   apply rfunct_pos
 
 theorem rfunctbound' (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice A B) (n : ℕ) :
-    8 / rfunct (z : ℍ') ^ k * rie (k - 1) n ≤ 8 / rfunct (lbpoint A B hb) ^ k * rie (k - 1) n :=
+    8 / rfunct (z : ℍ') ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ ≤ 
+      8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ :=
   by
   have h1 := rfunct_lower_bound_on_slice A B hb z
-  simp only at h1 
+  simp
   have v2 : 0 ≤ rfunct (lbpoint A B hb) := by have := rfunct_pos (lbpoint A B hb); linarith
   have h2 := pow_le_pow_of_le_left v2 h1 k
-  ring_nf
-  rw [← inv_le_inv] at h2 
-  have h3 : 0 ≤ rie (k - 1) n := by
-    rw [rie]
+  have h3 : 0 ≤ ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ := by
     simp only [one_div, inv_nonneg]
     apply Real.rpow_nonneg_of_nonneg
     simp only [Nat.cast_nonneg]
-  norm_cast
-  simp only [Int.negSucc_add_ofNat, Int.cast_subNatNat, Nat.cast_one, gt_iff_lt, ge_iff_le]
-  nlinarith
+  apply mul_le_mul_of_nonneg_right ?_ h3
+  ring_nf
+  apply mul_le_mul_of_nonneg_right ?_ ?_
+  rw [← inv_le_inv] at h2
+  simp
+  exact h2
   apply pow_pos
   apply rfunct_pos
   apply pow_pos
   apply rfunct_pos
+  linarith
 
 theorem Eisenstein_series_is_sum_eisen_squares_slice (k : ℕ) (h : 3 ≤ k) (A B : ℝ) 
     (z : upperHalfSpaceSlice A B) :
@@ -401,7 +402,7 @@ theorem Eisenstein_series_is_sum_eisen_squares_slice (k : ℕ) (h : 3 ≤ k) (A 
 theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :
     TendstoUniformly (eisenParSumSlice k A B) (eisensteinSeriesRestrict k A B) Filter.atTop :=
   by
-  let M : ℕ → ℝ := fun x => 8 / rfunct (lbpoint A B hb) ^ k * rie (k - 1) x
+  let M : ℕ → ℝ := fun x => 8 / rfunct (lbpoint A B hb) ^ k * ((x : ℝ) ^ ((k : ℤ) - 1))⁻¹  
   have := M_test_uniform ?_ (eisenSquareSlice k A B) M
   simp_rw [← Eisenstein_series_is_sum_eisen_squares_slice k h A B  _] at this 
   apply this
@@ -409,7 +410,7 @@ theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha
   simp_rw [eisenSquare]
   simp_rw [eise]
   intro n a
-  have SC := SmallClaim k a h n
+  have SC := AbsEise_bounded_on_square k a h n
   simp_rw [AbsEise] at SC 
   simp at SC 
   simp
@@ -426,7 +427,9 @@ theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha
   have rb := rfunctbound' k A B hb a n
   norm_cast at *
   apply le_trans SC2 rb
-  have hk : 1 < (k - 1 : ℤ) := by linarith
+  have hk : 1 < (k - 1 : ℝ) := by 
+    have hy: 1 < (k -1  : ℤ) := by linarith
+    norm_cast at *
   have nze : (8 / rfunct (lbpoint A B hb) ^ k : ℝ) ≠ 0 :=
     by
     apply div_ne_zero
@@ -437,9 +440,11 @@ theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha
     have := rfunct_pos (lbpoint A B hb)
     rw [HR] at this 
     simp at this 
-  have riesum := int_RZ_is_summmable (k - 1) hk
+  have riesum := Real.summable_nat_rpow_inv.2 hk
   rw [← (summable_mul_left_iff nze).symm]
-  simp at riesum 
+  
+  --simp at riesum 
+
   apply riesum
   apply EisensteinSeries.nonemp A B ha hb
 

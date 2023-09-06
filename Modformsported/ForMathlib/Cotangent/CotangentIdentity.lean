@@ -706,10 +706,8 @@ theorem tendsto_locally_uniformly_euler_sin_prod' (z : ℍ') (r : ℝ) (hr : 0 <
   congr
   simp only [map_div₀, Complex.abs_pow]
   simp [hr, nonempty_coe_sort, nonempty_ball]
- 
   refine' ⟨z, _⟩
   simp [hr, z.2]
-
   intro n x
   simp only [map_div₀, Complex.abs_pow, ofReal_div, ofReal_pow, abs_ofReal, Complex.abs_abs,
     ofReal_add]
@@ -751,9 +749,6 @@ theorem sub_add_prod_aux (n : ℕ) (z : ℂ) :
   congr
   ext1
   ring
-
-example (a b : ℝ) (ha : 0 ≤ a) (hb : 0 < b) : 0 < a + b :=
-  lt_add_of_le_of_pos ha hb
 
 theorem aux_ineq (ε : ℝ) (hε : 0 < ε) (x y : ℍ) (hxy : Complex.abs (y - x) < ε) :
     ε / (|π| * Complex.abs x + |π| * ε) * (|π| * Complex.abs y) < ε :=

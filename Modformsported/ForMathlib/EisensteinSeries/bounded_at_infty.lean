@@ -8,6 +8,7 @@ import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.Analysis.Complex.UpperHalfPlane.Manifold  
 import Mathlib.Analysis.Complex.UpperHalfPlane.FunctionsBoundedAtInfty
 
+
 open Complex UpperHalfPlane
  
 open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold
@@ -82,10 +83,42 @@ theorem upp_half_translation (z : ℍ) :
   rw [this]
   apply le_abs_self
 
+
+
+lemma riemannZeta_abs_nat (k : ℕ) (h : 1 < k) : Complex.abs (riemannZeta (k : ℕ)) =
+  ∑' n : ℕ, 1 / (n : ℝ) ^ k := by
+  rw [zeta_nat_eq_tsum_of_gt_one h]
+  have h1 :  ∑' n : ℕ, 1 / (n : ℂ) ^ (k : ℕ) =  ((∑' n : ℕ, 1 / ((n : ℝ)) ^ k) ) := by 
+    rw [ofReal_tsum]
+    simp
+  simp only [cpow_nat_cast] at h1  
+  rw [h1] 
+  apply Complex.abs_of_nonneg
+  apply tsum_nonneg
+  simp
+ 
+lemma int_coe_pow (a k : ℕ) (h : 1 < k) :  (a : ℝ)^((k - 1) : ℕ) = a^(k-1 : ℝ) := by 
+    have H : (k : ℝ)-1 = ((k - 1) : ℕ):= by 
+      have : 1 < (k-1 : ℤ) := by sorry
+      norm_cast
+      rw [Int.subNatNat_eq_coe]
+      sorry
+    rw [H] 
+
 theorem AbsEisenstein_bound (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
-    AbsEisenstein_tsum k z ≤ 8 / rfunct z ^ k * rZ (k - 1) :=
+    AbsEisenstein_tsum k z ≤ 8 / rfunct z ^ k * Complex.abs (riemannZeta (k - 1 : ℕ)) :=
   by
-  rw [AbsEisenstein_tsum, rZ, ← tsum_mul_left]
+  have hk1_int : 1 < (k - 1 : ℤ)  := by linarith
+  have hk1 : 1 < (k -1) := by sorry
+  have hk : 1 < (k - 1 : ℝ) := by 
+    norm_cast at *
+
+  rw [AbsEisenstein_tsum, riemannZeta_abs_nat (k-1) hk1 ]
+  simp only [Real.rpow_nat_cast]
+  
+  norm_cast
+  rw [←tsum_mul_left]
+
   let In := fun (n : ℕ) => square n
   have HI :=squares_cover_all
   let g := fun y : ℤ × ℤ => (AbsEise k z) y
@@ -95,30 +128,36 @@ theorem AbsEisenstein_bound (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
   simp
   rw [index_lem]
   have ind_lem2 := sum_lemma g gpos In HI
-  have smallclaim := SmallClaim k z h
-  have hk : 1 < (k - 1 : ℤ) := by linarith
+  have smallclaim := AbsEise_bounded_on_square k z h
+  
   have nze : (8 / rfunct z ^ k : ℝ) ≠ 0 :=
     by
     apply div_ne_zero; simp; norm_cast; apply pow_ne_zero; apply EisensteinSeries.rfunct_ne_zero
-  have riesum := int_RZ_is_summmable (k - 1) hk
-  have riesum' : Summable fun n : ℕ => 8 / rfunct z ^ k * rie (↑k - 1) n :=
+  have riesum := Real.summable_nat_rpow_inv.2 hk
+  have riesum' : Summable fun n : ℕ => 8 / rfunct z ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ :=
     by
     rw [← (summable_mul_left_iff nze).symm]
-    simp at riesum 
-    apply riesum
+    simp only [Int.cast_ofNat, Int.cast_one, Int.cast_sub] at riesum 
+    simp
+    linarith
   apply tsum_le_tsum
   simp at *
-  apply smallclaim
+
+  convert smallclaim
+  rw [←Real.rpow_nat_cast]
+  
+  sorry
   rw [← ind_lem2]
   apply hgsumm
   norm_cast at *
+  sorry
 
 
 theorem AbsEisenstein_bound_unifomly_on_stip (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
     (z : upperHalfSpaceSlice A B) :
-    AbsEisenstein_tsum k z.1 ≤ 8 / rfunct (lbpoint A B hb) ^ k * rZ (k - 1) :=
-  by
-  have : 8 / rfunct (z : ℍ') ^ k * rZ (k - 1) ≤ 8 / rfunct (lbpoint A B hb) ^ k * rZ (k - 1) := by
+    (AbsEisenstein_tsum k z.1) ≤ (8 / rfunct (lbpoint A B hb) ^ k) * Complex.abs (riemannZeta (k - 1)) := by
+  have : 8 / rfunct (z : ℍ') ^ k * Complex.abs (riemannZeta (k - 1)) ≤ 
+    8 / rfunct (lbpoint A B hb) ^ k * Complex.abs (riemannZeta (k - 1)) := by
     apply rfunctbound; exact h
   apply le_trans ( AbsEisenstein_bound k (z : ℍ') h) this
 
@@ -160,6 +199,7 @@ theorem Eisenstein_is_bounded' (k : ℕ) (hk : 3 ≤ k) :
     rw [this]
     apply le_abs_self
   convert  AbsEisenstein_bound_unifomly_on_stip k hk 1 2 (by linarith) ⟨Z, hZ⟩
+  sorry
 
 theorem Eisenstein_is_bounded (k : ℤ) (hk : 3 ≤ k) :
     UpperHalfPlane.IsBoundedAtImInfty ((Eisenstein_SIF ⊤ k)) :=

@@ -127,21 +127,11 @@ theorem squares_cover_all (y : ℤ × ℤ) : ∃! i : ℕ, y ∈ square i :=
   use max y.1.natAbs y.2.natAbs
   simp only [square_mem, and_self_iff, forall_eq']
 
-theorem disjoint_aux (In : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ In i) :
-    ∀ i j : ℕ, i ≠ j → Disjoint (In i) (In j) :=
-  by
-  intro i j h
-  intro x h1 h2 a h3
-  cases' a with a_fst a_snd
-  dsimp at *
-  simp at *
-  have HI0 := HI a_fst a_snd
-  have := ExistsUnique.unique HI0 (h1 h3) (h2 h3)
-  rw [this] at h 
-  simp at *
+/-
 theorem squares_are_disjoint : ∀ i j : ℕ, i ≠ j → Disjoint (square i) (square j) := by
   apply disjoint_aux 
   apply squares_cover_all
+-/
 
 theorem square_zero : square (0) = {(0, 0)} := by rfl
 

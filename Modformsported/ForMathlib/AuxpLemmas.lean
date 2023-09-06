@@ -363,15 +363,8 @@ theorem aux_rie_sum (z : ℍ) (k : ℕ) (hk : 2 ≤ k) :
 lemma summable_iff_abs_summable  {α : Type} (f : α → ℂ) : 
 Summable f ↔ Summable (fun (n: α) => Complex.abs (f n)) :=
  by
-  constructor
-  intro H
-  rw [←summable_norm_iff] at H
-  convert H
-  intro h
-  apply summable_of_norm_bounded (fun x => Complex.abs (f x)) h
-  intro i
-  rfl
-
+  apply summable_norm_iff.symm
+  
 theorem aux_rie_int_sum (z : ℍ) (k : ℕ) (hk : 2 ≤ k) :
     Summable fun n : ℤ => Complex.abs (rfunct z ^ k * n ^ k)⁻¹ :=
   by

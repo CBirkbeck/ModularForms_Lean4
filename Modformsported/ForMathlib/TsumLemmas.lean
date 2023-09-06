@@ -9,6 +9,8 @@ open TopologicalSpace Set Metric Filter Function Complex MeasureTheory
 
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
 
+section coe_lems
+
 theorem embedding_coer : Embedding (Complex.ofReal' : ℝ → ℂ) :=
   by
   apply Isometry.embedding
@@ -38,7 +40,6 @@ theorem hasSum_coe {α : Type _} {f : α → ℝ} {r : ℝ} :
   rw [this]
   apply tendsto_coe
 
-
 theorem tsum_coe_eq {α : Type _} {f : α → ℝ} {r : ℝ} (h : HasSum f r) :
     ∑' a, (f a : ℂ) = r :=
   (hasSum_coe.2 h).tsum_eq
@@ -64,6 +65,8 @@ theorem tsum_coe {α : Type _} (f : α → ℝ) : ∑' i, (f i : ℂ) = (∑' i,
   apply tsum_eq_zero_of_not_summable
   simp at *
   apply hf
+
+section pnat_tsums
 
 theorem nat_pos_tsum2   {α : Type _} [TopologicalSpace α] [AddCommMonoid α] 
   (f : ℕ → α) (hf : f 0 = 0) : (Summable fun x : ℕ+ => f x) ↔ Summable f :=
@@ -167,6 +170,131 @@ theorem tsum_pnat' [TopologicalSpace α] [AddCommMonoid α]  [T2Space α] (f : �
   rw [nat_pos_tsum2'] at hf2 
   have h2 := tsum_eq_zero_of_not_summable hf2
   simp [h1, h2]
+
+
+
+
+
+section prod_lems 
+
+
+variable {α : Type u} {β : Type v} {γ : Type w} {i : α → Set β}
+
+def unionEquiv (ι : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ ι i) :
+    (⋃ s : ℕ, ((ι s) : Set (ℤ × ℤ))) ≃ ℤ × ℤ where
+  toFun x := x.1
+  invFun x := by 
+    use x
+    simp
+    obtain ⟨i, hi1,_⟩:= HI x
+    refine ⟨i,hi1⟩
+  left_inv := by simp; intro x; cases x; rfl
+  right_inv := by simp; intro x; rfl
+
+theorem summable_disjoint_union_of_nonneg {i : α → Set β} {f : (⋃ x, i x) → ℝ}
+    (h : ∀ a b, a ≠ b → Disjoint (i a) (i b)) (hf : ∀ x, 0 ≤ f x) :
+    Summable f ↔
+      (∀ x, Summable fun y : i x => f ⟨y,  Set.mem_iUnion_of_mem (x) y.2 ⟩) ∧
+        Summable fun x => ∑' y : i x, f ⟨y, Set.mem_iUnion_of_mem (x) y.2 ⟩ :=
+  by
+  let h0 := (Set.unionEqSigmaOfDisjoint h).symm
+  have h01 : Summable f ↔ Summable (f ∘ h0) := by 
+   rw [Equiv.summable_iff]
+  have h22 : ∀ y : Σ s : α, i s, 0 ≤ (f ∘ h0) y :=
+    by
+    intro y
+    simp
+    apply hf
+  have h1 := summable_sigma_of_nonneg h22
+  rw [←h01] at h1;
+  convert h1
+
+theorem tsum_disjoint_union_of_nonneg' {γ : Type} [AddCommGroup γ]  [ UniformSpace γ]
+    [UniformAddGroup γ] [CompleteSpace γ] [T0Space γ] [T2Space γ]
+    {i : α → Set β} {f : (⋃ x, i x) → γ}
+    (h : ∀ a b, a ≠ b → Disjoint (i a) (i b)) (h1 : Summable f) :
+    ∑' x, f x = ∑' x, ∑' y : i x, f ⟨y, Set.mem_iUnion_of_mem (x) y.2⟩ :=
+  by
+  let h0 := (Set.unionEqSigmaOfDisjoint h).symm
+  have h11 : ∑' x, f x = ∑' y, f (h0 y) := by have := Equiv.tsum_eq h0 f; rw [← this]
+  rw [h11]
+  rw [tsum_sigma]
+  simp_rw [Set.sigmaToiUnion]
+  rfl
+  have h01 : Summable f ↔ Summable (f ∘ h0) := by rw [Equiv.summable_iff]
+  convert (h01.1 h1)
+
+theorem disjoint_aux (In : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ In i) :
+    ∀ i j : ℕ, i ≠ j → Disjoint (In i) (In j) :=
+  by
+  intro i j h
+  intro x h1 h2 a h3
+  cases' a with a_fst a_snd
+  dsimp at *
+  simp at *
+  have HI0 := HI a_fst a_snd
+  have := ExistsUnique.unique HI0 (h1 h3) (h2 h3)
+  rw [this] at h 
+  simp at *
+
+theorem sum_lemma (f : ℤ × ℤ → ℝ) (h : ∀ y : ℤ × ℤ, 0 ≤ f y) (ι : ℕ → Finset (ℤ × ℤ))
+    (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ ι i) : Summable f ↔ Summable fun n : ℕ => ∑ x in ι n, f x :=
+  by
+  let h2 := unionEquiv ι HI
+  have h22 : ∀ y : ⋃ s : ℕ, (ι s), 0 ≤ (f ∘ h2) y :=
+    by
+    intro y
+    apply h  
+  have hdis' := disjoint_aux ι HI
+  have hdis : ∀ a b : ℕ, a ≠ b → Disjoint ((ι a)) ((ι b)) :=
+    by
+    intro a b hab;
+    apply hdis'; exact hab
+  have h3 := summable_disjoint_union_of_nonneg ?_ h22
+  have h4 : Summable f ↔ Summable (f ∘ h2) := by rw [Equiv.summable_iff]
+  rw [h4]
+  rw [h3]
+  constructor
+  intro H
+  convert H.2
+  rw [←Finset.tsum_subtype]
+  rfl
+  intro H
+  constructor
+  intro x
+  simp
+  rw [unionEquiv]
+  simp
+  apply Finset.summable
+  convert H
+  rw [←Finset.tsum_subtype]
+  rfl
+  norm_cast
+
+theorem tsum_lemma {γ : Type} [AddCommGroup γ]  [ UniformSpace γ]
+    [UniformAddGroup γ] [CompleteSpace γ] [T0Space γ] [T2Space γ] 
+    (f : ℤ × ℤ → γ) (ι : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ ι i)
+    (hs : Summable f) : ∑' x, f x = ∑' n : ℕ, ∑ x in ι n, f x :=
+  by
+  let h2 := unionEquiv ι HI
+  have hdis' := disjoint_aux ι HI
+  have hdis : ∀ a b : ℕ, a ≠ b → Disjoint ( (ι a)) ((ι b)) :=
+    by
+    intro a b hab; 
+    apply hdis'; exact hab
+  have HS : Summable (f ∘ h2) := by rw [Equiv.summable_iff h2]; exact hs
+  have HH := tsum_disjoint_union_of_nonneg' ?_ HS
+  simp at HH 
+  have := Equiv.tsum_eq h2 f
+  rw [← this]
+  rw [HH]
+  rw [unionEquiv]
+  simp
+  norm_cast  
+
+
+
+
 
 theorem prod_sum  
   (f : ℤ × ℤ → ℂ) (hf : Summable f) : Summable fun a => ∑' b, f ⟨a, b⟩ :=
