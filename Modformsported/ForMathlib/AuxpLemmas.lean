@@ -350,11 +350,10 @@ theorem aux_rie_sum (z : ℍ) (k : ℕ) (hk : 2 ≤ k) :
   by
   simp 
   rw [summable_mul_right_iff]
-  have hk2 : 1 < (k : ℤ) := by linarith
-  have := int_RZ_is_summmable k hk2
-  simp_rw [rie] at this 
-  simp only [Int.cast_ofNat, Real.rpow_nat_cast, one_div] at this 
-  apply this.subtype
+  have hkk : 1 < (k : ℝ):= by norm_cast at *
+  have H := Real.summable_nat_rpow_inv.2 hkk
+  norm_cast at *
+  apply H.subtype
   simp
   apply pow_ne_zero
   norm_num
@@ -687,7 +686,7 @@ theorem rfunct_abs_pos (z : ℍ') : 0 < |rfunct z| :=
 theorem sub_bound (s : ℍ'.1) (A B : ℝ) (hB : 0 < B) (hs : s ∈ upperHalfSpaceSlice A B) (k : ℕ)
     (n : ℕ+) :
     Complex.abs ((-1) ^ (k + 1) * (k + 1)! * (1 / (s - n) ^ (k + 2))) ≤
-      Complex.abs ((k + 1)! / rfunct (lbpoint A B hB) ^ (k + 2)) * (rie (k + 2)) n :=
+      Complex.abs ((k + 1)! / rfunct (lbpoint A B hB) ^ (k + 2)) * ((n : ℝ) ^ ((k : ℤ) +2))⁻¹ :=
   by
   simp
   rw [div_eq_mul_inv]
@@ -704,12 +703,9 @@ theorem sub_bound (s : ℍ'.1) (A B : ℝ) (hB : 0 < B) (hs : s ∈ upperHalfSpa
   norm_cast at *
   simp at ht
   apply le_trans ht
-  simp_rw [rie]
-  rw [div_eq_mul_inv]
   nth_rw 1 [mul_comm]
   simp
   norm_cast
-  rw [mul_le_mul_right]
   rw [inv_le_inv]
   apply pow_le_pow_of_le_left
   apply (rfunct_abs_pos _).le
@@ -719,10 +715,6 @@ theorem sub_bound (s : ℍ'.1) (A B : ℝ) (hB : 0 < B) (hs : s ∈ upperHalfSpa
   apply hss
   apply pow_pos (rfunct_abs_pos _)
   apply pow_pos (rfunct_abs_pos _)
-  rw [inv_pos]
-  norm_cast
-  apply pow_pos
-  norm_cast
   norm_cast
   apply Nat.factorial_pos
   simp only [AbsoluteValue.pos_iff, Ne.def]
@@ -732,7 +724,7 @@ theorem sub_bound (s : ℍ'.1) (A B : ℝ) (hB : 0 < B) (hs : s ∈ upperHalfSpa
 theorem add_bound (s : ℍ'.1) (A B : ℝ) (hB : 0 < B) (hs : s ∈ upperHalfSpaceSlice A B) (k : ℕ)
     (n : ℕ+) :
     Complex.abs ((-1) ^ (k + 1) * (k + 1)! * (1 / (s + n) ^ (k + 2))) ≤
-      Complex.abs ((k + 1)! / rfunct (lbpoint A B hB) ^ (k + 2)) * (rie (k + 2)) n :=
+      Complex.abs ((k + 1)! / rfunct (lbpoint A B hB) ^ (k + 2)) * ((n : ℝ) ^ ((k : ℤ) +2))⁻¹ :=
   by
   simp
   rw [div_eq_mul_inv]
@@ -749,12 +741,9 @@ theorem add_bound (s : ℍ'.1) (A B : ℝ) (hB : 0 < B) (hs : s ∈ upperHalfSpa
   norm_cast at *
   simp at ht
   apply le_trans ht
-  simp_rw [rie]
-  rw [div_eq_mul_inv]
   nth_rw 1 [mul_comm]
   simp
   norm_cast
-  rw [mul_le_mul_right]
   rw [inv_le_inv]
   apply pow_le_pow_of_le_left
   apply (rfunct_abs_pos _).le
@@ -764,10 +753,6 @@ theorem add_bound (s : ℍ'.1) (A B : ℝ) (hB : 0 < B) (hs : s ∈ upperHalfSpa
   apply hss
   apply pow_pos (rfunct_abs_pos _)
   apply pow_pos (rfunct_abs_pos _)
-  rw [inv_pos]
-  norm_cast
-  apply pow_pos
-  norm_cast
   norm_cast
   apply Nat.factorial_pos
   simp only [AbsoluteValue.pos_iff, Ne.def]
@@ -776,12 +761,13 @@ theorem add_bound (s : ℍ'.1) (A B : ℝ) (hB : 0 < B) (hs : s ∈ upperHalfSpa
 
 theorem upper_bnd_summable (A B : ℝ) (hB : 0 < B) (k : ℕ) :
     Summable fun a : ℕ+ =>
-      2 * Complex.abs ((k + 1)! / rfunct (lbpoint A B hB) ^ (k + 2)) * (rie (k + 2)) a :=
+      2 * Complex.abs ((k + 1)! / rfunct (lbpoint A B hB) ^ (k + 2)) * ((a : ℝ) ^ ((k : ℤ) +2))⁻¹ :=
   by
   rw [summable_mul_left_iff]
   have hk : 1 < (k : ℝ) + 2 := by norm_cast; linarith
-  have := RZ_is_summmable (k + 2) hk
-  apply Summable.subtype this
+  have H := Real.summable_nat_rpow_inv.2 hk
+  norm_cast at *
+  apply Summable.subtype H
   simp [Nat.cast_mul, Nat.cast_add, algebraMap.coe_one, map_div₀, Complex.abs_pow,
     Ne.def, mul_eq_zero, bit0_eq_zero, one_ne_zero, div_eq_zero_iff, AbsoluteValue.eq_zero,
     Nat.cast_eq_zero, pow_eq_zero_iff, Nat.succ_pos', abs_eq_zero, false_or_iff]
@@ -810,7 +796,7 @@ theorem aut_bound_on_comp (K : Set ℂ) (hk : K ⊆ ℍ'.1) (hk2 : IsCompact K) 
   have H := compact_in_slice' K h1 hk hk2
   obtain ⟨A, B, hB, hAB⟩ := H
   refine'
-    ⟨fun a : ℕ+ => 2 * Complex.abs ((k + 1)! / rfunct (lbpoint A B hB) ^ (k + 2)) * (rie (k + 2)) a,
+    ⟨fun a : ℕ+ => 2 * Complex.abs ((k + 1)! / rfunct (lbpoint A B hB) ^ (k + 2)) * ((a : ℝ) ^ ((k : ℤ) +2))⁻¹,
       _, _⟩
   exact upper_bnd_summable A B hB k
   intro n s
@@ -1091,11 +1077,10 @@ theorem neg_even_pow (n : ℤ) (k : ℕ) (hk : Even k) : (-n) ^ k = n ^ k :=
 
 theorem complex_rie_summable (k : ℕ) (hk : 3 ≤ k) : Summable fun n : ℕ => ((n : ℂ) ^ k)⁻¹ :=
   by
-  have hk1 : 1 < (k : ℤ) := by linarith
-  have H := int_RZ_is_summmable k hk1
-  norm_cast at *
-  simp_rw [rie] at H 
-  simp at *
+  have hkk : 1 < (k : ℝ):= by 
+    norm_cast
+    linarith
+  have H := Real.summable_nat_rpow_inv.2 hkk
   norm_cast at *
   simp_rw [inv_eq_one_div]
   have H2 : (fun n : ℕ => 1 / (n : ℂ) ^ k) = (Complex.ofReal' ) ∘ fun (n : ℕ)  => 1 / (n : ℝ) ^ k :=
@@ -1109,3 +1094,28 @@ theorem complex_rie_summable (k : ℕ) (hk : 3 ≤ k) : Summable fun n : ℕ => 
   intro b
   simp
 
+@[simp]
+lemma Complex.summable_nat_pow_inv {p : ℕ} :  (Summable fun n : ℤ =>  ((n : ℂ) ^ p)⁻¹) ↔ 1 < p := by 
+  simp_rw [inv_eq_one_div]
+  have H2 : ∀ (k : ℕ), (fun n : ℤ => 1 / (n : ℂ) ^ k) = (Complex.ofReal' ) ∘ fun (n : ℤ)  => 1 / (n : ℝ) ^ k :=
+    by
+    intro k
+    funext
+    simp
+  constructor
+  intro h
+  have := H2 p
+  simp at *
+  rw [this] at h
+  simp at h
+  rw [ ←Real.summable_one_div_int_pow] 
+  simp at *
+  rw [coe_summable] at h
+  apply Summable.congr h 
+  simp at *
+  intro h
+  simp at *
+  rw [H2 p]
+  rw [coe_summable]
+  simpa using (Real.summable_one_div_int_pow.2 h)
+  

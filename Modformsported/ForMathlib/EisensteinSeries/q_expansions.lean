@@ -16,7 +16,7 @@ import Modformsported.ForMathlib.AuxpLemmas
 import Modformsported.ForMathlib.Cotangent.CotangentIdentity
 import Modformsported.ForMathlib.QExpAux
 import Mathlib.NumberTheory.ZetaFunction
-import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.NumberTheory.ArithmeticFunction 
 
 
 
@@ -51,56 +51,42 @@ open scoped DirectSum BigOperators
 
 --local notation "ℍ" => UpperHalfPlane
 
+
+
 theorem q_exp_iden_2 (k : ℕ) (hk : 3 ≤ k) (hk2 : Even k) (z : ℍ) :
     ∑' x : ℤ × ℤ, 1 / ((x.1 : ℂ) * z + x.2) ^ k =
-      2 * rZ k + 2 * ∑' c : ℕ+, ∑' d : ℤ, 1 / (c * (z : ℂ) + d) ^ k :=
+      2 * (riemannZeta (k)) + 2 * ∑' c : ℕ+, ∑' d : ℤ, 1 / (c * (z : ℂ) + d) ^ k :=
   by
-  have hkk : 1 ≤ (k : ℤ) := by linarith
-  rw [rZ, tsum_prod, sum_int_even]
+  have hkk : 1 < (k ) := by 
+    linarith
+  rw [tsum_prod, sum_int_even]
   · simp  [algebraMap.coe_zero, MulZeroClass.zero_mul, zero_add, one_div,
       Int.cast_ofNat, add_left_inj]
-    simp_rw [rie]
+    
     rw [sum_int_even]
     simp  [algebraMap.coe_zero, Int.cast_ofNat, Real.rpow_nat_cast, one_div]
     have h0 : ((0 : ℂ) ^ k)⁻¹ = 0 := by convert inv_zero; norm_cast; apply zero_pow'; linarith
     have h00 : ((0 ^ k : ℕ) : ℝ)⁻¹ = 0 := by convert inv_zero; norm_cast; apply zero_pow'; linarith
-    have hkk : 1 ≤ (k : ℤ) := by linarith
     norm_cast at *
     rw [h0]
     simp only [zero_add, mul_eq_mul_left_iff, bit0_eq_zero, one_ne_zero, or_false_iff]
     norm_cast
     simp
-    rw [← tsum_coe, ← tsum_pNat]
-    congr
-    funext
+    rw [zeta_nat_eq_tsum_of_gt_one hkk, ← tsum_pNat]
+    apply tsum_congr
+    intro b
     norm_cast
-    simp only [ofReal_inv, ofReal_nat_cast]
-    norm_cast
+    simp
+    simp
+    linarith
     intro n
     apply congr_arg
     apply symm
     norm_cast
     apply Even.neg_pow hk2
-    have H := int_RZ_is_summmable k ?_
-    simp_rw [rie] at H 
-    apply summable_int_of_summable_nat
-    have  hs:= complex_rie_summable k hk
-    norm_cast at *
-    simp at *
-    have HG : (fun n : ℕ => ((-(n : ℤ) : ℂ) ^ k)⁻¹) = fun n : ℕ => ((n : ℂ) ^ k)⁻¹ :=
-      by
-      funext
-      apply congr_arg
-      norm_cast
-      simp
-      apply Even.neg_pow hk2
-    simp only [Int.cast_neg, Int.cast_ofNat, Real.rpow_nat_cast, one_div,
-      Real.summable_nat_pow_inv] at *
-    simp at *
-    rw [HG]
-    have hs2:= complex_rie_summable k hk
-    norm_cast at *
-    linarith
+    simp
+    have :=Complex.summable_nat_pow_inv.2  hkk
+    simpa using this
   · intro n
     simp only [one_div, Int.cast_neg, neg_mul]
     apply symm
@@ -423,7 +409,7 @@ theorem a4 {k : ℕ} (hk : 1 ≤ k) (z : ℍ) :
 
 theorem Eisenstein_Series_q_expansion (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : Even k) (z : ℍ) :
     (eisensteinSeriesOfWt_ k) z =
-      2 * rZ k +
+      2 * (riemannZeta (k)) +
         2 * ((-2 * ↑π * I) ^ k / (k - 1)!) *
           ∑' n : ℕ+, sigma (k - 1) n * Complex.exp (2 * ↑π * I * z * n) :=
   by
@@ -494,25 +480,6 @@ theorem Eisenstein_Series_q_expansion (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : Ev
     intro i
     norm_cast 
   · exact hk
-  
-
-theorem Eisenstein_Series_q_expansion' (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : Even k) (z : ℍ) :
-    (eisensteinSeriesOfWt_ k) z =
-      2 * riemannZeta k +
-        2 * ((-2 * ↑π * I) ^ k / (k - 1)!) *
-          ∑' n : ℕ+, sigma (k - 1) n * Complex.exp (2 * ↑π * I * z * n) :=
-  by
-  have := Eisenstein_Series_q_expansion k hk hk2 z
-  convert this
-  simp_rw [rZ, rie]
-  have hkc : 1 < (k : ℂ).re := by simp; linarith
-  have hz := zeta_eq_tsum_one_div_nat_cpow hkc
-  rw [hz]
-  simp
-  rw [← tsum_coe]
-  apply tsum_congr
-  intro b
-  simp
 
 theorem Eisenstein_Series_q_expansion_Bernoulli (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : Even k) (z : ℍ) :
     (eisensteinSeriesOfWt_ k) z =
@@ -520,7 +487,7 @@ theorem Eisenstein_Series_q_expansion_Bernoulli (k : ℕ) (hk : 3 ≤ (k : ℤ))
         2 * ((-2 * ↑π * I) ^ k / (k - 1)!) *
           ∑' n : ℕ+, sigma (k - 1) n * Complex.exp (2 * ↑π * I * z * n) :=
   by
-  have := Eisenstein_Series_q_expansion' k hk hk2 z
+  have := Eisenstein_Series_q_expansion k hk hk2 z
   norm_cast at *
   simp at *
   rw [this]
@@ -601,6 +568,16 @@ theorem ineq : 0 ≤ 16 * π ^ 4 / ((2 + 1) * 2) :=
   apply Real.pi_pos.le
   linarith
 
+lemma rieamannZeta_4_eq_complex_abs : riemannZeta (4) = Complex.abs (riemannZeta (4)) := by
+  rw [riemannZeta_four]
+  apply symm
+  norm_num
+  norm_cast
+  congr
+  rw [abs_eq_self]
+  apply Real.pi_pos.le
+  apply abs_of_nat
+
 theorem Eisen_4_non_zero : G[(4 : ℕ)] ≠ 0 := by
   by_contra h
   have H : (G[(4 : ℕ)] : ℍ → ℂ) = 0 := by simp only [h, coe_zero]
@@ -654,14 +631,24 @@ theorem Eisen_4_non_zero : G[(4 : ℕ)] ≠ 0 := by
     apply tsum_nonneg; intro b; apply mul_nonneg; norm_cast; 
     simp only [zero_le]
     apply (Real.exp_pos _).le
-  have H5 : 0 < 2 * rZ 4 := by apply mul_pos; linarith; apply rZ_pos; linarith
+  have H5 : 0 < 2 *Complex.abs (riemannZeta (4)) := by 
+    apply mul_pos; linarith; 
+    rw [riemannZeta_four]
+    simp only [ofReal_pow, map_div₀, map_pow, abs_ofReal]
+    apply div_pos
+    apply pow_pos
+    simp only [abs_pos, ne_eq]
+    apply Real.pi_ne_zero
+    simp only [AbsoluteValue.pos_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true]
   let ε :=
-    2 * rZ 4 +
+    2 * Complex.abs (riemannZeta (4)) +
       2 * (16 * π ^ 4 / ↑((2 + 1) * 2)) * ∑' n : ℕ+, ↑(sigma 3 n) * Real.exp (-(2 : ℕ)  * π * ↑n)
   have H7 : G[(4 : ℕ)] (⟨I, by simp only [I_im, zero_lt_one]⟩ : ℍ) = ↑ε := by 
     simp at *
     rw [H3]
     congr
+    norm_cast
+    apply rieamannZeta_4_eq_complex_abs
     norm_cast
     exact one_add_one_eq_two
   have H5 : 0 < ε := by 

@@ -345,7 +345,7 @@ theorem rfunct_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfSpaceS
   norm_cast
   apply pow_two_nonneg
 
-theorem rfunctbound (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice A B) :
+theorem rfunctbound (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice A B) :
     8 / rfunct (z : ℍ') ^ k * Complex.abs (riemannZeta (k - 1)) ≤ 
       8 / rfunct (lbpoint A B hb) ^ k * Complex.abs (riemannZeta (k - 1))  :=
   by

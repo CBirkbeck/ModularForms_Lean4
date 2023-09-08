@@ -598,12 +598,11 @@ theorem summable_rie_twist (x : ℂ) : Summable fun n : ℕ => Complex.abs (x ^ 
     by
     norm_cast
     simp
-    have h2 : (1 : ℤ) < 2 := by linarith
-    have := int_RZ_is_summmable 2 h2
-    simp_rw [rie] at this 
-    rw [← summable_nat_add_iff 1] at this 
-    norm_cast at this 
-    simpa using this
+    have hkk : 1 < (2 : ℝ):= by linarith
+    have H := Real.summable_nat_rpow_inv.2 hkk
+    rw [← summable_nat_add_iff 1] at H 
+    norm_cast at H
+    simpa using H
   apply Summable.congr hs
   intro b
   simp
