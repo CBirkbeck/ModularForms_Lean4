@@ -15,6 +15,10 @@ open ModularForm
 
 open SlashInvariantForm
 
+local notation "SL(" n ", " R ")" => Matrix.SpecialLinearGroup (Fin n) R
+
+local notation "GL(" n ", " R ")" => Matrix.GeneralLinearGroup (Fin n) R
+
 noncomputable section
 
 namespace EisensteinSeries
@@ -26,8 +30,42 @@ def EisensteinSeriesModularForm (k : ℤ) (hk : 3 ≤ k) : ModularForm ⊤ k
   holo' := Eisenstein_series_is_mdiff k hk
   bdd_at_infty' A :=  Eisenstein_series_is_bounded k hk A
 
+lemma coeGLl (A: SL(2,ℤ)) : (A : GL(2,ℤ)) i j = A.1 i j := by
+  norm_cast
+
+lemma neg_moeb_eq_id (z : ℍ) : (-1 : SL(2,ℤ)) • z = z := by
+  rw [← UpperHalfPlane.ext_iff,UpperHalfPlane.specialLinearGroup_apply,UpperHalfPlane.coe_mk]
+  simp
+  simp_rw [coeGLl (-1 : SL(2,ℤ)) ] 
+  simp
+  field_simp
+  
 
 
+lemma ModularForms_Top_Odd_Wt_eq_zero (F : Type) (k : ℤ) ( hk : 3 ≤ k) (hkO : Odd k) 
+  (f : ModularForm ⊤ k):
+  f = 0 := by 
+  apply  ModularForm.ext
+  intro z
+  have := slash_action_eqn' k ⊤ f 
+  
+  simp at *
+  have HI := this (-1) z
+  simp at HI
+  norm_cast
+  have h10 : (-1 : SL(2,ℤ)) 1 0 = 0 := by rfl
+  norm_cast at HI
+  simp_rw [coeGLl (-1 : SL(2,ℤ)) ] at HI
+  simp at HI
+  have HIn:= neg_moeb_eq_id z
+  simp at HIn
+  rw [HIn] at HI
+  have hO : (-1 :ℂ)^k = -1 := by sorry
+  simp at hO
+  rw [hO] at HI
+  simp at HI
+
+  
 
 /-
 
