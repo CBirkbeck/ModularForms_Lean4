@@ -24,9 +24,6 @@ local notation "SL(" n ", " R ")" => Matrix.SpecialLinearGroup (Fin n) R
 
 noncomputable section
 
-local notation "ℍ'" =>
-  (TopologicalSpace.Opens.mk UpperHalfPlane.upperHalfSpace upper_half_plane_isOpen)
-
 /-! ### Eisenstein series -/
 
 /-- The function on `ℤ × ℤ` whose sum defines an Eisenstein series.-/ 

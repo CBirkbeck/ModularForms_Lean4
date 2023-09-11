@@ -1,4 +1,4 @@
-/-
+/- 
 Copyright (c) 2023 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
@@ -16,7 +16,7 @@ import Modformsported.ForMathlib.AuxpLemmas
 import Modformsported.ForMathlib.Cotangent.CotangentIdentity
 import Modformsported.ForMathlib.QExpAux
 import Mathlib.NumberTheory.ZetaFunction
-import Mathlib.NumberTheory.ArithmeticFunction 
+import Mathlib.NumberTheory.ArithmeticFunction
 
 
 
@@ -50,8 +50,6 @@ local notation `E₆` := Eisenstein_6
 open scoped DirectSum BigOperators
 
 --local notation "ℍ" => UpperHalfPlane
-
-
 
 theorem q_exp_iden_2 (k : ℕ) (hk : 3 ≤ k) (hk2 : Even k) (z : ℍ) :
     ∑' x : ℤ × ℤ, 1 / ((x.1 : ℂ) * z + x.2) ^ k =
@@ -116,10 +114,6 @@ theorem eisen_iden (k : ℕ) (hk : 3 ≤ (k : ℤ)) (z : ℍ) :
   rw [EisensteinSeriesModularForm]
   simp_rw [Eisenstein_SIF]
   rfl
-
-
-
-  
 
 instance natPosSMul : SMul ℕ+ ℍ where
   smul x z := UpperHalfPlane.mk (x * z) <| by simp; apply z.2
@@ -273,7 +267,7 @@ theorem div_mul_aux (k : ℕ) (z : ℍ) (n : ℕ) :
   rw [Nat.mem_divisors] at hx 
   exact hx.1
 
-theorem sum_sigma_eqn {k : ℕ} (z : ℍ) :
+theorem tsum_sigma_eqn {k : ℕ} (z : ℍ) :
     ∑' c : ℕ+ × ℕ+, (c.1 ^ k : ℂ) * Complex.exp (2 * ↑π * I * z * c.1 * c.2) =
       ∑' e : ℕ+, sigma k e * Complex.exp (2 * ↑π * I * z * e) :=
   by
@@ -439,7 +433,7 @@ theorem Eisenstein_Series_q_expansion (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : Ev
   rw [tsum_mul_left]
   simp 
   left
-  have H := @sum_sigma_eqn (k - 1) z
+  have H := @tsum_sigma_eqn (k - 1) z
   simp [ge_iff_le, ofReal_mul, ofReal_ofNat, PNat.pow_coe, Nat.cast_pow] at *
   rw [← H]
   rw [tsum_comm']

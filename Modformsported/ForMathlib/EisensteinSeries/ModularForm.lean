@@ -5,7 +5,7 @@ Authors: Chris Birkbeck
 -/
 import Modformsported.ForMathlib.EisensteinSeries.mdifferentiable
 import Modformsported.ForMathlib.EisensteinSeries.bounded_at_infty
-
+import Mathlib.Algebra.Field.Power
 
 open Complex UpperHalfPlane
  
@@ -40,106 +40,67 @@ lemma neg_moeb_eq_id (z : ℍ) : (-1 : SL(2,ℤ)) • z = z := by
   simp
   field_simp
   
-
-
-lemma ModularForms_Top_Odd_Wt_eq_zero (F : Type) (k : ℤ) ( hk : 3 ≤ k) (hkO : Odd k) 
-  (f : ModularForm ⊤ k):
-  f = 0 := by 
-  apply  ModularForm.ext
-  intro z
-  have := slash_action_eqn' k ⊤ f 
-  
-  simp at *
-  have HI := this (-1) z
-  simp at HI
+theorem slash_action_eqn'' (k : ℤ) (Γ : Subgroup SL(2, ℤ)) [SlashInvariantFormClass F Γ k] (f : F)
+    (γ : Γ) (z : ℍ) : f (γ • z) = ((γ.1 1 0 : ℂ) * z + (γ.1 1 1 : ℂ)) ^ k * f z := by
+  have := SlashInvariantForm.slash_action_eqn' k Γ f γ z 
+  rw [this]
   norm_cast
-  have h10 : (-1 : SL(2,ℤ)) 1 0 = 0 := by rfl
-  norm_cast at HI
-  simp_rw [coeGLl (-1 : SL(2,ℤ)) ] at HI
+
+
+lemma SlashInvariantForm_neg_one_in_lvl_odd_wt_eq_zero 
+  (k : ℤ) (hkO : Odd k) (Γ : Subgroup SL(2, ℤ)) (hΓ : -1 ∈ Γ)
+  [SlashInvariantFormClass F Γ k] [AddCommMonoid F] [Module ℤ F] (hzero : ⇑(0 : F) = 0) (f : F):  
+    f = 0 := by
+  apply FunLike.ext
+  intro z
+  have hO : (-1 :ℂ)^k = -1 := by 
+    simp 
+    apply hkO.neg_one_zpow
+  have := slash_action_eqn'' k Γ f 
+  simp at *
+  have HI := this (-1) hΓ z
   simp at HI
   have HIn:= neg_moeb_eq_id z
   simp at HIn
   rw [HIn] at HI
-  have hO : (-1 :ℂ)^k = -1 := by sorry
   simp at hO
   rw [hO] at HI
   simp at HI
+  norm_cast at HI
+  convert Iff.mp neg_eq_self_iff (id (Eq.symm HI))
+  rw [hzero]
+  simp
 
+
+lemma SIF_Top_Odd_Wt_eq_zero (k : ℤ) (hkO : Odd k) 
+  (f : SlashInvariantForm ⊤ k):
+  f = 0 := by 
+  apply SlashInvariantForm_neg_one_in_lvl_odd_wt_eq_zero k hkO
+  simp
+  simp
+
+lemma toSIF_injective (k : ℤ) (Γ : Subgroup SL(2, ℤ)): Function.Injective 
+  (@toSlashInvariantForm Γ k) := by
+  intro f g 
+  intro h
+  rw [FunLike.ext_iff] at *
+  intro z
+  have hz := h z
+  simpa using hz
+
+lemma ModularForm_to_SIF_ext (k : ℤ) (f g : ModularForm ⊤ k) : f = g ↔ f.1 = g.1:= by
+  refine Iff.symm (Function.Injective.eq_iff ?I)
+  apply toSIF_injective
   
-
-/-
-
-lemma tes (f : ℕ+ → ℂ)  (h : ∀ n, f n = 0) : ∑' n, f n = 0 := by 
-  rw [←tsum_zero]
-  apply tsum_congr
-  exact h
-
-lemma riemmaZeta_Odd_wt_eq_zero' (k : ℤ) ( hk : 3 ≤ k) (hkO : Odd k) : (∑' (n : ℤ), ((n : ℂ) ^ k)⁻¹) = 0 := by
-  simp
-  rw [int_tsum_pNat]
-  simp
-  norm_cast
-  simp
-  rw [add_assoc]
-  rw [←tsum_add]
-  have : ((0 : ℝ)^k)⁻¹ = 0 := by sorry
-  simp at this
-  rw [this]
-  simp
-  rw [←tsum_zero]
-  apply tsum_congr
-  intro b
-  field_simp
-  have hbo : (-(b: ℝ))^k = - b^k := by sorry
-  simp at *
-  rw [hbo]
-  rw [inv_neg]
-  linarith
-  have := int_pnat_sum (fun n : ℤ => ((n : ℝ) ^ k)⁻¹)
-  simp at this
-  apply this
-  have hk : 1 < k := by sorry
-  stop
-
-
-
-
+lemma ModularForms_Top_Odd_Wt_eq_zero (k : ℤ) (hkO : Odd k) 
+  (f : ModularForm ⊤ k):
+  f = 0 := by 
+  apply SlashInvariantForm_neg_one_in_lvl_odd_wt_eq_zero k hkO 
+  simp only [Subgroup.mem_top] 
+  simp only [ModularForm.coe_zero]
+  
 lemma eiseinsteinSeries_Odd_wt_eq_zero (k : ℤ) ( hk : 3 ≤ k) (hkO : Odd k) : 
   EisensteinSeriesModularForm k hk = 0 := by
-  apply ModularForm.ext
-  intro z
-  simp only [ModularForm.zero_apply]
-  rw [←ModularForm.toFun_eq_coe]
-  rw [EisensteinSeriesModularForm]
-  simp only
-  rw [Eisenstein_SIF]
-  simp only [SlashInvariantForm.coe_mk]
-  rw [ Eisenstein_tsum]
-  simp_rw [eise]
+  apply ModularForms_Top_Odd_Wt_eq_zero k hkO
   
-  /-
-  rw [tsum_prod]
-  rw [int_tsum_pNat]
-  rw [int_tsum_pNat]
-  simp
-  norm_cast
-  
-  rw [add_assoc]
-  rw [←tsum_add]
-  have := riemmaZeta_Odd_wt_eq_zero' k hk hkO
-  rw [int_tsum_pNat] at this
-  simp at *
-  norm_cast at *
-  rw [this]
-  simp
-  apply tes
-  intro n
-  rw [←tsum_add]
-  rw [int_tsum_pNat]
-  simp
-  norm_cast
-  -/
-  stop
 
- -/ 
-  
