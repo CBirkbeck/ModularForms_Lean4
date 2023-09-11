@@ -12,13 +12,9 @@ import Mathlib.Analysis.Calculus.Deriv.ZPow
 import Mathlib.Analysis.SpecialFunctions.Pow.Complex
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
-open Complex Real
+open Complex Real ModularForm SlashInvariantForm
 
 open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold
-
-open ModularForm
-
-open SlashInvariantForm
 
 local notation "SL(" n ", " R ")" => Matrix.SpecialLinearGroup (Fin n) R
 

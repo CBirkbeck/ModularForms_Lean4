@@ -30,6 +30,8 @@ def EisensteinSeriesModularForm (k : ℤ) (hk : 3 ≤ k) : ModularForm ⊤ k
   holo' := Eisenstein_series_is_mdiff k hk
   bdd_at_infty' A :=  Eisenstein_series_is_bounded k hk A
 
+
+/-The stuff below needs to be moved-/
 lemma coeGLl (A: SL(2,ℤ)) : (A : GL(2,ℤ)) i j = A.1 i j := by
   norm_cast
 
