@@ -117,7 +117,16 @@ def Gammainv_Equiv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) : (lvl_N_congr' N a 
     apply Gammaleftinv
   right_inv v:= by
     apply Gammarightinv
-    
+
+
+def Gammainv_Equiv_eq (N : ℕ)  (a b : ℤ ) (γ  : Gamma N) (v : (lvl_N_congr' N a b)) : 
+  ((Gammainv N a b γ) v).1 = 
+    ( (Matrix.SpecialLinearGroup.toLin' (SpecialLinearGroup.transpose γ.1) ).toEquiv) v.1 := by
+  simp_rw [Gammainv]
+  simp
+  simp_rw [Matrix.SpecialLinearGroup.toLin'_apply, SpecialLinearGroup.transpose]
+  simp
+  rw [Matrix.mulVec_transpose]
 
 
 def prod_fun_equiv : ℤ × ℤ ≃ (Fin 2 → ℤ) := by exact (piFinTwoEquiv fun _ => ℤ).symm
@@ -127,15 +136,17 @@ def index_equiv (N : ℕ)  (a b : ℤ ) : (lvl_N_congr' N a b) ≃ (lvl_N_congr 
   rw [piFinTwoEquiv ]
   simp
 
-/-- The Eisenstein series of weight `k : ℤ` -/
-def Eisenstein_N_tsum (k : ℤ) (N : ℕ) (a b : ℤ) : ℍ → ℂ := fun z => ∑' x : (lvl_N_congr  N a b), 
-  (eise k z  x.1)
 
 lemma summable_Eisenstein_N_tsum (k : ℕ) (hk : 3 ≤ k) (N : ℕ) (a b : ℤ) (z : ℍ): 
   Summable (fun (x : (lvl_N_congr  N a b)) => (eise k z  x.1) ) := by 
   apply (Eisenstein_tsum_summable k z hk).subtype
 
 def feise (k : ℤ) (z : ℍ) (v : (lvl_N_congr'  N a b)) : ℂ := (eise k z ((piFinTwoEquiv fun _ => ℤ) v.1))
+
+/-- The Eisenstein series of weight `k : ℤ` -/
+def Eisenstein_N_tsum (k : ℤ) (N : ℕ) (a b : ℤ) : ℍ → ℂ := fun z => ∑' x : (lvl_N_congr'  N a b), 
+  (feise k z  x)
+
 
 lemma summable_Eisenstein_N_tsum' (k : ℕ) (hk : 3 ≤ k) (N : ℕ) (a b : ℤ) (z : ℍ): 
   Summable (fun (x : (lvl_N_congr'  N a b)) => feise k z x)  := by 
@@ -150,19 +161,12 @@ lemma summable_Eisenstein_N_tsum' (k : ℕ) (hk : 3 ≤ k) (N : ℕ) (a b : ℤ)
 
 
 
-theorem feise_Moebius (k : ℤ) (z : ℍ) (N : ℕ) (A : Gamma N) (i : (lvl_N_congr'  N a b)) :
-    feise k (A • z) i =
-      (A.1 1 0 * z.1 + A.1 1 1) ^ k * feise k z ((Gammainv_Equiv N a b A)  i) := by
-    simp_rw [feise,UpperHalfPlane.specialLinearGroup_apply]
-    have := eise_Moebius k z A.1 ((piFinTwoEquiv fun _ => ℤ) i.1)
-    stop
 
 
 
 
 
 
-variable  (a : ℤ × ℤ)
 
 
 def equivla (A : SL(2, ℤ)) : ℤ × ℤ ≃ ℤ × ℤ :=  
@@ -170,9 +174,11 @@ def equivla (A : SL(2, ℤ)) : ℤ × ℤ ≃ ℤ × ℤ :=
 
 
 
-lemma averaver (A: SL(2, ℤ)) : equivla  (SpecialLinearGroup.transpose A)  = MoebiusPerm A  := by
+lemma averaver (A: SL(2, ℤ)) : equivla  (SpecialLinearGroup.transpose A)  = MoebiusEquiv A  := by
   rw [equivla, prod_fun_equiv]
-  simp [MoebiusPerm]
+  simp only [Equiv.symm_symm, Equiv.coe_trans, piFinTwoEquiv_apply, LinearEquiv.coe_toEquiv, 
+  piFinTwoEquiv_symm_apply,
+    MoebiusEquiv,MoebiusPerm]
   simp
   ext1 v
   simp
@@ -191,5 +197,34 @@ lemma averaver (A: SL(2, ℤ)) : equivla  (SpecialLinearGroup.transpose A)  = Mo
   ring_nf
   congr
 
+theorem feise_Moebius (k : ℤ) (z : ℍ) (N : ℕ) (A : Gamma N) (i : (lvl_N_congr'  N a b)) :
+    feise k (A • z) i =
+      (A.1 1 0 * z.1 + A.1 1 1) ^ k * feise k z ((Gammainv_Equiv N a b A)  i) := by
+    simp_rw [feise,UpperHalfPlane.specialLinearGroup_apply]
+    have := eise_Moebius k z A.1 ((piFinTwoEquiv fun _ => ℤ) i.1)
+    convert this
+    rw [←averaver A, equivla,Gammainv_Equiv]
+    simp
+    rw [Gammainv_Equiv_eq]
+    simp
+    simp_rw [Matrix.SpecialLinearGroup.toLin'_apply,prod_fun_equiv]
+    simp
+    constructor
+    rfl
+    rfl
+
+def Eisenstein_SIF_lvl_N (N : ℕ) (k a b : ℤ) : SlashInvariantForm (Gamma N) k
+    where
+  toFun := Eisenstein_N_tsum k N a b 
+  slash_action_eq' := by
+    intro A
+    ext1 x
+    simp_rw [slash_action_eq'_iff]
+    rw [Eisenstein_N_tsum]
+    simp only [UpperHalfPlane.subgroup_to_sl_moeb, UpperHalfPlane.sl_moeb]
+    convert (tsum_congr (feise_Moebius k x N A))
+    have h3 := Equiv.tsum_eq (Gammainv_Equiv N a b A) (feise k x)
+    rw [tsum_mul_left, h3, Eisenstein_N_tsum]
+    norm_cast
   
 
