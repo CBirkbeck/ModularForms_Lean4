@@ -253,7 +253,11 @@ lemma Eisenstein_lvl_N_Sl_inv (N : ℕ) (k a b : ℤ) (A : SL(2,ℤ)) :
 
 lemma UBOUND (N : ℕ) (k a b : ℤ) (z : ℍ) (A: SL(2, ℤ)): 
   Complex.abs ((((Eisenstein_SIF_lvl_N N k a b))) z) ≤ (AbsEisenstein_tsum k z) := by
- 
+  simp_rw [Eisenstein_SIF_lvl_N, AbsEisenstein_tsum, Eisenstein_N_tsum]
+  simp
+  apply le_trans (abs_tsum' ?_)
+  sorry
+  
  /-
   have hr := (Eisenstein_SIF ⊤ k).2 ⟨A, by tauto⟩
   simp only [SlashInvariantForm.toFun_eq_coe, ge_iff_le] at *
@@ -266,7 +270,7 @@ lemma UBOUND (N : ℕ) (k a b : ℤ) (z : ℍ) (A: SL(2, ℤ)):
 -/
   sorry
 
-
+/-
 
 lemma denom_bound  (k : ℕ) (γ : SL(2,ℤ)) (z : ℍ') : 
   Complex.abs (1/(UpperHalfPlane.denom γ z)^(k)) ≤ (1/ ((γ.1 1 1 : ℝ) * rfunct (z : ℍ')) ^ k) := by
@@ -297,6 +301,7 @@ theorem AbsEisenstein_bound_unifomly_on_stip' (k : ℕ) (h : 3 ≤ k) (A B : ℝ
   rw [H2] at h1
   sorry
   --apply le_trans h1 this
+-/
 
 theorem lvl_N_periodic (N : ℕ) (k : ℤ) (f : SlashInvariantForm (Gamma N) k) :
     ∀ (z : ℍ) (n : ℤ), f (((ModularGroup.T^N)^n)  • z) = f z :=
