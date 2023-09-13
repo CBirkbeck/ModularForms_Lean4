@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
 import Modformsported.ForMathlib.EisensteinSeries.ModularForm
-import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups
+import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups 
 
 noncomputable section
 
@@ -245,9 +245,16 @@ lemma T_pow_N_mem_Gamma' (N n : ℤ) : (ModularGroup.T^N)^n ∈ _root_.Gamma (In
   exact Subgroup.zpow_mem (_root_.Gamma (Int.natAbs N)) (T_pow_N_mem_Gamma N) n
 
 
-/-This is false, i think
+
+lemma Eisenstein_lvl_N_Sl_inv (N : ℕ) (k a b : ℤ) (A : SL(2,ℤ)) : 
+  (((Eisenstein_SIF_lvl_N N k a b).1)∣[k,A]) = 
+    (((Eisenstein_SIF_lvl_N N k (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1)).1)) := by
+   sorry 
+
 lemma UBOUND (N : ℕ) (k a b : ℤ) (z : ℍ) (A: SL(2, ℤ)): 
-  Complex.abs ((((Eisenstein_SIF_lvl_N N k a b).1)∣[k,A]) z) ≤ Complex.abs (Eisenstein_SIF ⊤ k z) := by
+  Complex.abs ((((Eisenstein_SIF_lvl_N N k a b))) z) ≤ (AbsEisenstein_tsum k z) := by
+ 
+ /-
   have hr := (Eisenstein_SIF ⊤ k).2 ⟨A, by tauto⟩
   simp only [SlashInvariantForm.toFun_eq_coe, ge_iff_le] at *
   have : Complex.abs (Eisenstein_SIF ⊤ k z) = Complex.abs ((((Eisenstein_SIF ⊤ k).1)∣[k,A]) z) := by
@@ -256,10 +263,10 @@ lemma UBOUND (N : ℕ) (k a b : ℤ) (z : ℍ) (A: SL(2, ℤ)):
     rw [←hr]
     rfl
   rw [this]
-
+-/
   sorry
 
--/
+
 
 lemma denom_bound  (k : ℕ) (γ : SL(2,ℤ)) (z : ℍ') : 
   Complex.abs (1/(UpperHalfPlane.denom γ z)^(k)) ≤ (1/ ((γ.1 1 1 : ℝ) * rfunct (z : ℍ')) ^ k) := by
@@ -291,11 +298,64 @@ theorem AbsEisenstein_bound_unifomly_on_stip' (k : ℕ) (h : 3 ≤ k) (A B : ℝ
   sorry
   --apply le_trans h1 this
 
+theorem lvl_N_periodic (N : ℕ) (k : ℤ) (f : SlashInvariantForm (Gamma N) k) :
+    ∀ (z : ℍ) (n : ℤ), f (((ModularGroup.T^N)^n)  • z) = f z :=
+  by
+  have h := SlashInvariantForm.slash_action_eqn' k (Gamma N) f
+  simp only [SlashInvariantForm.slash_action_eqn']
+  intro z n
+  simp only [Subgroup.top_toSubmonoid, subgroup_to_sl_moeb, Subgroup.coe_top, Subtype.forall,
+    Subgroup.mem_top, forall_true_left] at h 
+  have Hn :=  (T_pow_N_mem_Gamma' N n)
+  simp only [zpow_coe_nat, Int.natAbs_ofNat] at Hn   
+  have H:= h ((ModularGroup.T^N)^n) Hn z
+  rw [H]
+  have h0 : (((ModularGroup.T^N)^n) : GL (Fin 2) ℤ) 1 0 = 0  := by 
+    rw [slcoe]
+    have : ((ModularGroup.T^N)^n)  = (ModularGroup.T^((N : ℤ)*n)) := by 
+      rw [zpow_mul]
+      simp
+    rw [this]
+    rw [ModularGroup.coe_T_zpow (N*n)]
+    rfl
+  have h1: (((ModularGroup.T^N)^n) : GL (Fin 2) ℤ) 1 1 = 1  := by 
+    rw [slcoe]
+    have : ((ModularGroup.T^N)^n)  = (ModularGroup.T^((N : ℤ)*n)) := by 
+      rw [zpow_mul]
+      simp
+    rw [this]
+    rw [ModularGroup.coe_T_zpow (N*n)]
+    rfl   
+  rw [h0,h1]
+  ring_nf
+  simp
 
-/-Dont think this proof words as the ineq is probs not true
-theorem Eisenstein_series_is_bounded (k a b: ℤ) (N : ℕ) (hk : 3 ≤ k) (A : SL(2, ℤ)) :
+theorem Eisenstein_series_is_bounded (k a b: ℤ) (N : ℕ) (hk : 3 ≤ k) (A : SL(2, ℤ)) (hN : 0 < (N : ℤ)) :
     IsBoundedAtImInfty ( (Eisenstein_SIF_lvl_N N k a b).1∣[k,A]) :=
   by
+  simp_rw [UpperHalfPlane.bounded_mem] at *
+  let M : ℝ := 8 / rfunct (lbpoint N 2 <| by linarith) ^ k * Complex.abs (riemannZeta (k - 1))
+  use M
+  use 2
+  intro z hz
+  obtain ⟨n, hn⟩ := (upp_half_translation_N z N hN)
+  rw [Eisenstein_lvl_N_Sl_inv]
+  have := lvl_N_periodic N k (Eisenstein_SIF_lvl_N N k (Matrix.vecMul ![a, b] (A.1) 0) 
+    (Matrix.vecMul ![a, b] (A.1) 1)) z n
+  simp only [SlashInvariantForm.toFun_eq_coe, Real.rpow_int_cast, ge_iff_le]
+  rw [←this]  
+
+  apply le_trans (UBOUND N k _ _ ((ModularGroup.T ^ N) ^ n • z) A)
+  let Z := ((ModularGroup.T ^ N) ^ n) • z
+  have hZ : Z ∈ upperHalfSpaceSlice N 2 :=
+    by
+    sorry
+  have hkk : 3 ≤ Int.natAbs k := by sorry  
+  have := AbsEisenstein_bound_unifomly_on_stip (Int.natAbs k) hkk N 2 (by linarith) ⟨Z, hZ⟩
+  sorry
+
+
+  /-
   have := Eisenstein_is_bounded k hk 
   simp_rw [UpperHalfPlane.bounded_mem,Eisenstein_SIF_lvl_N] at *
   obtain ⟨M, B, H ⟩:= this
@@ -304,8 +364,8 @@ theorem Eisenstein_series_is_bounded (k a b: ℤ) (N : ℕ) (hk : 3 ≤ k) (A : 
   intro z hz
   apply le_trans (UBOUND N k a b z A)
   apply H z hz
+  -/
 
--/
   
 
   
