@@ -226,5 +226,87 @@ def Eisenstein_SIF_lvl_N (N : ℕ) (k a b : ℤ) : SlashInvariantForm (Gamma N) 
     have h3 := Equiv.tsum_eq (Gammainv_Equiv N a b A) (feise k x)
     rw [tsum_mul_left, h3, Eisenstein_N_tsum]
     norm_cast
+
+local notation:73 f "∣[" k:0 "," A "]" => SlashAction.map ℂ k A f
+
+variables (k a b: ℤ) (A: SL(2,ℤ)) (N : ℤ) (z : ℍ)
+
+lemma int_cast_abs_self (N : ℤ) : (N : ZMod (Int.natAbs N)) = 0 := by
+  refine Iff.mpr (ZMod.int_cast_zmod_eq_zero_iff_dvd N (Int.natAbs N)) ?_
+  simp only [Int.coe_natAbs, abs_dvd, dvd_refl]
+
+lemma T_pow_N_mem_Gamma (N : ℤ) : (ModularGroup.T^N) ∈ _root_.Gamma (Int.natAbs N) := by
+  simp
+  simp_rw [ModularGroup.coe_T_zpow]
+  simp
+  apply int_cast_abs_self
+  
+lemma T_pow_N_mem_Gamma' (N n : ℤ) : (ModularGroup.T^N)^n ∈ _root_.Gamma (Int.natAbs N) := by
+  exact Subgroup.zpow_mem (_root_.Gamma (Int.natAbs N)) (T_pow_N_mem_Gamma N) n
+
+
+/-This is false, i think
+lemma UBOUND (N : ℕ) (k a b : ℤ) (z : ℍ) (A: SL(2, ℤ)): 
+  Complex.abs ((((Eisenstein_SIF_lvl_N N k a b).1)∣[k,A]) z) ≤ Complex.abs (Eisenstein_SIF ⊤ k z) := by
+  have hr := (Eisenstein_SIF ⊤ k).2 ⟨A, by tauto⟩
+  simp only [SlashInvariantForm.toFun_eq_coe, ge_iff_le] at *
+  have : Complex.abs (Eisenstein_SIF ⊤ k z) = Complex.abs ((((Eisenstein_SIF ⊤ k).1)∣[k,A]) z) := by
+    congr
+    apply symm
+    rw [←hr]
+    rfl
+  rw [this]
+
+  sorry
+
+-/
+
+lemma denom_bound  (k : ℕ) (γ : SL(2,ℤ)) (z : ℍ') : 
+  Complex.abs (1/(UpperHalfPlane.denom γ z)^(k)) ≤ (1/ ((γ.1 1 1 : ℝ) * rfunct (z : ℍ')) ^ k) := by
+  simp_rw [denom]
+  simp
+  rw [inv_le_inv]
+  norm_cast
+  rw [←Complex.abs_pow]
+  have H : rfunct (z : ℍ') ≤  Complex.abs ((γ.1 1 0) * z.1+ γ.1 1 1) := by
+    sorry
+  sorry
+  sorry
+  sorry
+
+
+
+theorem AbsEisenstein_bound_unifomly_on_stip' (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) 
+    (γ : SL(2,ℤ)) (z : upperHalfSpaceSlice A B) :
+    Complex.abs ((UpperHalfPlane.denom γ z)^(-(k : ℤ)))*(AbsEisenstein_tsum k z.1) ≤ 
+    (8 / ((γ.1 1 1)*rfunct (lbpoint A B hb)) ^ k) * Complex.abs (riemannZeta (k - 1)) := by
+  have : 8 / rfunct (z : ℍ') ^ k * Complex.abs (riemannZeta (k - 1 )) ≤ 
+    8 / rfunct (lbpoint A B hb) ^ k * Complex.abs (riemannZeta (k - 1)) := by
+    apply rfunctbound;
+  have h1 := ( AbsEisenstein_bound k (z : ℍ') h)  
+  have hk11 : 1 < k := by linarith
+  have H:= Int.ofNat_sub hk11.le
+  have H2 : (((k-1) : ℕ) : ℂ) = k - 1 := by norm_cast
+  rw [H2] at h1
+  sorry
+  --apply le_trans h1 this
+
+
+/-Dont think this proof words as the ineq is probs not true
+theorem Eisenstein_series_is_bounded (k a b: ℤ) (N : ℕ) (hk : 3 ≤ k) (A : SL(2, ℤ)) :
+    IsBoundedAtImInfty ( (Eisenstein_SIF_lvl_N N k a b).1∣[k,A]) :=
+  by
+  have := Eisenstein_is_bounded k hk 
+  simp_rw [UpperHalfPlane.bounded_mem,Eisenstein_SIF_lvl_N] at *
+  obtain ⟨M, B, H ⟩:= this
+  use M 
+  use B
+  intro z hz
+  apply le_trans (UBOUND N k a b z A)
+  apply H z hz
+
+-/
   
 
+  
+ 

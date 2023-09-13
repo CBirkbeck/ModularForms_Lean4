@@ -67,8 +67,7 @@ theorem upp_half_translation (z : ℍ) :
   use-n
   have := modular_T_zpow_smul z (-n)
   simp_rw [this]
-  simp  [ge_iff_le, slice_mem, UpperHalfPlane.coe_im, 
-    UpperHalfPlane.coe_re]
+  simp only [Int.cast_neg, slice_mem, abs_ofReal, ge_iff_le]
   constructor
   have : (-(n : ℝ) +ᵥ z).1.re= -Int.floor z.1.1 + z.re := by rfl
   norm_cast at *
@@ -84,6 +83,43 @@ theorem upp_half_translation (z : ℍ) :
   apply le_abs_self
 
 
+
+theorem upp_half_translation_N (z : ℍ) (N : ℤ) (hn : 0  < N) :
+    ∃ n : ℤ, ((((ModularGroup.T^N)^n))) • z ∈ upperHalfSpaceSlice N z.1.2 :=
+  by
+  let n := Int.floor (z.1.1/N)
+  use-n
+  have hpow : (ModularGroup.T ^ N) ^ (-n) = (ModularGroup.T) ^ (-(N: ℤ)*n) := by 
+    simp
+    norm_cast
+    rw [←zpow_mul]
+  rw [hpow]
+  have := modular_T_zpow_smul z (-N*n)
+  simp_rw [this]
+  simp only [Int.cast_neg, slice_mem, abs_ofReal, ge_iff_le]
+  constructor
+  have HT: (-(N : ℤ)*(n : ℝ) +ᵥ z).1.re= -N *Int.floor (z.1.1/N) + z.re := by rfl
+  norm_cast at *
+  rw [HT]
+  simp
+  rw [add_comm]
+  have hnn :  (0 : ℝ)  < (N : ℝ) := by norm_cast at *
+  have h0 := Int.sub_floor_div_mul_lt (z.1.1 : ℝ) hnn
+  simp_rw [UpperHalfPlane.re] at *
+  have h1 := Int.sub_floor_div_mul_nonneg (z.1.1 : ℝ) hnn
+  have h2 : z.1.1 +-(N*n)=  z.1.1 - n*N := by ring
+  simp only [uhc] at *
+  rw [h2]
+  rw [abs_eq_self.2 h1]
+  apply h0.le
+  have : (-N*(n : ℝ) +ᵥ z).1.im = z.im := by 
+    have := vadd_im (-N*(n : ℝ)) z
+    rw [← this]
+    congr
+  simp at *
+  rw [this]
+  apply le_abs_self
+ 
 
 lemma riemannZeta_abs_nat (k : ℕ) (h : 1 < k) : Complex.abs (riemannZeta (k : ℕ)) =
   ∑' n : ℕ, 1 / (n : ℝ) ^ k := by
@@ -156,6 +192,9 @@ theorem AbsEisenstein_bound_unifomly_on_stip (k : ℕ) (h : 3 ≤ k) (A B : ℝ)
   have H2 : (((k-1) : ℕ) : ℂ) = k - 1 := by norm_cast
   rw [H2] at h1
   apply le_trans h1 this
+
+
+
 
 theorem eis_bound_by_real_eis (k : ℕ) (z : ℍ) (hk : 3 ≤ k) :
     Complex.abs (Eisenstein_tsum k z) ≤ AbsEisenstein_tsum k z :=
