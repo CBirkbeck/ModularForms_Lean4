@@ -19,10 +19,14 @@ local notation "ℍ'" =>
 
 local notation "SL(" n ", " R ")" => Matrix.SpecialLinearGroup (Fin n) R  
 
+local notation "GL(" n ", " R ")" "⁺" => Matrix.GLPos (Fin n) R
+
 def lvl_N_congr (N : ℕ) (a b : ℤ ) := {x : ℤ × ℤ  // (x.1 : ZMod N) = a ∧ (x.2 : ZMod N) = b ∧ (x.1).gcd (x.2) = 1 }
 
 def lvl_N_congr' (N : ℕ) (a b : ℤ ) := {f : (Fin 2) → ℤ  // (f 0 : ZMod N) = a ∧ (f 1 : ZMod N) = b ∧ 
   (f 0).gcd (f 1) = 1 }
+
+section
 
 variable {n : Type u} [DecidableEq n] [Fintype n] {R : Type v} [CommRing R]
 
@@ -31,6 +35,8 @@ def SpecialLinearGroup.transpose ( A:  Matrix.SpecialLinearGroup n R)  :
   use A.1.transpose
   rw [Matrix.det_transpose]
   apply A.2
+
+section gcd_to_sl_lemmas
 
 def gcd_one_to_SL (a b : ℤ) (hab : a.gcd b =1) : SL(2, ℤ) := by
   use !![a, -Int.gcdB a b;  b, Int.gcdA a b]
@@ -41,6 +47,14 @@ def gcd_one_to_SL (a b : ℤ) (hab : a.gcd b =1) : SL(2, ℤ) := by
   rw [this]
   ring
 
+def gcd_one_to_SL_bot_row (a b : ℤ) (hab : a.gcd b =1) : SL(2, ℤ) := by
+  use !![ Int.gcdB a b,  -Int.gcdA a b; a, b]
+  simp
+  have := Int.gcd_eq_gcd_ab a b 
+  rw [hab] at this
+  simp at this
+  rw [this]
+  ring
 
 def SL_to_gcd_one_fst_col (A: SL(2,ℤ)) : (A.1 0 0).gcd (A.1 0 1) = 1 := by
     rw [Int.gcd_eq_one_iff_coprime]
@@ -160,12 +174,12 @@ lemma summable_Eisenstein_N_tsum' (k : ℕ) (hk : 3 ≤ k) (N : ℕ) (a b : ℤ)
 
 
 
-
-
-
-
-
-
+lemma feise_eq_one_div_denom (k : ℤ) (z : ℍ) (v : (lvl_N_congr'  N a b))  : feise k z v = 
+  1/(UpperHalfPlane.denom (gcd_one_to_SL_bot_row (v.1 0) (v.1 1) v.2.2.2) z)^(k) := by 
+  rw [feise, denom,gcd_one_to_SL_bot_row]
+  simp
+  rw [eise]
+  simp
 
 
 
@@ -245,11 +259,45 @@ lemma T_pow_N_mem_Gamma' (N n : ℤ) : (ModularGroup.T^N)^n ∈ _root_.Gamma (In
   exact Subgroup.zpow_mem (_root_.Gamma (Int.natAbs N)) (T_pow_N_mem_Gamma N) n
 
 
+local notation:1024 "↑ₘ" A:1024 =>
+  (((A : GL(2, ℝ)⁺) : GL (Fin 2) ℝ) : Matrix (Fin 2) (Fin 2) _)
+
+
+lemma slash_apply (k : ℤ) (A : SL(2,ℤ)) (f : ℍ → ℂ) (z : ℍ): (f∣[k,A]) z = 
+  f (A • z)  * UpperHalfPlane.denom A z ^ (-k) := by
+  rw [denom]
+  simp
+
+  sorry
+
+
 
 lemma Eisenstein_lvl_N_Sl_inv (N : ℕ) (k a b : ℤ) (A : SL(2,ℤ)) : 
   (((Eisenstein_SIF_lvl_N N k a b).1)∣[k,A]) = 
     (((Eisenstein_SIF_lvl_N N k (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1)).1)) := by
-   sorry 
+ 
+  ext1 z
+  have := slash_apply k A ((Eisenstein_SIF_lvl_N N k a b).1) z
+  rw [this] 
+  simp only [SlashInvariantForm.toFun_eq_coe]
+  simp_rw [Eisenstein_SIF_lvl_N, Eisenstein_N_tsum]
+  simp only [SlashInvariantForm.coe_mk]
+  rw [Eisenstein_N_tsum]
+  rw [Eisenstein_N_tsum]
+  have := @feise_eq_one_div_denom N a b k (A • z) 
+  
+
+  simp_rw [feise, denom]
+  simp only [piFinTwoEquiv_apply, Matrix.SpecialLinearGroup.coe_GLPos_coe_GL_coe_matrix,
+    Matrix.SpecialLinearGroup.map_apply_coe, RingHom.mapMatrix_apply, Int.coe_castRingHom, Matrix.map_apply,
+    ofReal_int_cast, uhc]
+
+
+  
+
+  
+   
+  sorry 
 
 lemma UBOUND (N : ℕ) (k a b : ℤ) (z : ℍ) (A: SL(2, ℤ)): 
   Complex.abs ((((Eisenstein_SIF_lvl_N N k a b))) z) ≤ (AbsEisenstein_tsum k z) := by
@@ -358,7 +406,8 @@ theorem Eisenstein_series_is_bounded (k a b: ℤ) (N : ℕ) (hk : 3 ≤ k) (A : 
   have hkk : 3 ≤ Int.natAbs k := by sorry  
   have := AbsEisenstein_bound_unifomly_on_stip (Int.natAbs k) hkk N 2 (by linarith) ⟨Z, hZ⟩
   sorry
-
+  --convert this
+  
 
   /-
   have := Eisenstein_is_bounded k hk 
