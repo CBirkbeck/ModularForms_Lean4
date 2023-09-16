@@ -87,6 +87,41 @@ lemma SL2_gcd (a b : ℤ) (hab : a.gcd b = 1) (A : SL(2,ℤ)) :
     simp at this
     exact this
 
+def GammaSLinv (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ)) (f : lvl_N_congr' N a b) : 
+  (lvl_N_congr' N (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1)) := by
+  use Matrix.vecMul f.1 A.1 
+  simp
+  have hf := f.2  
+  have := SL2_gcd (f.1 0) (f.1 1) hf.2.2 A
+  simp_rw [Matrix.vecMul, Matrix.vecHead] at *
+  simp at *
+  simp_rw [Matrix.vecHead,Matrix.vecTail, hf.1, hf.2.1]
+  simp
+  convert this
+
+def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ)) 
+  (f : lvl_N_congr' N (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1)) : 
+  (lvl_N_congr' N a b) := by
+  use Matrix.vecMul f.1 A⁻¹.1 
+  have hf := f.2  
+  have := SL2_gcd (f.1 0) (f.1 1) hf.2.2 A⁻¹
+  have hi := Matrix.vecMul_vecMul ![(a : ZMod N),(b : ZMod N)] 
+    (Matrix.map A.1 (fun (x : ℤ) => (x : ZMod N))) (Matrix.map A⁻¹.1 (fun (x : ℤ) => (x : ZMod N)))
+  have HI : (fun (x : ℤ) => (x : ZMod N)) ∘ (Matrix.vecMul (f.1) (A⁻¹.1))  = ![(a : ZMod N),(b : ZMod N)] := by
+    simp
+    convert hi
+    ext i
+    fin_cases i
+    simp [hf.1]
+    
+  stop
+  simp [Matrix.vecMul_vecMul]
+  simp_rw [Matrix.vecMul, Matrix.vecHead, Matrix.adjugate, Matrix.dotProduct] at *
+  simp at *
+  simp_rw [Matrix.vecHead,Matrix.vecTail,Matrix.adjugate,Matrix.transpose,Matrix.cramer,Matrix.cramerMap, hf.1, hf.2.1]
+  simp
+
+
 def Gammainv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (f : lvl_N_congr' N a b) : (lvl_N_congr' N a b) := by 
   use Matrix.vecMul f.1 γ.1.1 
   simp
@@ -101,6 +136,16 @@ def Gammainv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (f : lvl_N_congr' N a b) :
   convert this
   simp
   simp
+
+/-
+variables (N : ℕ)  (a b : ℤ ) (A  : SL(2,ℤ))(v : lvl_N_congr' N a b) 
+#check  GammaSLinv N (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1) A⁻¹ (GammaSLinv N a b A v) 
+
+
+lemma GammaSLleftinv (N : ℕ)  (a b : ℤ ) (A  : SL(2,ℤ))(v : lvl_N_congr' N a b) : 
+  GammaSLinv N (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1) A⁻¹  (GammaSLinv N a b A v)  := by
+-/
+
 
 lemma Gammaleftinv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (v : lvl_N_congr' N a b) : 
   Gammainv N a b γ⁻¹ (Gammainv N a b γ v) = v := by
