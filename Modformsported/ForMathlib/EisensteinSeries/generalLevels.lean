@@ -106,14 +106,27 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
   have hf := f.2  
   have := SL2_gcd (f.1 0) (f.1 1) hf.2.2 A⁻¹
   have hi := Matrix.vecMul_vecMul ![(a : ZMod N),(b : ZMod N)] 
-    (Matrix.map A.1 (fun (x : ℤ) => (x : ZMod N))) (Matrix.map A⁻¹.1 (fun (x : ℤ) => (x : ZMod N)))
-  have HI : (fun (x : ℤ) => (x : ZMod N)) ∘ (Matrix.vecMul (f.1) (A⁻¹.1))  = ![(a : ZMod N),(b : ZMod N)] := by
-    simp
+    (Matrix.map A.1 ((↑) : ℤ→  (ZMod N))) (Matrix.map A⁻¹.1 ((↑) : ℤ→  (ZMod N)))
+  have HI : ((↑) : ℤ→  (ZMod N)) ∘ (Matrix.vecMul (f.1) (A⁻¹.1))  = 
+    (![(a : ZMod N),(b : ZMod N)] : (Fin 2) → (ZMod N)) := by
+   
+   
+   
+
     convert hi
     ext i
     fin_cases i
     simp [hf.1]
     
+
+
+  constructor
+  have HI0 : (((↑) : ℤ→  (ZMod N)) ∘ (Matrix.vecMul (f.1) (A⁻¹.1))) 0 = (a : ZMod N) := by 
+    rw [HI]
+    simp only [Matrix.cons_val_zero]
+  simpa using HI0  
+  
+
   stop
   simp [Matrix.vecMul_vecMul]
   simp_rw [Matrix.vecMul, Matrix.vecHead, Matrix.adjugate, Matrix.dotProduct] at *
