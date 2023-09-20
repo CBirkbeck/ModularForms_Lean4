@@ -99,6 +99,10 @@ def GammaSLinv (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ)) (f : lvl_N_congr' N a b
   simp
   convert this
 
+lemma a_a_inv  (a b : ℤ )  (A  : SL(2,ℤ)) : 
+  Matrix.vecMul (Matrix.vecMul (![a,b]) A.1) A⁻¹.1 = ![a,b] := by
+  sorry
+
 def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ)) 
   (f : lvl_N_congr' N (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1)) : 
   (lvl_N_congr' N a b) := by
@@ -107,9 +111,18 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
   have := SL2_gcd (f.1 0) (f.1 1) hf.2.2 A⁻¹
   have hi := Matrix.vecMul_vecMul ![(a : ZMod N),(b : ZMod N)] 
     (Matrix.map A.1 ((↑) : ℤ→  (ZMod N))) (Matrix.map A⁻¹.1 ((↑) : ℤ→  (ZMod N)))
-  have HI : ((↑) : ℤ→  (ZMod N)) ∘ (Matrix.vecMul (f.1) (A⁻¹.1))  = 
+  have hi2 := a_a_inv a b A  
+  have hh :  (![(a : ZMod N),(b : ZMod N)] : (Fin 2) → (ZMod N)) =  ((↑) : ℤ →  (ZMod N)) ∘ ![a,b] :=
+    by 
+    funext i
+    fin_cases i
+    simp
+    rfl
+  have HI : ((↑) : ℤ →  (ZMod N)) ∘ (Matrix.vecMul (f.1) (A⁻¹.1))  = 
     (![(a : ZMod N),(b : ZMod N)] : (Fin 2) → (ZMod N)) := by
-   
+    rw [hh]
+    rw [Matrix.SpecialLinearGroup.SL2_inv_expl] at *
+
    
    
 
@@ -117,8 +130,14 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
     ext i
     fin_cases i
     simp [hf.1]
-    
-
+    simp [Matrix.vecMul_vecMul]
+    simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct] at *
+    simp
+    simp_rw [Matrix.vecHead,Matrix.vecTail,Matrix.transpose,Matrix.cramer,Matrix.cramerMap, Matrix.mul]
+    simp
+    rw [hf.1, hf.2.1]
+    simp
+    ring
 
   constructor
   have HI0 : (((↑) : ℤ→  (ZMod N)) ∘ (Matrix.vecMul (f.1) (A⁻¹.1))) 0 = (a : ZMod N) := by 
