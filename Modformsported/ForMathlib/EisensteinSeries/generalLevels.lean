@@ -125,45 +125,67 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
     convert hi
     ext i
     fin_cases i
-    simp [hf.1]
-    simp [Matrix.vecMul_vecMul]
+    simp only [Fin.mk_zero, comp_apply, Matrix.vecMul_vecMul]
     simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct] at *
-    simp
     simp_rw [Matrix.vecHead,Matrix.vecTail,Matrix.transpose,Matrix.cramer,Matrix.cramerMap, Matrix.mul]
-    simp
+    simp only [Matrix.cons_val', Matrix.cons_val_zero, Matrix.empty_val', Matrix.cons_val_fin_one, Fin.sum_univ_two,
+      Matrix.cons_val_one, Matrix.head_fin_const, mul_neg, Int.cast_add, Int.cast_mul, Int.cast_neg, Matrix.map_apply,
+      Matrix.vec2_dotProduct, Matrix.head_cons]
     rw [hf.1, hf.2.1]
-    simp
+    simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons, Int.cast_add,
+      Int.cast_mul]
     ring
-    simp
+    simp only [Fin.mk_one, comp_apply, Matrix.vecMul_vecMul]
     simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct,Matrix.mul] at *
-    simp
+    simp only [Matrix.cons_val', Matrix.cons_val_one, Matrix.head_cons, Matrix.empty_val', Matrix.cons_val_fin_one,
+      Fin.sum_univ_two, Matrix.cons_val_zero, mul_neg, Matrix.head_fin_const, Int.cast_add, Int.cast_neg, Int.cast_mul,
+      Matrix.map_apply, Matrix.vec2_dotProduct]
     rw [hf.1, hf.2.1]
-    simp
+    simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons, Int.cast_add,
+      Int.cast_mul]
     ring
-    simp
     rw [←hi2]
-    simp
+    simp only [Matrix.vecMul_vecMul]
     ext i
     fin_cases i
-    simp
+    simp only [Fin.mk_zero, comp_apply]
     simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct,Matrix.mul] at *
-    simp
+   
+    simp only [Matrix.cons_val', Matrix.cons_val_zero, Matrix.empty_val', Matrix.cons_val_fin_one,
+      Matrix.dotProduct_cons, Fin.sum_univ_two, Matrix.cons_val_one, Matrix.head_cons, Int.cast_add, Int.cast_mul,
+      Matrix.map_apply, Matrix.vec2_dotProduct, Matrix.head_fin_const, Int.cast_neg, mul_neg]
     simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct,Matrix.mul] at *
-    simp
-    
+    simp only [Finset.univ_unique, Fin.default_eq_zero, mul_neg, Finset.sum_neg_distrib, Finset.sum_singleton,
+      Int.cast_neg, Int.cast_mul]
+    simp_rw [Matrix.vecTail]
+    simp only [comp_apply, Fin.succ_zero_eq_one]
+    simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct,Matrix.mul] at *
+    simp only [Matrix.cons_val', Matrix.empty_val', Matrix.cons_val_fin_one, Matrix.dotProduct_cons, Fin.sum_univ_two,
+      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons, Fin.mk_one, comp_apply, mul_neg, Int.cast_add,
+      Int.cast_mul, Int.cast_neg, Matrix.map_apply, Matrix.vec2_dotProduct, Matrix.head_fin_const]
+    simp_rw [Matrix.vecTail, Matrix.vecHead, Matrix.dotProduct,Matrix.mul]
+    simp only [Finset.univ_unique, Fin.default_eq_zero, comp_apply, Finset.sum_singleton, Fin.succ_zero_eq_one,
+      Int.cast_mul]
   constructor
   have HI0 : (((↑) : ℤ→  (ZMod N)) ∘ (Matrix.vecMul (f.1) (A⁻¹.1))) 0 = (a : ZMod N) := by 
     rw [HI]
     simp only [Matrix.cons_val_zero]
   simpa using HI0  
-  
-
-  stop
-  simp [Matrix.vecMul_vecMul]
-  simp_rw [Matrix.vecMul, Matrix.vecHead, Matrix.adjugate, Matrix.dotProduct] at *
-  simp at *
-  simp_rw [Matrix.vecHead,Matrix.vecTail,Matrix.adjugate,Matrix.transpose,Matrix.cramer,Matrix.cramerMap, hf.1, hf.2.1]
-  simp
+  constructor
+  have HI1 : (((↑) : ℤ→  (ZMod N)) ∘ (Matrix.vecMul (f.1) (A⁻¹.1))) 1 = (b : ZMod N) := by 
+    rw [HI]
+    simp [Matrix.cons_val_zero]
+  simpa using HI1
+  have := SL2_gcd (f.1 0) (f.1 1) hf.2.2 A⁻¹
+  convert this
+  ext i
+  fin_cases i
+  rfl
+  rfl
+  ext i
+  fin_cases i
+  rfl
+  rfl
 
 
 def Gammainv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (f : lvl_N_congr' N a b) : (lvl_N_congr' N a b) := by 
