@@ -122,10 +122,6 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
     (![(a : ZMod N),(b : ZMod N)] : (Fin 2) → (ZMod N)) := by
     rw [hh]
     rw [Matrix.SpecialLinearGroup.SL2_inv_expl] at *
-
-   
-   
-
     convert hi
     ext i
     fin_cases i
@@ -138,7 +134,23 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
     rw [hf.1, hf.2.1]
     simp
     ring
-
+    simp
+    simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct,Matrix.mul] at *
+    simp
+    rw [hf.1, hf.2.1]
+    simp
+    ring
+    simp
+    rw [←hi2]
+    simp
+    ext i
+    fin_cases i
+    simp
+    simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct,Matrix.mul] at *
+    simp
+    simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct,Matrix.mul] at *
+    simp
+    
   constructor
   have HI0 : (((↑) : ℤ→  (ZMod N)) ∘ (Matrix.vecMul (f.1) (A⁻¹.1))) 0 = (a : ZMod N) := by 
     rw [HI]
