@@ -394,7 +394,6 @@ def Eisenstein_SIF_lvl_N (N : ℕ) (k a b : ℤ) : SlashInvariantForm (Gamma N) 
 
 local notation:73 f "∣[" k:0 "," A "]" => SlashAction.map ℂ k A f
 
-variables (k a b: ℤ) (A: SL(2,ℤ)) (N : ℤ) (z : ℍ)
 
 lemma int_cast_abs_self (N : ℤ) : (N : ZMod (Int.natAbs N)) = 0 := by
   refine Iff.mpr (ZMod.int_cast_zmod_eq_zero_iff_dvd N (Int.natAbs N)) ?_
