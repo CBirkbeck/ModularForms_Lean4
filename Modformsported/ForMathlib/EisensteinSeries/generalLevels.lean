@@ -21,10 +21,18 @@ local notation "SL(" n ", " R ")" => Matrix.SpecialLinearGroup (Fin n) R
 
 local notation "GL(" n ", " R ")" "⁺" => Matrix.GLPos (Fin n) R
 
-def lvl_N_congr (N : ℕ) (a b : ℤ ) := {x : ℤ × ℤ  // (x.1 : ZMod N) = a ∧ (x.2 : ZMod N) = b ∧ (x.1).gcd (x.2) = 1 }
+def lvl_N_congr (N : ℕ) (a b : ℤ ) := {x : ℤ × ℤ  | (x.1 : ZMod N) = a ∧ (x.2 : ZMod N) = b ∧ (x.1).gcd (x.2) = 1 }
 
-def lvl_N_congr' (N : ℕ) (a b : ℤ ) := {f : (Fin 2) → ℤ  // (f 0 : ZMod N) = a ∧ (f 1 : ZMod N) = b ∧ 
+def lvl_N_congr' (N : ℕ) (a b : ℤ ) := {f : (Fin 2) → ℤ  | (f 0 : ZMod N) = a ∧ (f 1 : ZMod N) = b ∧ 
   (f 0).gcd (f 1) = 1 }
+
+@[simp]
+lemma lvl_N_congr_mem (N : ℕ) (a b : ℤ ) (x : ℤ × ℤ) : x ∈ lvl_N_congr N a b ↔ 
+  (x.1 : ZMod N) = a ∧ (x.2 : ZMod N) = b ∧ (x.1).gcd (x.2) = 1 := by rfl
+
+@[simp]
+lemma lvl_N_congr'_mem (N : ℕ) (a b : ℤ ) (f : (Fin 2) → ℤ ) : f ∈ lvl_N_congr' N a b ↔ 
+  (f 0 : ZMod N) = a ∧ (f 1 : ZMod N) = b ∧ (f 0).gcd (f 1) = 1 := by rfl 
 
 section
 
@@ -92,6 +100,7 @@ def GammaSLinv (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ)) (f : lvl_N_congr' N a b
   use Matrix.vecMul f.1 A.1 
   simp
   have hf := f.2  
+  rw [lvl_N_congr'_mem] at hf
   have := SL2_gcd (f.1 0) (f.1 1) hf.2.2 A
   simp_rw [Matrix.vecMul, Matrix.vecHead] at *
   simp at *
@@ -99,9 +108,16 @@ def GammaSLinv (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ)) (f : lvl_N_congr' N a b
   simp
   convert this
 
+@[simp]
+lemma GammaSLinv_apply (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ)) (f : lvl_N_congr' N a b) : 
+  (GammaSLinv N a b A f).1 = Matrix.vecMul f.1 A.1 := by rfl
+
 lemma a_a_inv  (a b : ℤ )  (A  : SL(2,ℤ)) : 
   Matrix.vecMul (Matrix.vecMul (![a,b]) A.1) A⁻¹.1 = ![a,b] := by
-  sorry
+  --have hi := Matrix.vecMul_vecMul ![a,b] 
+  simp
+  rw [Matrix.mul_adjugate, A.2]
+  simp
 
 def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ)) 
   (f : lvl_N_congr' N (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1)) : 
@@ -150,7 +166,6 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
     fin_cases i
     simp only [Fin.mk_zero, comp_apply]
     simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct,Matrix.mul] at *
-   
     simp only [Matrix.cons_val', Matrix.cons_val_zero, Matrix.empty_val', Matrix.cons_val_fin_one,
       Matrix.dotProduct_cons, Fin.sum_univ_two, Matrix.cons_val_one, Matrix.head_cons, Int.cast_add, Int.cast_mul,
       Matrix.map_apply, Matrix.vec2_dotProduct, Matrix.head_fin_const, Int.cast_neg, mul_neg]
@@ -187,6 +202,31 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
   rfl
   rfl
 
+lemma GammaSLleftinv (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))  (v : lvl_N_congr' N a b) : 
+    GammaSLinv' N a b A  (GammaSLinv N a b A v) = v := by
+  rw [GammaSLinv', GammaSLinv]
+  simp 
+  apply Subtype.ext
+  simp  
+  rw [Matrix.mul_adjugate, A.2]
+  simp
+
+lemma GammaSLrightinv (N : ℕ)  (a b : ℤ ) (A  : SL(2,ℤ)) 
+  (v : lvl_N_congr' N (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1)) : 
+    GammaSLinv N a b A  (GammaSLinv' N a b A v) = v := by
+  rw [GammaSLinv', GammaSLinv]
+  simp 
+  apply Subtype.ext
+  simp    
+  rw [Matrix.adjugate_mul, A.2]
+  simp
+
+def GammaSLinv_equiv (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ)) : (lvl_N_congr' N a b) ≃ 
+  (lvl_N_congr' N (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1)) where
+    toFun := GammaSLinv N a b A
+    invFun := GammaSLinv' N a b A 
+    left_inv v:= GammaSLleftinv N a b A v
+    right_inv v:= GammaSLrightinv N a b A v
 
 def Gammainv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (f : lvl_N_congr' N a b) : (lvl_N_congr' N a b) := by 
   use Matrix.vecMul f.1 γ.1.1 
@@ -375,13 +415,24 @@ local notation:1024 "↑ₘ" A:1024 =>
 
 
 lemma slash_apply (k : ℤ) (A : SL(2,ℤ)) (f : ℍ → ℂ) (z : ℍ): (f∣[k,A]) z = 
-  f (A • z)  * UpperHalfPlane.denom A z ^ (-k) := by
+  f (A • z)  * denom A z ^ (-k) := by
   rw [denom]
   simp
 
   sorry
 
-
+lemma denom_cocycle_SL  (N : ℕ) (a b : ℤ) (A : SL(2,ℤ)) (v : (lvl_N_congr'  N a b)) (z : ℍ) :
+  denom ((gcd_one_to_SL_bot_row (v.1 0) (v.1 1) v.2.2.2) * A) z = 
+    denom ((gcd_one_to_SL_bot_row ((GammaSLinv_equiv N a b A v).1 0) 
+      ((GammaSLinv_equiv N a b A v).1 1) (GammaSLinv_equiv N a b A v).2.2.2)) z := by
+  simp_rw [denom, gcd_one_to_SL_bot_row, GammaSLinv_equiv, GammaSLinv]
+  simp only [Submonoid.coe_mul, Subgroup.coe_toSubmonoid, Units.val_mul,
+    Matrix.SpecialLinearGroup.coe_GLPos_coe_GL_coe_matrix, Matrix.SpecialLinearGroup.map_apply_coe,
+    RingHom.mapMatrix_apply, Int.coe_castRingHom, Matrix.mul_eq_mul, uhc, Equiv.coe_fn_mk, GammaSLinv_apply,
+    Matrix.map_apply, Matrix.of_apply, Matrix.cons_val', Matrix.cons_val_zero, Matrix.empty_val',
+    Matrix.cons_val_fin_one, Matrix.cons_val_one, Matrix.head_fin_const, ofReal_int_cast, Matrix.head_cons]
+  simp_rw [Matrix.vecMul, Matrix.mul, Matrix.dotProduct]  
+  simp
 
 lemma Eisenstein_lvl_N_Sl_inv (N : ℕ) (k a b : ℤ) (A : SL(2,ℤ)) : 
   (((Eisenstein_SIF_lvl_N N k a b).1)∣[k,A]) = 
@@ -396,25 +447,67 @@ lemma Eisenstein_lvl_N_Sl_inv (N : ℕ) (k a b : ℤ) (A : SL(2,ℤ)) :
   rw [Eisenstein_N_tsum]
   rw [Eisenstein_N_tsum]
   have := @feise_eq_one_div_denom N a b k (A • z) 
-  
+  have t2 := @feise_eq_one_div_denom N (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1) k (z)
 
-  simp_rw [feise, denom]
+
   simp only [piFinTwoEquiv_apply, Matrix.SpecialLinearGroup.coe_GLPos_coe_GL_coe_matrix,
     Matrix.SpecialLinearGroup.map_apply_coe, RingHom.mapMatrix_apply, Int.coe_castRingHom, Matrix.map_apply,
     ofReal_int_cast, uhc]
+  convert (Equiv.tsum_eq (GammaSLinv_equiv N a b A) _)
+  norm_cast
+  rw [←Summable.tsum_mul_right]
+  apply tsum_congr
+  intro v
+  simp_rw [this]
+  rw [t2]
+  simp only [cpow_int_cast, one_div, zpow_neg]
+  rw [←mul_inv]
+  congr
+  rw [←mul_zpow]
+  congr
+  have cocy:= UpperHalfPlane.denom_cocycle (gcd_one_to_SL_bot_row (v.1 0) (v.1 1) v.2.2.2) A z
+  have seq : A • z = smulAux A z := by rfl
+  rw [seq]
+  rw [←cocy]
+  have HF:= denom_cocycle_SL N a b A v z
+  exact HF
+  simp_rw [feise]
 
+  sorry
 
+  exact T25Space.t2Space
   
+lemma tsum_subtype_le {α : Type} (f : α → ℝ) (β : Set α) (hf : ∀ a : α, 0 ≤ f a) (hf2 : Summable f) :
+  (∑' (b : β), f b) ≤ (∑' (a : α), f a) := by
+  have := tsum_subtype_add_tsum_subtype_compl hf2 β
+  rw [← this]
+  simp
+  apply tsum_nonneg
+  intro b
+  apply hf b
 
-  
-   
-  sorry 
-
-lemma UBOUND (N : ℕ) (k a b : ℤ) (z : ℍ) (A: SL(2, ℤ)): 
+lemma UBOUND (N : ℕ) (a b : ℤ) (k : ℕ) (hk : 3 ≤ k) (z : ℍ) (A: SL(2, ℤ)): 
   Complex.abs ((((Eisenstein_SIF_lvl_N N k a b))) z) ≤ (AbsEisenstein_tsum k z) := by
   simp_rw [Eisenstein_SIF_lvl_N, AbsEisenstein_tsum, Eisenstein_N_tsum]
   simp
   apply le_trans (abs_tsum' ?_)
+  simp_rw [feise, eise]
+  have := Equiv.tsum_eq prod_fun_equiv.symm (fun x : ℤ × ℤ => (AbsEise k z x))
+  rw [←this]
+ 
+  have Ht := tsum_subtype_le (fun x : (Fin 2 → ℤ)  => (AbsEise k z (prod_fun_equiv.symm x))) 
+    (lvl_N_congr' N a b) ?_ ?_
+  simp_rw [AbsEise] at *
+  simp at *
+  apply le_trans Ht
+  rfl
+  intro v
+  simp_rw [AbsEise]
+  simp
+  have := real_eise_is_summable k z hk
+  rw [←Equiv.summable_iff prod_fun_equiv.symm] at this
+  exact this
+
   sorry
   
  /-
@@ -427,7 +520,7 @@ lemma UBOUND (N : ℕ) (k a b : ℤ) (z : ℍ) (A: SL(2, ℤ)):
     rfl
   rw [this]
 -/
-  sorry
+ 
 
 /-
 
@@ -494,8 +587,8 @@ theorem lvl_N_periodic (N : ℕ) (k : ℤ) (f : SlashInvariantForm (Gamma N) k) 
   ring_nf
   simp
 
-theorem Eisenstein_series_is_bounded (k a b: ℤ) (N : ℕ) (hk : 3 ≤ k) (A : SL(2, ℤ)) (hN : 0 < (N : ℤ)) :
-    IsBoundedAtImInfty ( (Eisenstein_SIF_lvl_N N k a b).1∣[k,A]) :=
+theorem Eisenstein_series_is_bounded (a b: ℤ) (N k: ℕ) (hk : 3 ≤ k) (A : SL(2, ℤ)) (hN : 0 < (N : ℤ)) :
+    IsBoundedAtImInfty ( (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1∣[(k : ℤ),A]) :=
   by
   simp_rw [UpperHalfPlane.bounded_mem] at *
   let M : ℝ := 8 / rfunct (lbpoint N 2 <| by linarith) ^ k * Complex.abs (riemannZeta (k - 1))
@@ -509,14 +602,16 @@ theorem Eisenstein_series_is_bounded (k a b: ℤ) (N : ℕ) (hk : 3 ≤ k) (A : 
   simp only [SlashInvariantForm.toFun_eq_coe, Real.rpow_int_cast, ge_iff_le]
   rw [←this]  
 
-  apply le_trans (UBOUND N k _ _ ((ModularGroup.T ^ N) ^ n • z) A)
+  apply le_trans (UBOUND N _ _ k hk ((ModularGroup.T ^ N) ^ n • z) A)
   let Z := ((ModularGroup.T ^ N) ^ n) • z
   have hZ : Z ∈ upperHalfSpaceSlice N 2 :=
     by
     sorry
-  have hkk : 3 ≤ Int.natAbs k := by sorry  
+  have hkk : 3 ≤ Int.natAbs k := by norm_cast  
   have := AbsEisenstein_bound_unifomly_on_stip (Int.natAbs k) hkk N 2 (by linarith) ⟨Z, hZ⟩
-  sorry
+  convert this
+
+  
   --convert this
   
 
