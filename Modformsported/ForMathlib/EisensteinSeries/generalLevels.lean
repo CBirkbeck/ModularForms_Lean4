@@ -489,7 +489,7 @@ lemma tsum_subtype_le {α : Type} (f : α → ℝ) (β : Set α) (hf : ∀ a : �
   intro b
   apply hf b
 
-lemma UBOUND (N : ℕ) (a b : ℤ) (k : ℕ) (hk : 3 ≤ k) (z : ℍ) (A: SL(2, ℤ)): 
+lemma UBOUND (N : ℕ) (a b : ℤ) (k : ℕ) (hk : 3 ≤ k) (z : ℍ): 
   Complex.abs ((((Eisenstein_SIF_lvl_N N k a b))) z) ≤ (AbsEisenstein_tsum k z) := by
   simp_rw [Eisenstein_SIF_lvl_N, AbsEisenstein_tsum, Eisenstein_N_tsum]
   simp
@@ -511,19 +511,8 @@ lemma UBOUND (N : ℕ) (a b : ℤ) (k : ℕ) (hk : 3 ≤ k) (z : ℍ) (A: SL(2, 
   rw [←Equiv.summable_iff prod_fun_equiv.symm] at this
   exact this
   rw [←summable_iff_abs_summable]
-  sorry
-  
- /-
-  have hr := (Eisenstein_SIF ⊤ k).2 ⟨A, by tauto⟩
-  simp only [SlashInvariantForm.toFun_eq_coe, ge_iff_le] at *
-  have : Complex.abs (Eisenstein_SIF ⊤ k z) = Complex.abs ((((Eisenstein_SIF ⊤ k).1)∣[k,A]) z) := by
-    congr
-    apply symm
-    rw [←hr]
-    rfl
-  rw [this]
--/
- 
+  apply summable_Eisenstein_N_tsum' k hk
+
 
 /-
 
@@ -605,7 +594,7 @@ theorem Eisenstein_series_is_bounded (a b: ℤ) (N k: ℕ) (hk : 3 ≤ k) (A : S
   simp only [SlashInvariantForm.toFun_eq_coe, Real.rpow_int_cast, ge_iff_le]
   rw [←this]  
 
-  apply le_trans (UBOUND N _ _ k hk ((ModularGroup.T ^ N) ^ n • z) A)
+  apply le_trans (UBOUND N _ _ k hk ((ModularGroup.T ^ N) ^ n • z))
   let Z := ((ModularGroup.T ^ N) ^ n) • z
   have hZ : Z ∈ upperHalfSpaceSlice N 2 :=
     by
@@ -613,7 +602,7 @@ theorem Eisenstein_series_is_bounded (a b: ℤ) (N k: ℕ) (hk : 3 ≤ k) (A : S
   have hkk : 3 ≤ Int.natAbs k := by norm_cast  
   have := AbsEisenstein_bound_unifomly_on_stip (Int.natAbs k) hkk N 2 (by linarith) ⟨Z, hZ⟩
   convert this
-
+  apply hk
   
   --convert this
   
