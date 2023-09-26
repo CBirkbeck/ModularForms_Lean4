@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
 import Modformsported.ForMathlib.EisensteinSeries.ModularForm
+import Modformsported.ForMathlib.AuxpLemmas
 import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups 
+
 
 noncomputable section
 
@@ -438,8 +440,8 @@ lemma denom_cocycle_SL  (N : ℕ) (a b : ℤ) (A : SL(2,ℤ)) (v : (lvl_N_congr'
   simp_rw [Matrix.vecMul, Matrix.mul, Matrix.dotProduct]  
   simp
 
-lemma Eisenstein_lvl_N_Sl_inv (N : ℕ) (k a b : ℤ) (A : SL(2,ℤ)) : 
-  (((Eisenstein_SIF_lvl_N N k a b).1)∣[k,A]) = 
+lemma Eisenstein_lvl_N_Sl_inv (N k: ℕ) (hk : 3 ≤ k) (a b : ℤ) (A : SL(2,ℤ)) : 
+  (((Eisenstein_SIF_lvl_N N (k : ℤ) a b).1)∣[(k : ℤ),A]) = 
     (((Eisenstein_SIF_lvl_N N k (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1)).1)) := by
  
   ext1 z
@@ -475,10 +477,7 @@ lemma Eisenstein_lvl_N_Sl_inv (N : ℕ) (k a b : ℤ) (A : SL(2,ℤ)) :
   rw [←cocy]
   have HF:= denom_cocycle_SL N a b A v z
   exact HF
-  
-
-  sorry
-
+  apply summable_Eisenstein_N_tsum' k hk 
   exact T25Space.t2Space
   
 lemma tsum_subtype_le {α : Type} (f : α → ℝ) (β : Set α) (hf : ∀ a : α, 0 ≤ f a) (hf2 : Summable f) :
@@ -511,7 +510,7 @@ lemma UBOUND (N : ℕ) (a b : ℤ) (k : ℕ) (hk : 3 ≤ k) (z : ℍ) (A: SL(2, 
   have := real_eise_is_summable k z hk
   rw [←Equiv.summable_iff prod_fun_equiv.symm] at this
   exact this
-
+  rw [←summable_iff_abs_summable]
   sorry
   
  /-
