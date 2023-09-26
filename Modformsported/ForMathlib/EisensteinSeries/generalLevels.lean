@@ -306,8 +306,10 @@ lemma summable_Eisenstein_N_tsum (k : ℕ) (hk : 3 ≤ k) (N : ℕ) (a b : ℤ) 
   Summable (fun (x : (lvl_N_congr  N a b)) => (eise k z  x.1) ) := by 
   apply (Eisenstein_tsum_summable k z hk).subtype
 
-def feise (k : ℤ) (z : ℍ) (v : (lvl_N_congr'  N a b)) : ℂ := (eise k z ((piFinTwoEquiv fun _ => ℤ) v.1))
 
+
+def feise (k : ℤ) (z : ℍ) (v : (lvl_N_congr'  N a b)) : ℂ := (eise k z ((piFinTwoEquiv fun _ => ℤ) v.1))
+  
 /-- The Eisenstein series of weight `k : ℤ` -/
 def Eisenstein_N_tsum (k : ℤ) (N : ℕ) (a b : ℤ) : ℍ → ℂ := fun z => ∑' x : (lvl_N_congr'  N a b), 
   (feise k z  x)
@@ -415,10 +417,13 @@ local notation:1024 "↑ₘ" A:1024 =>
 
 lemma slash_apply (k : ℤ) (A : SL(2,ℤ)) (f : ℍ → ℂ) (z : ℍ): (f∣[k,A]) z = 
   f (A • z)  * denom A z ^ (-k) := by
-  rw [denom]
-  simp
-
-  sorry
+  simp only [SL_slash, slash_def, ModularForm.slash,denom, Matrix.SpecialLinearGroup.coe_GLPos_coe_GL_coe_matrix, 
+    zpow_neg, Matrix.SpecialLinearGroup.det_coe, ofReal_one, one_zpow, mul_one, subgroup_to_sl_moeb]
+  simp only [Matrix.SpecialLinearGroup.map_apply_coe, RingHom.mapMatrix_apply, Int.coe_castRingHom, Matrix.map_apply,
+    ofReal_int_cast, uhc, UpperHalfPlane.sl_moeb]
+  norm_cast
+  rw [zpow_neg]
+  congr
 
 lemma denom_cocycle_SL  (N : ℕ) (a b : ℤ) (A : SL(2,ℤ)) (v : (lvl_N_congr'  N a b)) (z : ℍ) :
   denom ((gcd_one_to_SL_bot_row (v.1 0) (v.1 1) v.2.2.2) * A) z = 
@@ -470,7 +475,7 @@ lemma Eisenstein_lvl_N_Sl_inv (N : ℕ) (k a b : ℤ) (A : SL(2,ℤ)) :
   rw [←cocy]
   have HF:= denom_cocycle_SL N a b A v z
   exact HF
-  simp_rw [feise]
+  
 
   sorry
 
