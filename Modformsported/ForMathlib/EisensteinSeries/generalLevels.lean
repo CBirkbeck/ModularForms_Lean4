@@ -514,39 +514,6 @@ lemma UBOUND (N : ℕ) (a b : ℤ) (k : ℕ) (hk : 3 ≤ k) (z : ℍ):
   apply summable_Eisenstein_N_tsum' k hk
 
 
-/-
-
-lemma denom_bound  (k : ℕ) (γ : SL(2,ℤ)) (z : ℍ') : 
-  Complex.abs (1/(UpperHalfPlane.denom γ z)^(k)) ≤ (1/ ((γ.1 1 1 : ℝ) * rfunct (z : ℍ')) ^ k) := by
-  simp_rw [denom]
-  simp
-  rw [inv_le_inv]
-  norm_cast
-  rw [←Complex.abs_pow]
-  have H : rfunct (z : ℍ') ≤  Complex.abs ((γ.1 1 0) * z.1+ γ.1 1 1) := by
-    sorry
-  sorry
-  sorry
-  sorry
-
-
-
-theorem AbsEisenstein_bound_unifomly_on_stip' (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) 
-    (γ : SL(2,ℤ)) (z : upperHalfSpaceSlice A B) :
-    Complex.abs ((UpperHalfPlane.denom γ z)^(-(k : ℤ)))*(AbsEisenstein_tsum k z.1) ≤ 
-    (8 / ((γ.1 1 1)*rfunct (lbpoint A B hb)) ^ k) * Complex.abs (riemannZeta (k - 1)) := by
-  have : 8 / rfunct (z : ℍ') ^ k * Complex.abs (riemannZeta (k - 1 )) ≤ 
-    8 / rfunct (lbpoint A B hb) ^ k * Complex.abs (riemannZeta (k - 1)) := by
-    apply rfunctbound;
-  have h1 := ( AbsEisenstein_bound k (z : ℍ') h)  
-  have hk11 : 1 < k := by linarith
-  have H:= Int.ofNat_sub hk11.le
-  have H2 : (((k-1) : ℕ) : ℂ) = k - 1 := by norm_cast
-  rw [H2] at h1
-  sorry
-  --apply le_trans h1 this
--/
-
 theorem lvl_N_periodic (N : ℕ) (k : ℤ) (f : SlashInvariantForm (Gamma N) k) :
     ∀ (z : ℍ) (n : ℤ), f (((ModularGroup.T^N)^n)  • z) = f z :=
   by
@@ -614,27 +581,26 @@ theorem Eisenstein_series_is_bounded (a b: ℤ) (N k: ℕ) (hk : 3 ≤ k) (A : S
     rw [va]
     convert hz
     simp
-    apply z.2.le
+    apply z.2.le 
   have hkk : 3 ≤ Int.natAbs k := by norm_cast  
   have := AbsEisenstein_bound_unifomly_on_stip (Int.natAbs k) hkk N 2 (by linarith) ⟨Z, hZ⟩
   convert this
   apply hk
   
-  --convert this
-  
 
-  /-
-  have := Eisenstein_is_bounded k hk 
-  simp_rw [UpperHalfPlane.bounded_mem,Eisenstein_SIF_lvl_N] at *
-  obtain ⟨M, B, H ⟩:= this
-  use M 
-  use B
-  intro z hz
-  apply le_trans (UBOUND N k a b z A)
-  apply H z hz
-  -/
+/-
+open Set Metric MeasureTheory Filter Complex intervalIntegral
 
-  
+open scoped Real Topology
 
-  
- 
+variable {α β 𝕜 E F : Type _} [IsROrC 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  [NormedAddCommGroup F] [CompleteSpace F] {u : α → ℝ}
+
+theorem tendstoUniformlyOn_tsum' {f : α → β → F} (hu : Summable u) {s : Set β} (I : Set α)
+    (hfu : ∀ n x, x ∈ s → ‖f n x‖ ≤ u n) :
+    TendstoUniformlyOn (fun t : Finset I => fun x => ∑ n in t, f n x) (fun x => ∑' n : I, f n x) atTop
+      s := by
+  have :=  tendstoUniformlyOn_tsum hu hfu  
+  rw [tendstoUniformlyOn_iff ] at *
+  simp at *
+-/

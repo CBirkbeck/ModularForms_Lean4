@@ -399,6 +399,57 @@ theorem Eisenstein_series_is_sum_eisen_squares_slice (k : ℕ) (h : 3 ≤ k) (A 
   have index_lem := tsum_lemma g (fun (n : ℕ) => square n) HI hgsumm
   exact index_lem
 
+lemma Eisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) 
+  (z : upperHalfSpaceSlice A B ) :
+   Complex.abs (eisensteinSeriesRestrict k A B z) ≤ 
+    ∑' n : ℕ,  8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ (k - 1))⁻¹ := by 
+  simp
+  have :=Eisenstein_series_is_sum_eisen_squares_slice k h A B  z
+  rw [this]
+  apply le_trans (abs_tsum' _)
+  apply tsum_le_tsum
+  simp_rw [eisenSquareSlice]
+  simp_rw [eisenSquare]
+  simp_rw [eise]
+  intro n
+  have SC := AbsEise_bounded_on_square k z h n
+  simp_rw [AbsEise] at SC 
+  simp at SC 
+  simp
+  have ineq1 :
+    Complex.abs (∑ x : ℤ × ℤ in square n, ((↑x.fst * ↑↑z + ↑x.snd) ^ k)⁻¹) ≤
+      ∑ x : ℤ × ℤ in square n, (Complex.abs ((↑x.fst * ↑↑z + ↑x.snd) ^ k))⁻¹ :=
+    by
+    simp
+    have := complex_abs_sum_le (square n) fun x : ℤ × ℤ => (((x.1 : ℂ) * (z : ℂ) + (x.2 : ℂ)) ^ k)⁻¹
+    simp at this 
+    exact this
+  simp at *
+  have SC2 := le_trans ineq1 SC
+  have rb := rfunctbound' k A B hb z n
+  norm_cast at *
+  apply le_trans SC2 rb
+
+  sorry
+  have hk : 1 < (k - 1 : ℝ) := by 
+    have hy: 1 < (k -1  : ℤ) := by linarith
+    norm_cast at *
+  have riesum := Real.summable_nat_rpow_inv.2 hk
+  have nze : (8 / rfunct (lbpoint A B hb) ^ k : ℝ) ≠ 0 :=
+    by
+    apply div_ne_zero
+    simp
+    norm_cast
+    apply pow_ne_zero
+    simp; by_contra HR
+    have := rfunct_pos (lbpoint A B hb)
+    rw [HR] at this 
+    simp at this 
+  norm_cast at *  
+  rw [← (summable_mul_left_iff nze).symm]
+  apply riesum
+  sorry
+
 theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :
     TendstoUniformly (eisenParSumSlice k A B) (eisensteinSeriesRestrict k A B) Filter.atTop :=
   by
