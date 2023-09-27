@@ -593,12 +593,28 @@ theorem Eisenstein_series_is_bounded (a b: ℤ) (N k: ℕ) (hk : 3 ≤ k) (A : S
     (Matrix.vecMul ![a, b] (A.1) 1)) z n
   simp only [SlashInvariantForm.toFun_eq_coe, Real.rpow_int_cast, ge_iff_le]
   rw [←this]  
-
   apply le_trans (UBOUND N _ _ k hk ((ModularGroup.T ^ N) ^ n • z))
   let Z := ((ModularGroup.T ^ N) ^ n) • z
   have hZ : Z ∈ upperHalfSpaceSlice N 2 :=
     by
-    sorry
+    norm_cast at *
+    rw [slice_mem] at *
+    constructor
+    apply hn.1
+    simp only [map_zpow, map_pow, abs_ofReal, ge_iff_le] at *
+    have : ((ModularGroup.T^N)^n)  = (ModularGroup.T^((N : ℤ)*n)) := by 
+      rw [zpow_mul]
+      simp
+    rw [this] at *
+    rw [modular_T_zpow_smul] at *
+    simp
+    have va := UpperHalfPlane.vadd_im ((N : ℝ)*n) z
+    simp_rw [UpperHalfPlane.im] at *
+    simp at va
+    rw [va]
+    convert hz
+    simp
+    apply z.2.le
   have hkk : 3 ≤ Int.natAbs k := by norm_cast  
   have := AbsEisenstein_bound_unifomly_on_stip (Int.natAbs k) hkk N 2 (by linarith) ⟨Z, hZ⟩
   convert this
