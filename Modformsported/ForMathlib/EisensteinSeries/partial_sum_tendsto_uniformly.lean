@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
 import Modformsported.ForMathlib.ModForms2
-import Modformsported.ForMathlib.EisensteinSeries.summable 
+import Modformsported.ForMathlib.EisensteinSeries.summable   
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
 import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
@@ -12,7 +12,7 @@ import Mathlib.NumberTheory.ModularForms.Basic
 import Mathlib.Analysis.Calculus.Deriv.ZPow 
 import Modformsported.ModForms.HolomorphicFunctions   
 import Mathlib.NumberTheory.ZetaFunction 
-
+ 
 open Complex
 
 open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold Set
@@ -399,19 +399,12 @@ theorem Eisenstein_series_is_sum_eisen_squares_slice (k : ℕ) (h : 3 ≤ k) (A 
   have index_lem := tsum_lemma g (fun (n : ℕ) => square n) HI hgsumm
   exact index_lem
 
-lemma Eisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) 
-  (z : upperHalfSpaceSlice A B ) :
-   Complex.abs (eisensteinSeriesRestrict k A B z) ≤ 
-    ∑' n : ℕ,  8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ (k - 1))⁻¹ := by 
-  simp
-  have :=Eisenstein_series_is_sum_eisen_squares_slice k h A B  z
-  rw [this]
-  apply le_trans (abs_tsum' _)
-  apply tsum_le_tsum
+lemma eisenslice_bounded (k n: ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) 
+  (z : upperHalfSpaceSlice A B ): Complex.abs (eisenSquareSlice (k) A B n z) ≤ 
+    8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ (↑k - 1))⁻¹ := by
   simp_rw [eisenSquareSlice]
   simp_rw [eisenSquare]
   simp_rw [eise]
-  intro n
   have SC := AbsEise_bounded_on_square k z h n
   simp_rw [AbsEise] at SC 
   simp at SC 
@@ -430,25 +423,31 @@ lemma Eisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb
   norm_cast at *
   apply le_trans SC2 rb
 
-  sorry
-  have hk : 1 < (k - 1 : ℝ) := by 
-    have hy: 1 < (k -1  : ℤ) := by linarith
-    norm_cast at *
-  have riesum := Real.summable_nat_rpow_inv.2 hk
-  have nze : (8 / rfunct (lbpoint A B hb) ^ k : ℝ) ≠ 0 :=
-    by
-    apply div_ne_zero
-    simp
-    norm_cast
-    apply pow_ne_zero
-    simp; by_contra HR
-    have := rfunct_pos (lbpoint A B hb)
-    rw [HR] at this 
-    simp at this 
-  norm_cast at *  
-  rw [← (summable_mul_left_iff nze).symm]
-  apply riesum
-  sorry
+
+lemma Eisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) 
+  (z : upperHalfSpaceSlice A B ) :
+   Complex.abs (eisensteinSeriesRestrict k A B z) ≤ 
+    ∑' n : ℕ,  8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ (k - 1))⁻¹ := by 
+  simp
+  have :=Eisenstein_series_is_sum_eisen_squares_slice k h A B  z
+  rw [this]
+  have hs := EisensteinSeries.summable_rfunct_twist k (lbpoint A B hb) h
+  apply le_trans (abs_tsum' _)
+  apply tsum_le_tsum 
+  intro n
+  simpa using  (eisenslice_bounded k n h A B ha hb z) 
+  swap
+  simpa using hs
+  repeat {
+  apply summable_of_nonneg_of_le ?_ 
+  intro b
+  apply (eisenslice_bounded k b h A B ha hb z)
+  simpa using hs
+  intro b
+  apply Complex.abs.nonneg}
+  
+
+
 
 theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :
     TendstoUniformly (eisenParSumSlice k A B) (eisensteinSeriesRestrict k A B) Filter.atTop :=

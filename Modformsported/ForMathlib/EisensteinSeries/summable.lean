@@ -276,6 +276,28 @@ theorem AbsEise_sum_on_square_bounded (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
   apply BIGCLAIM n
 -/
 
+lemma summable_rfunct_twist  (k : ℕ) (z : ℍ) (h : 3 ≤ k) : 
+  Summable fun n : ℕ => 8 / rfunct z ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ := by
+  have hk : 1 < (k - 1 : ℝ) := by 
+    have : 1 < (k -1  : ℤ) := by linarith
+    norm_cast at *
+  have riesum := Real.summable_nat_rpow_inv.2 hk
+  have nze : (8 / rfunct z ^ k : ℝ) ≠ 0 :=
+    by
+    apply div_ne_zero
+    simp only [Ne.def, not_false_iff, bit0_eq_zero, one_ne_zero]
+    linarith
+    norm_cast
+    apply pow_ne_zero
+    simp only [Ne.def]
+    by_contra HR
+    have := rfunct_pos z
+    rw [HR] at this 
+    simp only [lt_self_iff_false] at this  
+  rw [← (summable_mul_left_iff nze).symm]
+  simp only [Int.cast_ofNat, Int.cast_one, Int.cast_sub] at riesum 
+  simp
+  linarith  
 
 theorem real_eise_is_summable (k : ℕ) (z : ℍ) (h : 3 ≤ k) : Summable (AbsEise k z) :=by
   let In := fun (n : ℕ) => square n
