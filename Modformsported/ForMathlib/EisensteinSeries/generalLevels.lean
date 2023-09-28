@@ -588,6 +588,14 @@ theorem Eisenstein_series_is_bounded (a b: ℤ) (N k: ℕ) (hk : 3 ≤ k) (A : S
   apply hk
   
 
+theorem Eisenstein_series_upper_bound (a b : ℤ) (N k: ℕ) (hk : 3 ≤ k) (hN : 0 < (N : ℤ)) (z : ℍ) :
+  Complex.abs (Eisenstein_SIF_lvl_N N (k : ℤ) a b z) ≤ Complex.abs (Eisenstein_tsum k z) := by
+  rw [Eisenstein_tsum, Eisenstein_SIF_lvl_N]  
+  simp
+  rw [Eisenstein_N_tsum]
+  simp
+  apply le_trans (abs_tsum' _)
+
 /-
 open Set Metric MeasureTheory Filter Complex intervalIntegral
 

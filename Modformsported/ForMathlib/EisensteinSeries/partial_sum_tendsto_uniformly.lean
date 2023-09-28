@@ -446,7 +446,34 @@ lemma Eisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb
   intro b
   apply Complex.abs.nonneg}
   
-
+lemma AbsEisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) 
+  (z : upperHalfSpaceSlice A B ) : ∑' (x : ℤ × ℤ), (AbsEise k z x) ≤  
+    ∑' (x : ℤ × ℤ),  8 / rfunct (lbpoint A B hb) ^ k * (((Nat.max (Int.natAbs (x.1)) (Int.natAbs (x.2))) : ℝ) ^ (k - 1))⁻¹ := by
+  simp only [Real.rpow_nat_cast]
+  apply tsum_le_tsum
+  intro i
+  have := AbsEise_bounded_on_square k z h (Nat.max (Int.natAbs (i.1)) (Int.natAbs (i.2)))
+  have rb := rfunctbound' k A B hb z (Nat.max (Int.natAbs (i.1)) (Int.natAbs (i.2)))
+  have ht := le_trans this rb
+  simp at *
+  apply le_trans _ ht
+  have : i ∈ square (Nat.max (Int.natAbs (i.1)) (Int.natAbs (i.2))) := by
+    rw [square_mem]
+  simp at *
+  apply Finset.single_le_sum
+  intro j hj
+  rw [AbsEise]
+  apply Complex.abs.nonneg
+  exact this
+  apply real_eise_is_summable k _ h
+  let In := fun (n : ℕ) => square n
+  have HI := squares_cover_all 
+  let g := fun y : ℤ × ℤ =>  8 / rfunct (lbpoint A B hb) ^ k * (((Nat.max (Int.natAbs (y.1)) (Int.natAbs (y.2))) : ℝ) ^ (k - 1))⁻¹
+  have gpos : ∀ y : ℤ × ℤ, 0 ≤ g y := by  sorry
+  have index_lem := sum_lemma g gpos In HI
+  simp at *
+  rw [index_lem]
+  sorry
 
 
 theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :
