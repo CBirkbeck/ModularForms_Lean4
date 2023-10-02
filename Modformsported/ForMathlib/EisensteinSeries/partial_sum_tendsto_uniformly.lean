@@ -475,7 +475,8 @@ lemma AbsEisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
   exact this
   apply real_eise_is_summable k z h
 
-
+def AbsEisenBound (A B : ℝ) (hb : 0 < B) (k : ℕ)  : ℝ :=
+  ∑' (n : ℕ),  8 / rfunct (lbpoint A B hb) ^ k * (((n) : ℝ) ^ (k - 1))⁻¹
 
 
 theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :

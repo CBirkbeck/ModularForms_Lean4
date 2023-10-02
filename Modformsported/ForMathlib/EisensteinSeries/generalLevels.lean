@@ -588,14 +588,22 @@ theorem Eisenstein_series_is_bounded (a b: ℤ) (N k: ℕ) (hk : 3 ≤ k) (A : S
   apply hk
   
 
-theorem Eisenstein_series_upper_bound (a b : ℤ) (N k: ℕ) (hk : 3 ≤ k) (hN : 0 < (N : ℤ)) (z : ℍ) :
-  Complex.abs (Eisenstein_SIF_lvl_N N (k : ℤ) a b z) ≤ Complex.abs (Eisenstein_tsum k z) := by
-  rw [Eisenstein_tsum, Eisenstein_SIF_lvl_N]  
-  simp
-  rw [Eisenstein_N_tsum]
-  simp
-  apply le_trans (abs_tsum' _)
+lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
+  TendstoLocallyUniformlyOn ((fun (x : (lvl_N_congr  N a b)) => extendByZero 
+    (fun (z : ℍ) => eise k z  x.1) ) )
+    (extendByZero (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1) ⊤ ℍ' := by  
+  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact]
+  intro K hK hK2
+  
 
+
+local notation "↑ₕ" => holExtn
+
+theorem Eisenstein_lvl_N_is_holomorphic (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
+    IsHolomorphicOn (↑ₕ (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1) :=
+  by
+  rw [← isHolomorphicOn_iff_differentiableOn]
+  sorry
 /-
 open Set Metric MeasureTheory Filter Complex intervalIntegral
 
@@ -611,4 +619,7 @@ theorem tendstoUniformlyOn_tsum' {f : α → β → F} (hu : Summable u) {s : Se
   have :=  tendstoUniformlyOn_tsum hu hfu  
   rw [tendstoUniformlyOn_iff ] at *
   simp at *
--/
+-/  
+
+
+  
