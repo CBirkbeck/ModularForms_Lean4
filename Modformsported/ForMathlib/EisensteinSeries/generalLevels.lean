@@ -594,8 +594,8 @@ lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
     (extendByZero (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1) ⊤ ℍ' := by  
   rw [tendstoLocallyUniformlyOn_iff_forall_isCompact]
   intro K hK hK2
-  
-
+  sorry
+  sorry
 
 local notation "↑ₕ" => holExtn
 
