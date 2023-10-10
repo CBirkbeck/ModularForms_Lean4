@@ -587,6 +587,17 @@ theorem Eisenstein_series_is_bounded (a b: ℤ) (N k: ℕ) (hk : 3 ≤ k) (A : S
   convert this
   apply hk
   
+lemma  Eisenstein_lvl_N_tendstolocunif2 (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
+  TendstoUniformly ((fun (s : Finset (lvl_N_congr'  N a b)) => 
+    (fun (z : ℍ) => ∑ x in s, eise k z ((piFinTwoEquiv fun _ => ℤ).1 x)  ) ) )
+    ( fun (z : ℍ) => (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1 z) atTop  := by  
+  --rw [tendstoLocallyUniformlyOn_iff_forall_isCompact]
+  --intro K hK hK2
+  rw [Eisenstein_SIF_lvl_N]
+  
+  simp [Eisenstein_N_tsum, feise]
+
+  apply tendstoUniformly_tsum
 
 lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
   TendstoLocallyUniformlyOn ((fun (x : (lvl_N_congr  N a b)) => extendByZero 
@@ -594,6 +605,8 @@ lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
     (extendByZero (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1) ⊤ ℍ' := by  
   rw [tendstoLocallyUniformlyOn_iff_forall_isCompact]
   intro K hK hK2
+  rw [Eisenstein_SIF_lvl_N]
+  simp
   
 
 
