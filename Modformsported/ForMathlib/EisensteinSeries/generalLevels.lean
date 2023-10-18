@@ -586,18 +586,45 @@ theorem Eisenstein_series_is_bounded (a b: ℤ) (N k: ℕ) (hk : 3 ≤ k) (A : S
   have := AbsEisenstein_bound_unifomly_on_stip (Int.natAbs k) hkk N 2 (by linarith) ⟨Z, hZ⟩
   convert this
   apply hk
+
+lemma compact_in_some_slice (K : Set ℍ) (hK : IsCompact K) : ∃  A B : ℝ, 0 < B ∧ 
+    K ⊆ upperHalfSpaceSlice A B  := by 
+    sorry
   
 lemma  Eisenstein_lvl_N_tendstolocunif2 (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
-  TendstoUniformly ((fun (s : Finset (lvl_N_congr'  N a b)) => 
+  TendstoLocallyUniformlyOn ((fun (s : Finset (lvl_N_congr'  N a b)) => 
     (fun (z : ℍ) => ∑ x in s, eise k z ((piFinTwoEquiv fun _ => ℤ).1 x)  ) ) )
-    ( fun (z : ℍ) => (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1 z) atTop  := by  
-  --rw [tendstoLocallyUniformlyOn_iff_forall_isCompact]
+    ( fun (z : ℍ) => (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1 z) atTop  ⊤ := by  
+  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact]
   --intro K hK hK2
   rw [Eisenstein_SIF_lvl_N]
   
   simp [Eisenstein_N_tsum, feise]
+  intros K hK
+  refine' tendstoUniformlyOn_iff.2 fun ε εpos => _
+  
+  filter_upwards [(tendsto_order.1 (tendsto_tsum_compl_atTop_zero u)).2 _ εpos]with t ht x hx
+  /-
+  --apply tendstoUniformlyOn_tsum
+  have := compact_in_some_slice K hK
+  obtain ⟨A, B, HAB⟩ := this
+  let BO := (fun  (x : lvl_N_congr' N a b) =>
+    (AbsEise k (lbpoint A B HAB.1) ((piFinTwoEquiv fun _ => ℤ).1 x))) 
+  have hu3 : Summable BO  := by sorry
+  --have hu := (summable_rfunct_twist k (lbpoint A B HAB.1) hk)
+  --have hu2 := real_eise_is_summable k (lbpoint A B HAB.1) hk
+  have := @tendstoUniformlyOn_tsum _ _ _ _ _ BO 
+    (fun  (x : lvl_N_congr' N a b) => (fun (z : ℍ) => eise k z ((piFinTwoEquiv fun _ => ℤ).1 x)  ))
+  apply this
+  simp
+  apply hu3
+  intro v z hz
+  simp
 
-  apply tendstoUniformly_tsum
+  sorry
+  simp   
+  -/
+
 
 lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
   TendstoLocallyUniformlyOn ((fun (x : (lvl_N_congr  N a b)) => extendByZero 
@@ -605,10 +632,12 @@ lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
     (extendByZero (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1) ⊤ ℍ' := by  
   rw [tendstoLocallyUniformlyOn_iff_forall_isCompact]
   intro K hK hK2
-  sorry
-  sorry
   rw [Eisenstein_SIF_lvl_N]
   simp
+  
+  sorry
+  sorry
+
   
 
 
