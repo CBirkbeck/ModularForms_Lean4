@@ -475,6 +475,77 @@ lemma AbsEisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
   exact this
   apply real_eise_is_summable k z h
 
+
+lemma lattice_tsum_upper_bound  (k : ℕ) (h : 3 ≤ k) (z : ℍ) :
+  ∑' (n : ℕ),  8 / rfunct (z) ^ k * (((n) : ℝ) ^ (k - 1))⁻¹ = 
+    ∑' (n : ℕ), ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ := by sorry
+
+lemma lattice_tsum_upper_bound' (k : ℕ) (h : 3 ≤ k) (z : ℍ) :
+ ∑' (n : ℕ),  8 / rfunct (z) ^ k * (((n) : ℝ) ^ (k - 1))⁻¹ = ∑' (x : ℤ × ℤ), 
+  (1/(rfunct (z)^k))*((max x.1.natAbs x.2.natAbs : ℝ)^k)⁻¹ := by
+  rw [lattice_tsum_upper_bound]
+  
+  rw [tsum_lemma _ (fun (n : ℕ) => square n)]
+  congr
+  ext1 n
+  simp only [Real.rpow_nat_cast, one_div, Finset.sum_const, nsmul_eq_mul, ge_iff_le, Int.cast_le]
+  have : ∑ v in square n, (1/(rfunct (z)^k))*((max v.1.natAbs v.2.natAbs: ℝ)^k)⁻¹ = 
+    ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ := by
+     apply Finset.sum_congr 
+     rfl
+     intro x hx
+     simp at hx
+     congr
+     simp at *
+     norm_cast at *
+  
+  simp at *
+  rw [this]
+  apply squares_cover_all
+  rw [sum_lemma _ _ (fun (n : ℕ) => square n)]
+  have : ∀ n : ℕ, ∑ v in square n, (1/(rfunct (z)^k))*((max v.1.natAbs v.2.natAbs: ℝ)^k)⁻¹ = 
+     ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ := by 
+     apply Finset.sum_congr 
+     rfl
+     intro x hx
+     simp at hx
+     congr
+     simp at *
+     norm_cast at *
+  have hs : Summable (fun n : ℕ => ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ )  := by 
+    simp
+    apply Summable.congr (summable_rfunct_twist k z h)
+    intro b
+    by_cases b0 : b = 0
+    rw [b0]
+    have hk : (0: ℝ)^((k : ℤ)-1) = 0:= by 
+      simp
+      linarith
+    simp at *
+    rw [hk]
+    simp
+    right
+    linarith
+    have hb: 1 ≤ b := by sorry
+    rw [square_size' b hb]
+    field_simp
+    ring
+    
+
+    sorry
+  apply Summable.congr hs
+  intro b
+  apply (this b).symm
+  apply squares_cover_all
+
+
+
+  
+
+
+  stop
+
+
 def AbsEisenBound (A B : ℝ) (hb : 0 < B) (k : ℕ)  : ℝ :=
   ∑' (n : ℕ),  8 / rfunct (lbpoint A B hb) ^ k * (((n) : ℝ) ^ (k - 1))⁻¹
 
