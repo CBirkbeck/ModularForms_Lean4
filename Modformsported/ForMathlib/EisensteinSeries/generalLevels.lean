@@ -11,7 +11,7 @@ import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups
 noncomputable section
 
 open ModularForm EisensteinSeries UpperHalfPlane TopologicalSpace Set MeasureTheory intervalIntegral
-  Metric Filter Function Complex
+  Metric Filter Function Complex   Manifold
 
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
 
@@ -591,20 +591,46 @@ lemma compact_in_some_slice (K : Set ℍ) (hK : IsCompact K) : ∃  A B : ℝ, 0
     K ⊆ upperHalfSpaceSlice A B  := by
     sorry
 
+
+
+def lvl_N_upp_bound (a b: ℤ) (N k : ℕ)  : (lvl_N_congr'  N a b) → ℍ → ℝ :=
+  fun x : (lvl_N_congr'  N a b)  => fun (z : ℍ') =>
+    (1/(rfunct (z)^k))* ( (max (((piFinTwoEquiv fun _ => ℤ).1 x).1).natAbs
+    (((piFinTwoEquiv fun _ => ℤ).1 x).2).natAbs : ℝ)^k)⁻¹
+
 lemma  Eisenstein_lvl_N_tendstolocunif2 (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
   TendstoLocallyUniformlyOn ((fun (s : Finset (lvl_N_congr'  N a b)) =>
-    (fun (z : ℍ) => ∑ x in s, eise k z ((piFinTwoEquiv fun _ => ℤ).1 x)  ) ) )
+    (fun (z : ℍ) => ∑ x in s, eise k z ((piFinTwoEquiv fun _ => ℤ).1 x)) ) )
     ( fun (z : ℍ) => (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1 z) atTop  ⊤ := by
   rw [tendstoLocallyUniformlyOn_iff_forall_isCompact]
   --intro K hK hK2
   rw [Eisenstein_SIF_lvl_N]
 
-  simp [Eisenstein_N_tsum, feise]
+  simp [Eisenstein_N_tsum]
   intros K hK
   refine' tendstoUniformlyOn_iff.2 fun ε εpos => _
+  obtain ⟨A,B,hB, HABK⟩:= compact_in_some_slice K hK
+
+  let u :=  fun x : (lvl_N_congr'  N a b)  =>
+    (1/(rfunct (lbpoint A B hB)^k))* ( (max (((piFinTwoEquiv fun _ => ℤ).1 x).1).natAbs
+    (((piFinTwoEquiv fun _ => ℤ).1 x).2).natAbs : ℝ)^k)⁻¹
+  filter_upwards [(tendsto_order.1 (tendsto_tsum_compl_atTop_zero u)).2 _ εpos]with t ht x hx
+  have A := summable_Eisenstein_N_tsum' k hk N a b x
+  rw [summable_norm_iff.symm]  at A
+  simp_rw [feise] at *
+  rw [dist_eq_norm, ← sum_add_tsum_subtype_compl (summable_of_summable_norm A) t]
+  simp only [piFinTwoEquiv_apply, add_sub_cancel',  gt_iff_lt]
+  apply lt_of_le_of_lt _ ht
+  apply (norm_tsum_le_tsum_norm (A.subtype _)).trans
+  apply tsum_le_tsum
+  intro v
+  simp at *
+
   sorry
   sorry
-  --filter_upwards [(tendsto_order.1 (tendsto_tsum_compl_atTop_zero u)).2 _ εpos]with t ht x hx
+  sorry
+  sorry
+  --
 
 
   /-
@@ -630,17 +656,37 @@ lemma  Eisenstein_lvl_N_tendstolocunif2 (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
 
 
 lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
-  TendstoLocallyUniformlyOn ((fun (x : (lvl_N_congr  N a b)) => extendByZero
-    (fun (z : ℍ) => eise k z  x.1) ) )
-    (extendByZero (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1) ⊤ ℍ' := by
-  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact]
-  intro K hK hK2
-  rw [Eisenstein_SIF_lvl_N]
-  simp
+  TendstoLocallyUniformlyOn ((fun (s : Finset (lvl_N_congr'  N a b)) => extendByZero
+    (fun (z : ℍ) => ∑ x in s, eise k z  ((piFinTwoEquiv fun _ => ℤ).1 x)) ) )
+    (extendByZero (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1) atTop ℍ' := by
+
+  have := Eisenstein_lvl_N_tendstolocunif2 a b N k hk
+  simp at *
+  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact] at *
+  simp at this
+  intro K hk1 hk2
+  let S := Set.image (Set.inclusion hk1) ⊤
+  have HH := this S
+  have hS : IsCompact S := by
+    simp
+    refine Iff.mpr isCompact_iff_isCompact_in_subtype ?_
+    convert hk2
+    exact Subtype.coe_image_of_subset hk1
+    --apply upper_half_plane_isOpen
+  have H3:= HH hS
+  clear HH
+  rw [tendstoUniformlyOn_iff] at *
+  intro ε hε
+  have H4:= H3 ε hε
+  simp at *
+  obtain ⟨T, H5⟩ := H4
+  use T
+  intro J hJ r hr
+  have := H5 J hJ
+
 
   sorry
   sorry
-
 
 
 
@@ -650,7 +696,42 @@ theorem Eisenstein_lvl_N_is_holomorphic (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
     IsHolomorphicOn (↑ₕ (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1) :=
   by
   rw [← isHolomorphicOn_iff_differentiableOn]
+  have hc := Eisenstein_lvl_N_tendstolocunif a b N k hk
+
+
+  haveI : NeBot (⊤ : Filter (Finset (lvl_N_congr'  N a b))) := by
+    refine Iff.mp forall_mem_nonempty_iff_neBot ?_
+    intro t ht
+    simp at *
+    rw [ht]
+    simp only [univ_nonempty]
+  refine' hc.differentiableOn (eventually_of_forall fun s => _) ?_
   sorry
+
+
+/-
+lemma mdiff_diff (a b: ℤ) (N  : ℕ) (F : (lvl_N_congr'  N a b) → ℍ → ℂ) (f : ℍ → ℂ)(S : Set ℍ)
+  (h :  TendstoLocallyUniformlyOn ((fun (s : Finset (lvl_N_congr'  N a b)) =>
+    (fun (z : ℍ) => ∑ x in s, F x z)) )
+    ( fun (z : ℍ) => f z) atTop  S  ) :
+     TendstoLocallyUniformlyOn ((fun (s : Finset (lvl_N_congr'  N a b)) =>
+    (fun (z : ℍ) => ∑ x in s, F x z) ∘ ↑(LocalHomeomorph.symm (chartAt ℂ x))) )
+    (( fun (z : ℍ) => f z) ∘ ↑(LocalHomeomorph.symm (chartAt ℂ x))) atTop  ↑(LocalHomeomorph.symm (chartAt ℂ x)) S  := by
+-/
+
+
+theorem Eisenstein_lvl_N_is_mdiff(a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
+    MDifferentiable 𝓘(ℂ) 𝓘(ℂ) ( (Eisenstein_SIF_lvl_N N (k : ℤ) a b)) :=
+  by
+  simp_rw [MDifferentiable]
+  simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps]
+  intro x
+  constructor
+  have HTLU:= Eisenstein_lvl_N_tendstolocunif2 a b N k hk
+
+  sorry
+  sorry
+
 /-
 open Set Metric MeasureTheory Filter Complex intervalIntegral
 
