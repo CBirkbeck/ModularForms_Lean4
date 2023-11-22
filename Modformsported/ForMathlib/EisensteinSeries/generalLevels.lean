@@ -815,9 +815,18 @@ theorem Eisenstein_lvl_N_is_holomorphic (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
 
 
 
-theorem Eisenstein_lvl_N_is_mdiff(a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
+theorem Eisenstein_lvl_N_is_mdiff (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
     MDifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑ₕ (Eisenstein_SIF_lvl_N N (k : ℤ) a b)) :=
   by
   have := Eisenstein_lvl_N_is_holomorphic a b N k hk
   have h2 := (mdiff_iff_holo ( ↑ₕ (Eisenstein_SIF_lvl_N N k a b).toFun)).2 this
   convert h2
+
+
+def EisensteinSeries_lvl_N_ModularForm (a b : ℤ) (N k : ℕ) (hk : 3 ≤ k) (hN : 0 < (N : ℤ)) :
+  ModularForm (Gamma N) k
+    where
+  toFun :=  (Eisenstein_SIF_lvl_N N (k : ℤ) a b)
+  slash_action_eq' := by convert  (Eisenstein_SIF_lvl_N N (k : ℤ) a b).2
+  holo' := Eisenstein_lvl_N_is_mdiff a b N k hk
+  bdd_at_infty' A :=  Eisenstein_series_is_bounded a b N k hk A hN
