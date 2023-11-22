@@ -250,7 +250,7 @@ theorem compact_in_slice' (S : Set ℂ) (hne : Set.Nonempty S) (hs : S ⊆ ℍ')
   have hbz := HB  hz
   simp at *
   convert hbz
-  simp
+  simp only [abs_eq_self]
   have hhf := hs hz
   rw [mem_uhs _] at hhf
   apply hhf.le
@@ -476,9 +476,12 @@ lemma AbsEisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
   apply real_eise_is_summable k z h
 
 
+/-
 lemma lattice_tsum_upper_bound  (k : ℕ) (h : 3 ≤ k) (z : ℍ) :
   ∑' (n : ℕ),  8 / rfunct (z) ^ k * (((n) : ℝ) ^ (k - 1))⁻¹ =
-    ∑' (n : ℕ), ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ := by sorry
+    ∑' (n : ℕ), ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ := by
+
+    sorry
 
 lemma lattice_tsum_upper_bound' (k : ℕ) (h : 3 ≤ k) (z : ℍ) :
  ∑' (n : ℕ),  8 / rfunct (z) ^ k * (((n) : ℝ) ^ (k - 1))⁻¹ = ∑' (x : ℤ × ℤ),
@@ -555,9 +558,63 @@ lemma lattice_tsum_upper_bound' (k : ℕ) (h : 3 ≤ k) (z : ℍ) :
   simp only [ge_iff_le, Nat.cast_le, Real.rpow_nat_cast, inv_nonneg, le_max_iff, Nat.cast_nonneg,
     or_self, pow_nonneg]
   apply h
+-/
 
-
-
+lemma summable_upper_bound (k : ℕ) (h : 3 ≤ k) (z : ℍ) :
+ Summable fun (x : ℤ × ℤ) =>
+  (1/(rfunct (z)^k))*((max x.1.natAbs x.2.natAbs : ℝ)^k)⁻¹ := by
+  rw [sum_lemma _ _ (fun (n : ℕ) => square n)]
+  have : ∀ n : ℕ, ∑ v in square n, (1/(rfunct (z)^k))*((max v.1.natAbs v.2.natAbs: ℝ)^k)⁻¹ =
+     ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ := by
+     intro n
+     apply Finset.sum_congr
+     rfl
+     intro x hx
+     simp at hx
+     congr
+     simp at *
+     norm_cast at *
+  have hs : Summable (fun n : ℕ => ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ )  := by
+    simp
+    apply Summable.congr (summable_rfunct_twist k z h)
+    intro b
+    by_cases b0 : b = 0
+    rw [b0]
+    have hk : (0: ℝ)^((k : ℤ)-1) = 0:= by
+      simp
+      rw [Real.zero_rpow]
+      have hk3 : (3 : ℝ) ≤ k := by norm_cast at *
+      linarith
+    simp at *
+    rw [hk]
+    simp
+    right
+    linarith
+    have hb: 1 ≤ b := by
+      exact Iff.mpr Nat.one_le_iff_ne_zero b0
+    rw [square_size' b hb]
+    field_simp
+    ring_nf
+    simp_rw [mul_assoc]
+    have hbb : (b : ℝ)^(-1 + (k : ℝ)) = (b : ℝ)⁻¹ * b^(k : ℝ) := by
+      rw [Real.rpow_add]
+      congr
+      exact Real.rpow_neg_one ↑b
+      norm_cast
+    rw [hbb]
+    ring_nf
+    simp
+  apply Summable.congr hs
+  intro b
+  apply (this b).symm
+  apply squares_cover_all
+  intro y
+  apply mul_nonneg
+  simp
+  apply pow_nonneg
+  apply (rfunct_pos z).le
+  simp only [ge_iff_le, Nat.cast_le, Real.rpow_nat_cast, inv_nonneg, le_max_iff, Nat.cast_nonneg,
+    or_self, pow_nonneg]
 
 
 

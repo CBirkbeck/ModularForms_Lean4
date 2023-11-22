@@ -6,6 +6,7 @@ Authors: Chris Birkbeck
 import Modformsported.ForMathlib.EisensteinSeries.ModularForm
 import Modformsported.ForMathlib.AuxpLemmas
 import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups
+import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
 
 
 noncomputable section
@@ -587,9 +588,54 @@ theorem Eisenstein_series_is_bounded (a b: ℤ) (N k: ℕ) (hk : 3 ≤ k) (A : S
   convert this
   apply hk
 
+def upperHalfPlaneSlice (A B : ℝ) :=
+  {z : ℍ | Complex.abs z.1.1 ≤ A ∧ Complex.abs z.1.2 ≥ B}
+
+
+
 lemma compact_in_some_slice (K : Set ℍ) (hK : IsCompact K) : ∃  A B : ℝ, 0 < B ∧
-    K ⊆ upperHalfSpaceSlice A B  := by
-    sorry
+    K ⊆ upperHalfPlaneSlice A B  := by
+  by_cases hne : Set.Nonempty K
+  have hcts : ContinuousOn (fun t =>  t.im) K := by
+    apply Continuous.continuousOn
+    apply UpperHalfPlane.continuous_im
+  have := IsCompact.exists_isMinOn hK hne hcts
+  obtain ⟨b, _, HB⟩ := this
+  let t := (⟨Complex.I, by simp⟩ : ℍ)
+  have hb2 := Bounded.subset_ball_lt hK.bounded 0 t
+  obtain ⟨r, hr, hr2⟩ := hb2
+  refine' ⟨Real.sinh (r) + Complex.abs ((UpperHalfPlane.center t r)), b.im, _⟩
+  constructor
+  apply b.2
+  intro z hz
+  simp  [slice_mem, coe_re, coe_im, ge_iff_le, top_eq_univ,
+    image_univ, range_inclusion] at *
+  constructor
+  have hr3 := hr2 hz
+  simp  at hr3
+  norm_cast at *
+  apply le_trans (abs_re_le_abs z)
+  have := Complex.abs.sub_le (z : ℂ) (UpperHalfPlane.center t r) 0
+  simp only [sub_zero, Subtype.coe_mk, abs_I] at this
+  rw [dist_le_iff_dist_coe_center_le] at hr3
+  simp at *
+  apply le_trans this
+  simp
+  have htim : UpperHalfPlane.im t = 1 := by
+     simp [UpperHalfPlane.im ]
+  rw [htim] at hr3
+  simp at hr3
+  apply hr3
+  have hbz := HB  hz
+  simp at *
+  convert hbz
+  simp [UpperHalfPlane.im ]
+  apply z.2.le
+  rw [not_nonempty_iff_eq_empty] at hne
+  rw [hne]
+  simp
+  use 1
+  linarith
 
 
 
@@ -608,6 +654,48 @@ lemma  Eisenstein_lvl_N_tendstolocunif2 (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
 
   simp [Eisenstein_N_tsum]
   intros K hK
+  obtain ⟨A,B,hB, HABK⟩:= compact_in_some_slice K hK
+  let u :=  fun x : (lvl_N_congr'  N a b)  =>
+    (1/(rfunct (lbpoint A B hB)^k))* ( (max (((piFinTwoEquiv fun _ => ℤ).1 x).1).natAbs
+    (((piFinTwoEquiv fun _ => ℤ).1 x).2).natAbs : ℝ)^k)⁻¹
+  have hu : Summable u := by
+    have := summable_upper_bound k hk (lbpoint A B hB)
+    rw [← Equiv.summable_iff (piFinTwoEquiv fun _ => ℤ)] at this
+    simp at this
+    have := Summable.subtype this (lvl_N_congr'  N a b)
+    apply this.congr
+    intro v
+    simp
+  apply tendstoUniformlyOn_tsum hu
+  intro v x hx
+  have hkgt1 : 1 ≤ k := by linarith
+  have sq := square_mem (max (((piFinTwoEquiv fun _ => ℤ).1 v).1).natAbs
+  (((piFinTwoEquiv fun _ => ℤ).1 v).2).natAbs ) ⟨(v.1 0), v.1 1⟩
+  simp at sq
+  have := Eise_on_square_is_bounded'' k x (max (((piFinTwoEquiv fun _ => ℤ).1 v).1).natAbs
+    (((piFinTwoEquiv fun _ => ℤ).1 v).2).natAbs ) hkgt1 ⟨(v.1 0), v.1 1⟩
+  simp  at this
+  rw [eise]
+  simp
+  apply le_trans (this sq)
+  rw [mul_comm]
+  apply mul_le_mul
+  rw [inv_le_inv]
+  apply pow_le_pow_of_le_left
+  apply (rfunct_pos _).le
+  rw [abs_of_pos (rfunct_pos _)]
+  exact rfunct_lower_bound_on_slice A B hB ⟨x, HABK hx⟩
+  apply pow_pos (rfunct_abs_pos _)
+  apply pow_pos (rfunct_pos _)
+  rfl
+  simp only [ge_iff_le, Nat.cast_le, inv_nonneg, le_max_iff, Nat.cast_nonneg, or_self, pow_nonneg]
+  simp only [inv_nonneg, ge_iff_le]
+  apply pow_nonneg (rfunct_pos _).le
+  simp only [top_eq_univ, isOpen_univ]
+
+
+
+  /-
   refine' tendstoUniformlyOn_iff.2 fun ε εpos => _
   obtain ⟨A,B,hB, HABK⟩:= compact_in_some_slice K hK
 
@@ -625,12 +713,8 @@ lemma  Eisenstein_lvl_N_tendstolocunif2 (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
   apply tsum_le_tsum
   intro v
   simp at *
+-/
 
-  sorry
-  sorry
-  sorry
-  sorry
-  --
 
 
   /-
@@ -682,11 +766,17 @@ lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
   obtain ⟨T, H5⟩ := H4
   use T
   intro J hJ r hr
-  have := H5 J hJ
+  have H6 := H5 J hJ ⟨r, hk1 hr⟩ hr
+  simp at *
+  convert H6
+  have t1:= ext_by_zero_apply ℍ' (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1 ⟨r, hk1 hr⟩
+  exact t1
+  have t2 := ext_by_zero_apply ℍ'
+    (fun (z : ℍ) => ∑ x in J, eise k z  ((piFinTwoEquiv fun _ => ℤ).1 x)) ⟨r, hk1 hr⟩
+  exact t2
+  simp
+  apply upper_half_plane_isOpen
 
-
-  sorry
-  sorry
 
 
 
@@ -697,8 +787,6 @@ theorem Eisenstein_lvl_N_is_holomorphic (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
   by
   rw [← isHolomorphicOn_iff_differentiableOn]
   have hc := Eisenstein_lvl_N_tendstolocunif a b N k hk
-
-
   haveI : NeBot (⊤ : Filter (Finset (lvl_N_congr'  N a b))) := by
     refine Iff.mp forall_mem_nonempty_iff_neBot ?_
     intro t ht
@@ -706,45 +794,30 @@ theorem Eisenstein_lvl_N_is_holomorphic (a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
     rw [ht]
     simp only [univ_nonempty]
   refine' hc.differentiableOn (eventually_of_forall fun s => _) ?_
-  sorry
+  have := Eise'_has_diff_within_at k
+  have ht : (extendByZero fun z => ∑ x in s, eise (↑k) z (Equiv.toFun (piFinTwoEquiv fun _ => ℤ) ↑x))
+    = (fun w => ∑ y in s,  extendByZero (fun z => eise (↑k) z ((Equiv.toFun (piFinTwoEquiv fun _ => ℤ)) y)) w) :=
+    by
+    funext z
+    simp  [extendByZero, Finset.sum_dite_irrel, Finset.sum_const_zero]
+  simp at *
+  have hd : DifferentiableOn  ℂ
+    (extendByZero fun z => ∑ x in s, eise (↑k) z (Equiv.toFun (piFinTwoEquiv fun _ => ℤ) ↑x)) ℍ' :=
+      by
+      simp at *
+      rw [ht]
+      apply DifferentiableOn.sum
+      intro v _
+      apply this
+      linarith
+  exact hd
+  apply upper_half_plane_isOpen
 
-
-/-
-lemma mdiff_diff (a b: ℤ) (N  : ℕ) (F : (lvl_N_congr'  N a b) → ℍ → ℂ) (f : ℍ → ℂ)(S : Set ℍ)
-  (h :  TendstoLocallyUniformlyOn ((fun (s : Finset (lvl_N_congr'  N a b)) =>
-    (fun (z : ℍ) => ∑ x in s, F x z)) )
-    ( fun (z : ℍ) => f z) atTop  S  ) :
-     TendstoLocallyUniformlyOn ((fun (s : Finset (lvl_N_congr'  N a b)) =>
-    (fun (z : ℍ) => ∑ x in s, F x z) ∘ ↑(LocalHomeomorph.symm (chartAt ℂ x))) )
-    (( fun (z : ℍ) => f z) ∘ ↑(LocalHomeomorph.symm (chartAt ℂ x))) atTop  ↑(LocalHomeomorph.symm (chartAt ℂ x)) S  := by
--/
 
 
 theorem Eisenstein_lvl_N_is_mdiff(a b: ℤ) (N k : ℕ) (hk : 3 ≤ k) :
-    MDifferentiable 𝓘(ℂ) 𝓘(ℂ) ( (Eisenstein_SIF_lvl_N N (k : ℤ) a b)) :=
+    MDifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑ₕ (Eisenstein_SIF_lvl_N N (k : ℤ) a b)) :=
   by
-  simp_rw [MDifferentiable]
-  simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps]
-  intro x
-  constructor
-  have HTLU:= Eisenstein_lvl_N_tendstolocunif2 a b N k hk
-
-  sorry
-  sorry
-
-/-
-open Set Metric MeasureTheory Filter Complex intervalIntegral
-
-open scoped Real Topology
-
-variable {α β 𝕜 E F : Type _} [IsROrC 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-  [NormedAddCommGroup F] [CompleteSpace F] {u : α → ℝ}
-
-theorem tendstoUniformlyOn_tsum' {f : α → β → F} (hu : Summable u) {s : Set β} (I : Set α)
-    (hfu : ∀ n x, x ∈ s → ‖f n x‖ ≤ u n) :
-    TendstoUniformlyOn (fun t : Finset I => fun x => ∑ n in t, f n x) (fun x => ∑' n : I, f n x) atTop
-      s := by
-  have :=  tendstoUniformlyOn_tsum hu hfu
-  rw [tendstoUniformlyOn_iff ] at *
-  simp at *
--/
+  have := Eisenstein_lvl_N_is_holomorphic a b N k hk
+  have h2 := (mdiff_iff_holo ( ↑ₕ (Eisenstein_SIF_lvl_N N k a b).toFun)).2 this
+  convert h2
