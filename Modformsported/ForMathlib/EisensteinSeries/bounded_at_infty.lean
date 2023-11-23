@@ -3,14 +3,14 @@ Copyright (c) 2023 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly 
-import Mathlib.Analysis.Complex.UpperHalfPlane.Topology 
-import Mathlib.Analysis.Complex.UpperHalfPlane.Manifold  
+import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
+import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
+import Mathlib.Analysis.Complex.UpperHalfPlane.Manifold
 import Mathlib.Analysis.Complex.UpperHalfPlane.FunctionsBoundedAtInfty
 
 
 open Complex UpperHalfPlane
- 
+
 open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold
 
 open ModularForm
@@ -38,17 +38,17 @@ theorem mod_form_periodic (k : ℤ) (f : SlashInvariantForm (⊤ : Subgroup SL(2
   simp only [SlashInvariantForm.slash_action_eqn']
   intro z n
   simp only [Subgroup.top_toSubmonoid, subgroup_to_sl_moeb, Subgroup.coe_top, Subtype.forall,
-    Subgroup.mem_top, forall_true_left] at h 
+    Subgroup.mem_top, forall_true_left] at h
   have H:= h (ModularGroup.T^n) z
   rw [H]
-  have h0 : ((ModularGroup.T^n) : GL (Fin 2) ℤ) 1 0 = 0  := by 
+  have h0 : ((ModularGroup.T^n) : GL (Fin 2) ℤ) 1 0 = 0  := by
     rw [slcoe]
     rw [ModularGroup.coe_T_zpow n]
     rfl
-  have h1: ((ModularGroup.T^n) : GL (Fin 2) ℤ) 1 1 = 1  := by 
+  have h1: ((ModularGroup.T^n) : GL (Fin 2) ℤ) 1 1 = 1  := by
     rw [slcoe]
     rw [ModularGroup.coe_T_zpow n]
-    rfl    
+    rfl
   rw [h0,h1]
   ring_nf
   simp
@@ -75,7 +75,7 @@ theorem upp_half_translation (z : ℍ) :
   simp
   rw [add_comm]
   apply (abs_floor_sub z.1.1).le
-  have : (-(n : ℝ) +ᵥ z).1.im = z.im := by 
+  have : (-(n : ℝ) +ᵥ z).1.im = z.im := by
     have := vadd_im (-(n : ℝ)) z
     rw [← this]
     congr
@@ -89,7 +89,7 @@ theorem upp_half_translation_N (z : ℍ) (N : ℤ) (hn : 0  < N) :
   by
   let n := Int.floor (z.1.1/N)
   use-n
-  have hpow : (ModularGroup.T ^ N) ^ (-n) = (ModularGroup.T) ^ (-(N: ℤ)*n) := by 
+  have hpow : (ModularGroup.T ^ N) ^ (-n) = (ModularGroup.T) ^ (-(N: ℤ)*n) := by
     simp
     norm_cast
     rw [←zpow_mul]
@@ -112,42 +112,49 @@ theorem upp_half_translation_N (z : ℍ) (N : ℤ) (hn : 0  < N) :
   rw [h2]
   rw [abs_eq_self.2 h1]
   apply h0.le
-  have : (-N*(n : ℝ) +ᵥ z).1.im = z.im := by 
+  have : (-N*(n : ℝ) +ᵥ z).1.im = z.im := by
     have := vadd_im (-N*(n : ℝ)) z
     rw [← this]
     congr
   simp at *
   rw [this]
   apply le_abs_self
- 
 
-lemma riemannZeta_abs_nat (k : ℕ) (h : 1 < k) : Complex.abs (riemannZeta (k : ℕ)) =
+
+lemma riemannZeta_abs_int (k : ℤ) (h : 1 < k) : Complex.abs (riemannZeta (k )) =
   ∑' n : ℕ, 1 / (n : ℝ) ^ k := by
+  have hk0 : 0 ≤ k := by linarith
+  lift k to ℕ using hk0
+  simp at *
   rw [zeta_nat_eq_tsum_of_gt_one h]
-  have h1 :  ∑' n : ℕ, 1 / (n : ℂ) ^ (k : ℕ) =  ((∑' n : ℕ, 1 / ((n : ℝ)) ^ k) ) := by 
+  have h1 :  ∑' n : ℕ, 1 / (n : ℂ) ^ (k : ℕ) =  ((∑' n : ℕ, 1 / ((n : ℝ)) ^ k) ) := by
     rw [ofReal_tsum]
     simp
-  simp only [cpow_nat_cast] at h1  
-  rw [h1] 
-  apply Complex.abs_of_nonneg
+  simp only [cpow_nat_cast] at h1
+  rw [h1]
+  norm_cast
+  simp
   apply tsum_nonneg
   simp
 
-theorem AbsEisenstein_bound (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
-    AbsEisenstein_tsum k z ≤ 8 / rfunct z ^ k * Complex.abs (riemannZeta (k - 1 : ℕ)) :=
+theorem AbsEisenstein_bound (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
+    AbsEisenstein_tsum k z ≤ 8 / rfunct z ^ k * Complex.abs (riemannZeta (k - 1 : ℤ)) :=
   by
   have hk1_int : 1 < (k - 1 : ℤ)  := by linarith
   have hk : 1 < (k-1 : ℝ) := by norm_cast at *
-  have hk1 : 1 < (k -1) := by exact Nat.lt_sub_of_add_lt h
-  have hk11 : 1 < k := by linarith
-  rw [AbsEisenstein_tsum, riemannZeta_abs_nat (k-1) hk1 ]
-  simp only [Real.rpow_nat_cast] 
+  have hk1 : 1 < (k -1) := by linarith
+  rw [AbsEisenstein_tsum, riemannZeta_abs_int (k-1) hk1 ]
+  simp only [Real.rpow_nat_cast]
   norm_cast
   rw [←tsum_mul_left]
   let In := fun (n : ℕ) => square n
   have HI :=squares_cover_all
   let g := fun y : ℤ × ℤ => (AbsEise k z) y
-  have gpos : ∀ y : ℤ × ℤ, 0 ≤ g y := by intro y; simp_rw [AbsEise]; simp
+  have gpos : ∀ y : ℤ × ℤ, 0 ≤ g y := by
+    intro y
+    simp_rw [AbsEise]
+    simp
+    apply zpow_nonneg (Complex.abs.nonneg _)
   have hgsumm : Summable g := by apply real_eise_is_summable k z h
   have index_lem := tsum_lemma g In HI hgsumm
   simp
@@ -156,47 +163,40 @@ theorem AbsEisenstein_bound (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
   have smallclaim := AbsEise_bounded_on_square k z h
   have nze : (8 / rfunct z ^ k : ℝ) ≠ 0 :=
     by
-    apply div_ne_zero; simp; norm_cast; apply pow_ne_zero; apply EisensteinSeries.rfunct_ne_zero
+    apply div_ne_zero; simp; norm_cast; apply zpow_ne_zero; apply EisensteinSeries.rfunct_ne_zero
   have riesum := Real.summable_nat_rpow_inv.2 hk
   have riesum' : Summable fun n : ℕ => 8 / rfunct z ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ :=
     by
     rw [← (summable_mul_left_iff nze).symm]
-    simp only [Int.cast_ofNat, Int.cast_one, Int.cast_sub] at riesum 
+    simp only [Int.cast_ofNat, Int.cast_one, Int.cast_sub] at riesum
     simp
     linarith
   apply tsum_le_tsum
   simp at *
-  convert smallclaim
-  have := Int.ofNat_sub hk11.le
-  norm_cast at *
-  rw [←this]
-  simp
+  norm_cast at smallclaim
   rw [← ind_lem2]
   apply hgsumm
-  have := Int.ofNat_sub hk11.le
-  norm_cast at *
-  rw [←this] at riesum'
-  simpa using riesum'
-  
+  norm_cast at riesum'
 
 
-theorem AbsEisenstein_bound_unifomly_on_stip (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
+
+
+theorem AbsEisenstein_bound_unifomly_on_stip (k : ℤ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
     (z : upperHalfSpaceSlice A B) :
     (AbsEisenstein_tsum k z.1) ≤ (8 / rfunct (lbpoint A B hb) ^ k) * Complex.abs (riemannZeta (k - 1)) := by
-  have : 8 / rfunct (z : ℍ') ^ k * Complex.abs (riemannZeta (k - 1 )) ≤ 
+  have : 8 / rfunct (z : ℍ') ^ k * Complex.abs (riemannZeta (k - 1 )) ≤
     8 / rfunct (lbpoint A B hb) ^ k * Complex.abs (riemannZeta (k - 1)) := by
+    have hk0 : 0 ≤ k := by linarith
+    lift k to ℕ using hk0
     apply rfunctbound;
-  have h1 := ( AbsEisenstein_bound k (z : ℍ') h)  
-  have hk11 : 1 < k := by linarith
-  have H:= Int.ofNat_sub hk11.le
-  have H2 : (((k-1) : ℕ) : ℂ) = k - 1 := by norm_cast
-  rw [H2] at h1
-  apply le_trans h1 this
+  have h1 := ( AbsEisenstein_bound k (z : ℍ') h)
+  apply le_trans h1
+  convert this
+  simp
 
 
 
-
-theorem eis_bound_by_real_eis (k : ℕ) (z : ℍ) (hk : 3 ≤ k) :
+theorem eis_bound_by_real_eis (k : ℤ) (z : ℍ) (hk : 3 ≤ k) :
     Complex.abs (Eisenstein_tsum k z) ≤ AbsEisenstein_tsum k z :=
   by
   simp_rw [Eisenstein_tsum]
@@ -205,12 +205,12 @@ theorem eis_bound_by_real_eis (k : ℕ) (z : ℍ) (hk : 3 ≤ k) :
   simp_rw [eise]
   apply abs_tsum'
   have := real_eise_is_summable k z hk
-  simp_rw [AbsEise] at this 
+  simp_rw [AbsEise] at this
   simp only [one_div, Complex.abs_pow, abs_inv, norm_eq_abs, zpow_ofNat] at *
   apply this
 
-theorem Eisenstein_is_bounded' (k : ℕ) (hk : 3 ≤ k) :
-    UpperHalfPlane.IsBoundedAtImInfty ((Eisenstein_SIF ⊤ k)) := 
+theorem Eisenstein_is_bounded' (k : ℤ) (hk : 3 ≤ k) :
+    UpperHalfPlane.IsBoundedAtImInfty ((Eisenstein_SIF ⊤ k)) :=
   by
   simp only [UpperHalfPlane.bounded_mem, Subtype.forall, UpperHalfPlane.coe_im]
   let M : ℝ := 8 / rfunct (lbpoint 1 2 <| by linarith) ^ k * Complex.abs (riemannZeta (k - 1))
@@ -227,14 +227,16 @@ theorem Eisenstein_is_bounded' (k : ℕ) (hk : 3 ≤ k) :
     refine' ⟨hn.1, _⟩
     apply le_trans hz
     rw [modular_T_zpow_smul]
-    have : ((n : ℝ) +ᵥ z).1.im = z.im := by 
+    have : ((n : ℝ) +ᵥ z).1.im = z.im := by
       have := vadd_im ((n : ℝ)) z
       rw [← this]
       congr
     rw [this]
     apply le_abs_self
   convert  AbsEisenstein_bound_unifomly_on_stip k hk 1 2 (by linarith) ⟨Z, hZ⟩
- 
+
+
+/-
 
 theorem Eisenstein_is_bounded (k : ℤ) (hk : 3 ≤ k) :
     UpperHalfPlane.IsBoundedAtImInfty ((Eisenstein_SIF ⊤ k)) :=
@@ -249,12 +251,13 @@ theorem Eisenstein_is_bounded (k : ℤ) (hk : 3 ≤ k) :
   apply hn.symm
   apply hn.symm
   apply hn.symm
+-/
 
 theorem Eisenstein_series_is_bounded (k : ℤ) (hk : 3 ≤ k) (A : SL(2, ℤ)) :
     IsBoundedAtImInfty ( (Eisenstein_SIF ⊤ k)∣[k,A]) :=
   by
   simp_rw [(Eisenstein_SIF ⊤ k).2]
-  have := Eisenstein_is_bounded k hk
+  have := Eisenstein_is_bounded' k hk
   convert this
   have hr := (Eisenstein_SIF ⊤ k).2 ⟨A, by tauto⟩
   convert hr

@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
 import Mathlib.Geometry.Manifold.MFDeriv
-import Mathlib.Analysis.Complex.LocallyUniformLimit  
-import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly 
-import Mathlib.Analysis.Complex.UpperHalfPlane.Topology 
+import Mathlib.Analysis.Complex.LocallyUniformLimit
+import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
+import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.Analysis.Complex.UpperHalfPlane.Manifold
 
 open Complex
@@ -60,7 +60,7 @@ theorem dd2 (a b k : ℤ) (x : ℂ) (h : (a : ℂ) * x + b ≠ 0) :
   apply HasDerivAt.add_const
   have := HasDerivAt.const_mul (a : ℂ) (hasDerivAt_id x)
   simp at *
-  exact this    
+  exact this
 
 variable (f : ℍ' → ℂ)
 
@@ -79,14 +79,14 @@ theorem ext_chart (z : ℍ') : (extendByZero f) z = (f ∘ ⇑(chartAt ℂ z).sy
 
 theorem holo_to_mdiff (f : ℍ' → ℂ) (hf : IsHolomorphicOn f) : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f :=
   by
-  rw [← isHolomorphicOn_iff_differentiableOn] at hf 
+  rw [← isHolomorphicOn_iff_differentiableOn] at hf
   simp_rw [MDifferentiable]
   simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps]
   intro x
   constructor
   have hc := hf.continuousOn
-  simp at hc 
-  rw [continuousOn_iff_continuous_restrict] at hc 
+  simp at hc
+  rw [continuousOn_iff_continuous_restrict] at hc
   convert hc.continuousAt
   funext y
   simp_rw [extendByZero]
@@ -95,22 +95,22 @@ theorem holo_to_mdiff (f : ℍ' → ℂ) (hf : IsHolomorphicOn f) : MDifferentia
   have hH : ℍ'.1 ∈ 𝓝 ((chartAt ℂ x) x) :=
     by
     simp_rw [Metric.mem_nhds_iff]; simp
-    simp_rw [chartAt]; simp; have := upper_half_plane_isOpen; rw [Metric.isOpen_iff] at this 
+    simp_rw [chartAt]; simp; have := upper_half_plane_isOpen; rw [Metric.isOpen_iff] at this
     have ht := this x.1 x.2; simp at ht ; exact ht
   apply DifferentiableOn.differentiableAt _ hH
   apply DifferentiableOn.congr hf
   intro z hz
   have HH := ext_chart f (⟨z, hz⟩ : ℍ')
-  simp at HH 
+  simp at HH
   simp only [Function.comp_apply]
-  simp_rw [HH] 
+  simp_rw [HH]
   norm_cast
 
 theorem mdiff_to_holo (f : ℍ' → ℂ) (hf : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f) : IsHolomorphicOn f :=
   by
   rw [← isHolomorphicOn_iff_differentiableOn]
-  simp_rw [MDifferentiable] at hf 
-  simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps] at hf 
+  simp_rw [MDifferentiable] at hf
+  simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps] at hf
   simp_rw [DifferentiableOn]
   intro x hx
   have hff := (hf ⟨x, hx⟩).2
@@ -125,9 +125,9 @@ theorem mdiff_to_holo (f : ℍ' → ℂ) (hf : MDifferentiable 𝓘(ℂ) 𝓘(�
   simp_rw [Metric.mem_nhds_iff]; simp
   simp_rw [chartAt]; simp
   have := upper_half_plane_isOpen
-  rw [Metric.isOpen_iff] at this 
+  rw [Metric.isOpen_iff] at this
   have ht := this x hx
-  simp at ht 
+  simp at ht
   exact ht
   simp_rw [Set.EqOn]
   intro y hy
@@ -148,19 +148,19 @@ theorem Eise'_has_deriv_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
   by_cases hy : (y.1 : ℂ) * z.1 + y.2 ≠ 0
   simp_rw [eise]; ring_nf
   have := aux8 y.1 y.2 k z.1
-  
+
   have nz : (y.1 : ℂ) * z.1 + y.2 ≠ 0 := by apply hy
   have hdd := dd2 y.1 y.2 (-k) z nz
-  simp_rw [ein] at hdd 
+  simp_rw [ein] at hdd
   have H :
     HasDerivWithinAt (fun x : ℂ => (↑y.fst * x + ↑y.snd) ^ (-k))
-      (↑(-k) * (↑y.fst * ↑z + ↑y.snd) ^ (-k - 1) * ↑y.fst) UpperHalfPlane.upperHalfSpace ↑z := by 
+      (↑(-k) * (↑y.fst * ↑z + ↑y.snd) ^ (-k - 1) * ↑y.fst) UpperHalfPlane.upperHalfSpace ↑z := by
       simpa using (HasDerivAt.hasDerivWithinAt hdd)
-  simp at H 
+  simp at H
   let fx := (-k * ((y.1 : ℂ) * z.1 + y.2) ^ (-k - 1) * y.1 : ℂ)
   refine' ⟨fx, _⟩
   rw [hasDerivWithinAt_iff_tendsto] at *
-  simp [zpow_neg, Algebra.id.smul_eq_mul, eq_self_iff_true, Ne.def, Int.cast_neg, 
+  simp [zpow_neg, Algebra.id.smul_eq_mul, eq_self_iff_true, Ne.def, Int.cast_neg,
     norm_eq_abs, sub_neg_eq_add] at *
   rw [Metric.tendsto_nhdsWithin_nhds] at *
   intro ε hε
@@ -177,19 +177,19 @@ theorem Eise'_has_deriv_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
   convert H3
   ring_nf
   simp
-  have hz : y.1 = 0 ∧ y.2 = 0 := by 
+  have hz : y.1 = 0 ∧ y.2 = 0 := by
     simp at hy
     apply (linear_eq_zero_iff y.1 y.2 z).1 hy
   simp_rw [eise]; rw [hz.1, hz.2]
   simp only [one_div, add_zero, Int.cast_zero, MulZeroClass.zero_mul]
   have zhol := zero_hol ℍ'
-  rw [IsHolomorphicOn] at zhol 
+  rw [IsHolomorphicOn] at zhol
   have zhol' := zhol z
-  simp only at zhol' 
+  simp only at zhol'
   have zk : ((0 : ℂ) ^ k)⁻¹ = 0 := by
     simp only [inv_eq_zero]
     norm_cast
-    apply zero_zpow 
+    apply zero_zpow
     exact hkn
   rw [zk]
   exact zhol'
@@ -233,7 +233,7 @@ theorem eisenSquare'_diff_on (k : ℤ) (hkn : k ≠ 0) (n : ℕ) : IsHolomorphic
   apply DifferentiableOn.sum
   exact fun i _ => (isHolomorphicOn_iff_differentiableOn _ _).mpr (eisenSquare_diff_on k hkn i)
 
-theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
+theorem Eisenstein_is_holomorphic' (k : ℤ) (hk : 3 ≤ k) :
     IsHolomorphicOn (↑ₕ (Eisenstein_tsum k)) :=
   by
   rw [← isHolomorphicOn_iff_differentiableOn]
@@ -256,7 +256,7 @@ theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
     by
     intro n
     have := eisenSquare'_diff_on k hkn n
-    rw [← isHolomorphicOn_iff_differentiableOn] at this 
+    rw [← isHolomorphicOn_iff_differentiableOn] at this
     apply this.mono
     apply hball2
   rw [←tendstoLocallyUniformlyOn_iff_tendstoUniformlyOn_of_compact] at hunif
@@ -269,6 +269,7 @@ theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
   exact Metric.isOpen_ball
   exact isCompact_closedBall (x.1) ε
 
+/-
 theorem Eisenstein_is_holomorphic (k : ℤ) (hk : 3 ≤ k) :
     IsHolomorphicOn (↑ₕ (Eisenstein_tsum k)) :=
   by
@@ -280,10 +281,11 @@ theorem Eisenstein_is_holomorphic (k : ℤ) (hk : 3 ≤ k) :
   have := Eisenstein_is_holomorphic' n hn3
   convert this
   apply hn.symm
+  -/
 
 theorem Eisenstein_series_is_mdiff (k : ℤ) (hk : 3 ≤ k) :
     MDifferentiable 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ) (↑ₕ (Eisenstein_SIF ⊤ ↑k)) :=
   by
-  have := Eisenstein_is_holomorphic k hk
+  have := Eisenstein_is_holomorphic' k hk
   have h2 := (mdiff_iff_holo (↑ₕ (Eisenstein_SIF ⊤ k).toFun)).2 this
   convert h2

@@ -8,7 +8,7 @@ import Modformsported.ForMathlib.EisensteinSeries.bounded_at_infty
 import Mathlib.Algebra.Field.Power
 
 open Complex UpperHalfPlane
- 
+
 open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold
 
 open ModularForm
@@ -38,27 +38,27 @@ lemma coeGLl (A: SL(2,ℤ)) : (A : GL(2,ℤ)) i j = A.1 i j := by
 lemma neg_moeb_eq_id (z : ℍ) : (-1 : SL(2,ℤ)) • z = z := by
   rw [← UpperHalfPlane.ext_iff,UpperHalfPlane.specialLinearGroup_apply,UpperHalfPlane.coe_mk]
   simp
-  simp_rw [coeGLl (-1 : SL(2,ℤ)) ] 
+  simp_rw [coeGLl (-1 : SL(2,ℤ)) ]
   simp
   field_simp
-  
+
 theorem slash_action_eqn'' (k : ℤ) (Γ : Subgroup SL(2, ℤ)) [SlashInvariantFormClass F Γ k] (f : F)
     (γ : Γ) (z : ℍ) : f (γ • z) = ((γ.1 1 0 : ℂ) * z + (γ.1 1 1 : ℂ)) ^ k * f z := by
-  have := SlashInvariantForm.slash_action_eqn' k Γ f γ z 
+  have := SlashInvariantForm.slash_action_eqn' k Γ f γ z
   rw [this]
   norm_cast
 
 
-lemma SlashInvariantForm_neg_one_in_lvl_odd_wt_eq_zero 
+lemma SlashInvariantForm_neg_one_in_lvl_odd_wt_eq_zero
   (k : ℤ) (hkO : Odd k) (Γ : Subgroup SL(2, ℤ)) (hΓ : -1 ∈ Γ)
-  [SlashInvariantFormClass F Γ k] [AddCommMonoid F] [Module ℤ F] (hzero : ⇑(0 : F) = 0) (f : F):  
+  [SlashInvariantFormClass F Γ k] [AddCommMonoid F] [Module ℤ F] (hzero : ⇑(0 : F) = 0) (f : F):
     f = 0 := by
   apply FunLike.ext
   intro z
-  have hO : (-1 :ℂ)^k = -1 := by 
-    simp 
+  have hO : (-1 :ℂ)^k = -1 := by
+    simp
     apply hkO.neg_one_zpow
-  have := slash_action_eqn'' k Γ f 
+  have := slash_action_eqn'' k Γ f
   simp at *
   have HI := this (-1) hΓ z
   simp at HI
@@ -74,16 +74,16 @@ lemma SlashInvariantForm_neg_one_in_lvl_odd_wt_eq_zero
   simp
 
 
-lemma SIF_Top_Odd_Wt_eq_zero (k : ℤ) (hkO : Odd k) 
+lemma SIF_Top_Odd_Wt_eq_zero (k : ℤ) (hkO : Odd k)
   (f : SlashInvariantForm ⊤ k):
-  f = 0 := by 
+  f = 0 := by
   apply SlashInvariantForm_neg_one_in_lvl_odd_wt_eq_zero k hkO
   simp
   simp
 
-lemma toSIF_injective (k : ℤ) (Γ : Subgroup SL(2, ℤ)): Function.Injective 
+lemma toSIF_injective (k : ℤ) (Γ : Subgroup SL(2, ℤ)): Function.Injective
   (@toSlashInvariantForm Γ k) := by
-  intro f g 
+  intro f g
   intro h
   rw [FunLike.ext_iff] at *
   intro z
@@ -93,16 +93,14 @@ lemma toSIF_injective (k : ℤ) (Γ : Subgroup SL(2, ℤ)): Function.Injective
 lemma ModularForm_to_SIF_ext (k : ℤ) (f g : ModularForm ⊤ k) : f = g ↔ f.1 = g.1:= by
   refine Iff.symm (Function.Injective.eq_iff ?I)
   apply toSIF_injective
-  
-lemma ModularForms_Top_Odd_Wt_eq_zero (k : ℤ) (hkO : Odd k) 
+
+lemma ModularForms_Top_Odd_Wt_eq_zero (k : ℤ) (hkO : Odd k)
   (f : ModularForm ⊤ k):
-  f = 0 := by 
-  apply SlashInvariantForm_neg_one_in_lvl_odd_wt_eq_zero k hkO 
-  simp only [Subgroup.mem_top] 
+  f = 0 := by
+  apply SlashInvariantForm_neg_one_in_lvl_odd_wt_eq_zero k hkO
+  simp only [Subgroup.mem_top]
   simp only [ModularForm.coe_zero]
-  
-lemma eiseinsteinSeries_Odd_wt_eq_zero (k : ℤ) ( hk : 3 ≤ k) (hkO : Odd k) : 
+
+lemma eiseinsteinSeries_Odd_wt_eq_zero (k : ℤ) ( hk : 3 ≤ k) (hkO : Odd k) :
   EisensteinSeriesModularForm k hk = 0 := by
   apply ModularForms_Top_Odd_Wt_eq_zero k hkO
-  
-
