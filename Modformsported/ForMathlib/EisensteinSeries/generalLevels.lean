@@ -185,22 +185,13 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
     ext i
     fin_cases i
     simp only [Fin.mk_zero, comp_apply]
-    stop
-    simp only [Matrix.cons_val', Matrix.cons_val_zero, Matrix.empty_val', Matrix.cons_val_fin_one,
-      Matrix.dotProduct_cons, Fin.sum_univ_two, Matrix.cons_val_one, Matrix.head_cons, Int.cast_add, Int.cast_mul,
-      Matrix.map_apply, Matrix.vec2_dotProduct, Matrix.head_fin_const, Int.cast_neg, mul_neg]
-    simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct,Matrix.mul] at *
-    simp only [Finset.univ_unique, Fin.default_eq_zero, mul_neg, Finset.sum_neg_distrib, Finset.sum_singleton,
-      Int.cast_neg, Int.cast_mul]
-    simp_rw [Matrix.vecTail]
-    simp only [comp_apply, Fin.succ_zero_eq_one]
-    simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct,Matrix.mul] at *
-    simp only [Matrix.cons_val', Matrix.empty_val', Matrix.cons_val_fin_one, Matrix.dotProduct_cons, Fin.sum_univ_two,
-      Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons, Fin.mk_one, comp_apply, mul_neg, Int.cast_add,
-      Int.cast_mul, Int.cast_neg, Matrix.map_apply, Matrix.vec2_dotProduct, Matrix.head_fin_const]
-    simp_rw [Matrix.vecTail, Matrix.vecHead, Matrix.dotProduct,Matrix.mul]
-    simp only [Finset.univ_unique, Fin.default_eq_zero, comp_apply, Finset.sum_singleton, Fin.succ_zero_eq_one,
-      Int.cast_mul]
+    simp_rw [Matrix.vecMul,  Matrix.dotProduct] at *
+    simp  [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons, Int.cast_add,
+      Int.cast_mul, Matrix.mul_apply]
+    simp only [Fin.mk_zero, comp_apply]
+    simp_rw [Matrix.vecMul,  Matrix.dotProduct] at *
+    simp  [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons, Int.cast_add,
+      Int.cast_mul, Matrix.mul_apply]
   constructor
   have HI0 : (((↑) : ℤ→  (ZMod N)) ∘ (Matrix.vecMul (f.1) (A⁻¹.1))) 0 = (a : ZMod N) := by
     rw [HI]
@@ -221,8 +212,6 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
   fin_cases i
   rfl
   rfl
-
-#exit
 
 
 lemma GammaSLleftinv (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))  (v : lvl_N_congr' N a b) :
@@ -262,6 +251,8 @@ def Gammainv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (f : lvl_N_congr' N a b) :
   simp
   have := SL2_gcd (f.1 0) (f.1 1) hf.2.2 γ
   convert this
+  simp
+  simp_rw [Matrix.vecMul,Matrix.dotProduct,Matrix.vecCons]
   simp
   simp_rw [Matrix.vecMul,Matrix.dotProduct,Matrix.vecCons]
   simp
@@ -386,12 +377,12 @@ lemma averaver (A: SL(2, ℤ)) : equivla  (SpecialLinearGroup.transpose A)  = Mo
   rw [Matrix.mulVec, Matrix.dotProduct]
   simp
   ring_nf
-  congr
+
 
 theorem feise_Moebius (k : ℤ) (z : ℍ) (N : ℕ) (A : Gamma N) (i : (lvl_N_congr'  N a b)) :
     feise k (A • z) i =
       (A.1 1 0 * z.1 + A.1 1 1) ^ k * feise k z ((Gammainv_Equiv N a b A)  i) := by
-    simp_rw [feise,UpperHalfPlane.specialLinearGroup_apply]
+    simp_rw [feise]
     have := eise_Moebius k z A.1 ((piFinTwoEquiv fun _ => ℤ) i.1)
     convert this
     rw [←averaver A, equivla,Gammainv_Equiv]
@@ -448,19 +439,22 @@ lemma slash_apply (k : ℤ) (A : SL(2,ℤ)) (f : ℍ → ℂ) (z : ℍ): (f∣[k
   norm_cast
   rw [zpow_neg]
   congr
+  simp
 
 lemma denom_cocycle_SL  (N : ℕ) (a b : ℤ) (A : SL(2,ℤ)) (v : (lvl_N_congr'  N a b)) (z : ℍ) :
   denom ((gcd_one_to_SL_bot_row (v.1 0) (v.1 1) v.2.2.2) * A) z =
     denom ((gcd_one_to_SL_bot_row ((GammaSLinv_equiv N a b A v).1 0)
       ((GammaSLinv_equiv N a b A v).1 1) (GammaSLinv_equiv N a b A v).2.2.2)) z := by
-  simp_rw [denom, gcd_one_to_SL_bot_row, GammaSLinv_equiv, GammaSLinv]
-  simp only [Submonoid.coe_mul, Subgroup.coe_toSubmonoid, Units.val_mul,
+  simp
+  simp_rw [denom, gcd_one_to_SL_bot_row, GammaSLinv_equiv]
+  simp [Submonoid.coe_mul, Subgroup.coe_toSubmonoid, Units.val_mul,
     Matrix.SpecialLinearGroup.coe_GLPos_coe_GL_coe_matrix, Matrix.SpecialLinearGroup.map_apply_coe,
-    RingHom.mapMatrix_apply, Int.coe_castRingHom, Matrix.mul_eq_mul, uhc, Equiv.coe_fn_mk, GammaSLinv_apply,
+    RingHom.mapMatrix_apply, Int.coe_castRingHom, uhc, Equiv.coe_fn_mk, GammaSLinv_apply,
     Matrix.map_apply, Matrix.of_apply, Matrix.cons_val', Matrix.cons_val_zero, Matrix.empty_val',
     Matrix.cons_val_fin_one, Matrix.cons_val_one, Matrix.head_fin_const, ofReal_int_cast, Matrix.head_cons]
-  simp_rw [Matrix.vecMul, Matrix.mul, Matrix.dotProduct]
+  simp_rw [Matrix.vecMul, Matrix.dotProduct, Matrix.mul_apply]
   simp
+
 
 lemma Eisenstein_lvl_N_Sl_inv (N : ℕ) (k : ℤ) (hk : 3 ≤ k) (a b : ℤ) (A : SL(2,ℤ)) :
   (((Eisenstein_SIF_lvl_N N (k : ℤ) a b).1)∣[(k : ℤ),A]) =
@@ -469,21 +463,21 @@ lemma Eisenstein_lvl_N_Sl_inv (N : ℕ) (k : ℤ) (hk : 3 ≤ k) (a b : ℤ) (A 
   have := slash_apply k A ((Eisenstein_SIF_lvl_N N k a b).1) z
   rw [this]
   simp only [SlashInvariantForm.toFun_eq_coe]
-  simp_rw [Eisenstein_SIF_lvl_N, Eisenstein_N_tsum]
+  simp_rw [Eisenstein_SIF_lvl_N]
   simp only [SlashInvariantForm.coe_mk]
   rw [Eisenstein_N_tsum]
   rw [Eisenstein_N_tsum]
   have := @feise_eq_one_div_denom N a b k (A • z)
   have t2 := @feise_eq_one_div_denom N (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1) k (z)
-  simp only [piFinTwoEquiv_apply, Matrix.SpecialLinearGroup.coe_GLPos_coe_GL_coe_matrix,
-    Matrix.SpecialLinearGroup.map_apply_coe, RingHom.mapMatrix_apply, Int.coe_castRingHom, Matrix.map_apply,
-    ofReal_int_cast, uhc]
+  simp [uhc]
   convert (Equiv.tsum_eq (GammaSLinv_equiv N a b A) _)
   norm_cast
   rw [←Summable.tsum_mul_right]
   apply tsum_congr
   intro v
-  simp_rw [this]
+  have tt2 := this v
+  simp at tt2
+  simp_rw [tt2]
   rw [t2]
   simp only [cpow_int_cast, one_div, zpow_neg]
   rw [←mul_inv]
@@ -492,6 +486,7 @@ lemma Eisenstein_lvl_N_Sl_inv (N : ℕ) (k : ℤ) (hk : 3 ≤ k) (a b : ℤ) (A 
   congr
   have cocy:= UpperHalfPlane.denom_cocycle (gcd_one_to_SL_bot_row (v.1 0) (v.1 1) v.2.2.2) A z
   have seq : A • z = smulAux A z := by rfl
+  simp at seq
   rw [seq]
   rw [←cocy]
   have HF:= denom_cocycle_SL N a b A v z
@@ -510,7 +505,7 @@ lemma tsum_subtype_le {α : Type} (f : α → ℝ) (β : Set α) (hf : ∀ a : �
 
 lemma UBOUND (N : ℕ) (a b : ℤ) (k : ℤ) (hk : 3 ≤ k) (z : ℍ):
   Complex.abs ((((Eisenstein_SIF_lvl_N N k a b))) z) ≤ (AbsEisenstein_tsum k z) := by
-  simp_rw [Eisenstein_SIF_lvl_N, AbsEisenstein_tsum, Eisenstein_N_tsum]
+  simp_rw [Eisenstein_SIF_lvl_N, AbsEisenstein_tsum]
   simp
   apply le_trans (abs_tsum' ?_)
   simp_rw [feise, eise]
@@ -620,7 +615,7 @@ lemma compact_in_some_slice (K : Set ℍ) (hK : IsCompact K) : ∃  A B : ℝ, 0
   have := IsCompact.exists_isMinOn hK hne hcts
   obtain ⟨b, _, HB⟩ := this
   let t := (⟨Complex.I, by simp⟩ : ℍ)
-  have hb2 := Bounded.subset_ball_lt hK.bounded 0 t
+  have hb2 := Bornology.IsBounded.subset_closedBall_lt hK.isBounded 0 t
   obtain ⟨r, hr, hr2⟩ := hb2
   refine' ⟨Real.sinh (r) + Complex.abs ((UpperHalfPlane.center t r)), b.im, _⟩
   constructor
@@ -634,7 +629,7 @@ lemma compact_in_some_slice (K : Set ℍ) (hK : IsCompact K) : ∃  A B : ℝ, 0
   norm_cast at *
   apply le_trans (abs_re_le_abs z)
   have := Complex.abs.sub_le (z : ℂ) (UpperHalfPlane.center t r) 0
-  simp only [sub_zero, Subtype.coe_mk, abs_I] at this
+  simp  [sub_zero, Subtype.coe_mk, abs_I] at this
   rw [dist_le_iff_dist_coe_center_le] at hr3
   simp at *
   apply le_trans this
@@ -730,7 +725,7 @@ lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N : ℕ) (k : ℤ) (hk : 3 �
   have HH := this S
   have hS : IsCompact S := by
     simp
-    refine Iff.mpr isCompact_iff_isCompact_in_subtype ?_
+    refine Subtype.isCompact_iff.mpr ?_
     convert hk2
     exact Subtype.coe_image_of_subset hk1
     --apply upper_half_plane_isOpen
