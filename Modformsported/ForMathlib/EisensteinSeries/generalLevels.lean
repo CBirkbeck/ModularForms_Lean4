@@ -44,6 +44,19 @@ lemma lvl_1_congr (a b c d : ℤ ) : lvl_N_congr' 1 a b = lvl_N_congr' 1 c d := 
 
 def lvl1_equiv (a b c d : ℤ) : (lvl_N_congr' 1 a b) ≃ (lvl_N_congr' 1 c d) := by
   refine Equiv.Set.ofEq (lvl_1_congr a b c d)
+
+/-
+def lvl1_equiv_Z_Z (a b : ℤ) : (lvl_N_congr' 1 a b) ≃ (Fin 2 → ℤ) where
+  toFun  x := x.1
+  invFun := by
+    intro x
+    use x
+    simp
+
+  left_inv := _
+  right_inv := _
+  -/
+
 section
 
 variable {n : Type u} [DecidableEq n] [Fintype n] {R : Type v} [CommRing R]
@@ -791,11 +804,55 @@ def EisensteinSeries_lvl_N_ModularForm (a b : ℤ) (N : ℕ) (k : ℤ) (hk : 3 �
   holo' := Eisenstein_lvl_N_is_mdiff a b N k hk
   bdd_at_infty' A :=  Eisenstein_series_is_bounded a b N k hk A hN
 
-variable (a b : ℤ) (k : ℤ) (hk : 3 ≤ k )
+
 
 lemma level_one : ModularForm (Gamma 1) k = ModularForm ⊤ k := by
   congr
   apply  Gamma_one_top
+
+def mcastlevel {k : ℤ} {A B : Subgroup SL(2, ℤ)} (h : A = B) (f : ModularForm A k) : ModularForm B k
+    where
+  toFun := (f : ℍ → ℂ)
+  slash_action_eq' := by
+    intro γ
+    have :  γ.1 ∈ A := by
+      rw [h]
+      apply γ.2
+    apply (f.slash_action_eq' ⟨γ.1, this⟩)
+  holo' := f.holo'
+  bdd_at_infty' := by
+    intro S
+    apply (f.bdd_at_infty' S)
+
+
+
+
+theorem type_eq_level {k : ℤ} {A B : Subgroup SL(2, ℤ)} (h : A = B) :
+  ModularForm A k = ModularForm B k := by
+  induction h
+  rfl
+
+theorem cast_eq_mcast_level {k : ℤ} {A B : Subgroup SL(2, ℤ)} (h : A = B) (f : ModularForm A k) :
+    cast (type_eq_level h) f = mcastlevel h f := by
+  induction h
+  ext1
+  rfl
+
+variable (a b : ℤ) (k : ℤ) (hk : 3 ≤ k )
+/-
+instance (k : ℤ) : Coe (ModularForm (Gamma 1) k) (ModularForm ⊤ k) where
+  coe f := by
+    use ⟨f.toFun, by
+      have := f.slash_action_eq'
+      intro γ
+
+      have t := this
+         ⟩
+    apply f.holo'
+    apply f.bdd_at_infty'
+-/
+
+
 
 lemma level_1_tsum_eq (a b c d : ℤ) : Eisenstein_N_tsum k 1 a b = Eisenstein_N_tsum k 1 c d := by
   funext z
@@ -825,4 +882,29 @@ lemma level_1_mod_form_eq (a b c d : ℤ) : EisensteinSeries_lvl_N_ModularForm a
   apply (level_1_SIF_eq k a b c d)
 
 
--- lemma level_1_can (a b : ℕ)
+/-
+lemma Eis_1_eq_Eis (a b : ℤ) :
+  (fun z : ℍ => (riemannZeta (k))*(Eisenstein_N_tsum k 1 a b z)) = Eisenstein_tsum k := by
+
+  ext1 z
+  rw [Eisenstein_N_tsum, Eisenstein_tsum]
+  simp
+
+  sorry
+
+lemma level_1_can (a b : ℤ) : HEq (EisensteinSeries_lvl_N_ModularForm a b 1 k hk one_pos)
+  (EisensteinSeriesModularForm k hk) := by
+
+  apply heq_of_cast_eq level_one
+  rw [cast_eq_mcast_level Gamma_one_top, mcastlevel]
+  simp_rw [EisensteinSeriesModularForm,EisensteinSeries_lvl_N_ModularForm]
+  congr
+
+  ext1 z
+  simp
+  rw [Eisenstein_SIF]
+  simp
+  simp_rw [Eisenstein_tsum, Eisenstein_SIF_lvl_N, Eisenstein_N_tsum]
+  simp
+  simp_rw [Eisenstein_N_tsum]
+  -/
