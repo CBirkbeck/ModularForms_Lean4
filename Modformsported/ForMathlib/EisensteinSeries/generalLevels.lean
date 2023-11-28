@@ -157,7 +157,7 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
     ext i
     fin_cases i
     simp  [Fin.mk_zero, comp_apply, Matrix.vecMul_vecMul]
-    simp_rw [Matrix.vecMul,  Matrix.dotProduct, Matrix.map] at *
+    simp_rw [Matrix.vecMul,  Matrix.dotProduct] at *
 
     simp only [Matrix.cons_val', Matrix.cons_val_zero, Matrix.empty_val', Matrix.cons_val_fin_one,
       Fin.sum_univ_two, Matrix.cons_val_one, Matrix.head_fin_const, mul_neg, Int.cast_add,
@@ -166,25 +166,26 @@ def GammaSLinv' (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ))
 
     rw [hf.1, hf.2.1]
     simp  [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons, Int.cast_add,
-      Int.cast_mul]
+      Int.cast_mul, Matrix.mul_apply]
     ring
+    simp  [Fin.mk_zero, comp_apply, Matrix.vecMul_vecMul]
+    simp_rw [Matrix.vecMul,  Matrix.dotProduct] at *
 
+    simp only [Matrix.cons_val', Matrix.cons_val_zero, Matrix.empty_val', Matrix.cons_val_fin_one,
+      Fin.sum_univ_two, Matrix.cons_val_one, Matrix.head_fin_const, mul_neg, Int.cast_add,
+      Int.cast_mul, Int.cast_neg, Matrix.head_cons]
+    --simp_rw [Matrix.vecHead,Matrix.vecTail,Matrix.transpose,Matrix.cramer,Matrix.cramerMap, Matrix.mul]
 
-    stop
-
-    simp only [Matrix.cons_val', Matrix.cons_val_one, Matrix.head_cons, Matrix.empty_val', Matrix.cons_val_fin_one,
-      Fin.sum_univ_two, Matrix.cons_val_zero, mul_neg, Matrix.head_fin_const, Int.cast_add, Int.cast_neg, Int.cast_mul,
-      Matrix.map_apply, Matrix.vec2_dotProduct]
     rw [hf.1, hf.2.1]
-    simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons, Int.cast_add,
-      Int.cast_mul]
+    simp  [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons, Int.cast_add,
+      Int.cast_mul, Matrix.mul_apply]
     ring
     rw [←hi2]
     simp only [Matrix.vecMul_vecMul]
     ext i
     fin_cases i
     simp only [Fin.mk_zero, comp_apply]
-    simp_rw [Matrix.vecMul, Matrix.vecHead,  Matrix.dotProduct,Matrix.mul] at *
+    stop
     simp only [Matrix.cons_val', Matrix.cons_val_zero, Matrix.empty_val', Matrix.cons_val_fin_one,
       Matrix.dotProduct_cons, Fin.sum_univ_two, Matrix.cons_val_one, Matrix.head_cons, Int.cast_add, Int.cast_mul,
       Matrix.map_apply, Matrix.vec2_dotProduct, Matrix.head_fin_const, Int.cast_neg, mul_neg]
