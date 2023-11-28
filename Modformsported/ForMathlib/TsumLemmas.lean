@@ -188,8 +188,8 @@ def unionEquiv (ι : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃!
     simp
     obtain ⟨i, hi1,_⟩:= HI x
     refine ⟨i,hi1⟩
-  left_inv := by simp; intro x; cases x; rfl
-  right_inv := by simp; intro x; rfl
+  left_inv := by  intro x; cases x; rfl
+  right_inv := by intro x; rfl
 
 theorem summable_disjoint_union_of_nonneg {i : α → Set β} {f : (⋃ x, i x) → ℝ}
     (h : ∀ a b, a ≠ b → Disjoint (i a) (i b)) (hf : ∀ x, 0 ≤ f x) :
@@ -219,7 +219,6 @@ theorem tsum_disjoint_union_of_nonneg' {γ : Type} [AddCommGroup γ]  [ UniformS
   have h11 : ∑' x, f x = ∑' y, f (h0 y) := by have := Equiv.tsum_eq h0 f; rw [← this]
   rw [h11]
   rw [tsum_sigma]
-  simp_rw [Set.sigmaToiUnion]
   rfl
   have h01 : Summable f ↔ Summable (f ∘ h0) := by rw [Equiv.summable_iff]
   convert (h01.1 h1)
@@ -392,7 +391,6 @@ theorem int_nat_sum [AddCommGroup α] [UniformSpace α] [ UniformAddGroup α]  [
   apply Summable.congr h_left
   intro b
   funext
-  simp_rw [Equiv.apply_ofInjective_symm]
   simp
   apply congr_arg
   exact Eq.symm (Equiv.apply_ofInjective_symm Nat.cast_injective b)

@@ -46,7 +46,7 @@ theorem DifferentiableAt.product {α : Type _} {ι : Finset α} (F : α → ℂ 
   apply DifferentiableAt.mul
   simp only [Finset.forall_coe, Subtype.coe_mk, Finset.mem_cons, forall_eq_or_imp] at *
   apply hd.1
-  rw [← Finset.prod_fn] at ih 
+  rw [← Finset.prod_fn] at ih
   apply ih
   intro r
   simp at *
@@ -60,14 +60,13 @@ theorem logDeriv_prod {α : Type _} (s : Finset α) (f : α → ℂ → ℂ) (t 
   by
   induction' s using Finset.cons_induction_on with a s ha ih
   · simp [logDeriv_one]
-  · rw [Finset.forall_mem_cons] at hf 
+  · rw [Finset.forall_mem_cons] at hf
     simp [ih hf.2]; rw [Finset.prod_insert]; rw [Finset.sum_insert]
     have := log_derv_mul (f a) (∏ i in s, f i) t ?_ ?_ ?_
     simp at *
-    rw [ih hf.2] at this 
+    rw [ih hf.2] at this
     simp at *
     rw [←this]
-    simp
     congr
     ext1 r
     simp
@@ -129,4 +128,3 @@ theorem logDeriv_tendsto (f : ℕ → ℂ → ℂ) (g : ℂ → ℂ) (s : Set �
   apply hf
   apply hs
   apply hg
-

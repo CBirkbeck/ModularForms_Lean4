@@ -14,10 +14,10 @@ open Metric Filter Function Complex
 
 open scoped Interval Real Topology BigOperators Nat Classical
 
-local notation "ℍ" => UpperHalfPlane 
+local notation "ℍ" => UpperHalfPlane
 
 def cot (z : ℂ) :=
-  Complex.cos z / Complex.sin z  
+  Complex.cos z / Complex.sin z
 
 theorem cot_exp (z : ℂ) :
     cot (↑π * z) = (Complex.exp (2 * ↑π * I * z) + 1) / (I * (1 - Complex.exp (2 * ↑π * I * z))) :=
@@ -100,8 +100,7 @@ theorem geom_series_mul_add (x : R) (h : ‖x‖ < 1) : x * ∑' i : ℕ, x ^ i 
     apply NormedRing.summable_geometric_of_norm_lt_1 x h
     apply tendsto_pow_atTop_nhds_0_of_norm_lt_1 h
   convert ← this
-  simp
-  have hh := @geom_sum_succ _ _ x 
+  have hh := @geom_sum_succ _ _ x
   rw [hh]
   simp only [add_sub_cancel]
   exact Finset.mul_sum
@@ -144,4 +143,3 @@ theorem pi_cot_q_exp (z : ℍ) :
   simp at *
   rw [this]
   ring
-

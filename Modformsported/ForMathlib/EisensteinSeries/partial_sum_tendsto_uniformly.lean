@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
 import Modformsported.ForMathlib.ModForms2
-import Modformsported.ForMathlib.EisensteinSeries.summable   
+import Modformsported.ForMathlib.EisensteinSeries.summable
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
 import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.NumberTheory.ModularForms.Basic
-import Mathlib.Analysis.Calculus.Deriv.ZPow 
-import Modformsported.ModForms.HolomorphicFunctions   
-import Mathlib.NumberTheory.ZetaFunction 
- 
+import Mathlib.Analysis.Calculus.Deriv.ZPow
+import Modformsported.ModForms.HolomorphicFunctions
+import Mathlib.NumberTheory.ZetaFunction
+
 open Complex
 
 open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold Set
@@ -41,10 +41,10 @@ lemma uhc (z : ℍ) : (z : ℂ) = z.1 := by rfl
 
 theorem div_self_add_eq_one_div_div_add_one (a b : ℝ) (h : a ≠ 0) : a / (a + b) = 1 / (b / a + 1) :=
   by
-  have : b / a + 1 = (b + a) / a := by 
-    ring_nf; 
+  have : b / a + 1 = (b + a) / a := by
+    ring_nf;
     simp [h]
-    ring  
+    ring
   rw [this]
   simp
   rw [add_comm]
@@ -52,28 +52,21 @@ theorem div_self_add_eq_one_div_div_add_one (a b : ℝ) (h : a ≠ 0) : a / (a +
 theorem aux4 (a b : ℝ) (h : 0 < b) :
     (b ^ 4 + (a * b) ^ 2) / (a ^ 2 + b ^ 2) ^ 2 = 1 / ((a / b) ^ 2 + 1) :=
   by
-  have h1 : (a ^ 2 + b ^ 2) ^ 2 = (a ^ 2 + b ^ 2) * (a ^ 2 + b ^ 2) := by 
+  have h1 : (a ^ 2 + b ^ 2) ^ 2 = (a ^ 2 + b ^ 2) * (a ^ 2 + b ^ 2) := by
     simp
     ring
   rw [h1]
-  have h2 : b ^ 4 + (a * b) ^ 2 = b ^ 2 * (a ^ 2 + b ^ 2) := by 
+  have h2 : b ^ 4 + (a * b) ^ 2 = b ^ 2 * (a ^ 2 + b ^ 2) := by
     simp
-    norm_cast 
+    norm_cast
     ring
   rw [h2]
   rw [mul_div_assoc]
   simp only [one_div, div_pow, div_self_mul_self']
   field_simp
-  have hb : b ^ 2 ≠ 0 := by simp [h]; intro h3; linarith
-  norm_cast
-  simp
-  field_simp
-  have := div_self_add_eq_one_div_div_add_one (b^2) (a^2) hb
-  norm_cast at *
-  rw [add_comm]
-  exact this
 
-lemma abs_even_pow_eq_self (a : ℝ) (n : ℕ) (h2 : Even n) : |a|^n = a^n := by 
+
+lemma abs_even_pow_eq_self (a : ℝ) (n : ℕ) (h2 : Even n) : |a|^n = a^n := by
     norm_cast
     have := _root_.abs_pow a n
     rw [←this]
@@ -90,7 +83,7 @@ def lbpoint (A B : ℝ) (h : 0 < B) : ℍ :=
   ⟨⟨A, B⟩, by simp; exact h⟩
 
 instance sliceCoe (A B : ℝ) : CoeOut (upperHalfSpaceSlice A B) ℍ :=
-  ⟨fun x : upperHalfSpaceSlice A B => (x : ℍ')⟩  
+  ⟨fun x : upperHalfSpaceSlice A B => (x : ℍ')⟩
 
 theorem slice_mem (A B : ℝ) (z : ℍ) :
     z ∈ upperHalfSpaceSlice A B ↔ Complex.abs z.1.1 ≤ A ∧ Complex.abs z.1.2 ≥ B :=
@@ -107,7 +100,7 @@ instance nonemp (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) : Nonempty (upperHalfSpa
   constructor
   have := abs_eq_self.2 ha
   rw [this]
-  apply le_abs_self  
+  apply le_abs_self
 
 theorem ball_in_upper_half (z : ℍ') (A B ε : ℝ) (hε : 0 < ε) (hBε : ε < B)
     (h : Metric.closedBall z ε ⊆ upperHalfSpaceSlice A B) : Metric.closedBall z.1 ε ⊆ ℍ'.1 :=
@@ -115,22 +108,22 @@ theorem ball_in_upper_half (z : ℍ') (A B ε : ℝ) (hε : 0 < ε) (hBε : ε <
   intro x hx
   simp at *
   have hg : 0 < x.2 := by
-    rw [Metric.closedBall] at h 
+    rw [Metric.closedBall] at h
     have hz : z ∈ upperHalfSpaceSlice A B := by apply h; simp [hε.le]
-    simp at hz 
-    have hzB : B ≤ Complex.abs z.1.2 := by 
+    simp at hz
+    have hzB : B ≤ Complex.abs z.1.2 := by
       have := hz.2
       linarith
-    rw [dist_eq_norm] at hx 
-    simp at hx 
+    rw [dist_eq_norm] at hx
+    simp at hx
     have h3 := le_trans (abs_im_le_abs (x - z.1)) hx
-    rw [sub_im] at h3 
-    rw [_root_.abs_sub_comm] at h3 
+    rw [sub_im] at h3
+    rw [_root_.abs_sub_comm] at h3
     have h33 : -ε ≤ -|z.1.im - x.im| := by simp; apply h3
-    simp at hzB 
+    simp at hzB
     have h6 : B - ε ≤ |z.1.im| - |z.1.im - x.im| := by simp at *; linarith
     by_contra hc
-    simp at hc 
+    simp at hc
     have hcc : 0 ≤ -x.im := by linarith
     have hzc : |z.1.im - x.im| = z.1.im - x.im :=
       by
@@ -138,8 +131,8 @@ theorem ball_in_upper_half (z : ℍ') (A B ε : ℝ) (hε : 0 < ε) (hBε : ε <
       have := UpperHalfPlane.im_pos z
       apply this.le; apply hcc
     have hzp : |z.1.im| = z.1.im := by apply _root_.abs_of_nonneg (UpperHalfPlane.im_pos z).le
-    simp_rw [hzc, hzp] at h6 
-    simp only [sub_sub_cancel] at h6 
+    simp_rw [hzc, hzp] at h6
+    simp only [sub_sub_cancel] at h6
     linarith
   apply hg
 
@@ -166,34 +159,31 @@ theorem closedBall_in_slice (z : ℍ') :
   simp only [abs_ofReal, Metric.mem_closedBall, TopologicalSpace.Opens.coe_mk]
   intro hxz
   have d1 : dist x z = dist (x : ℂ) (z : ℂ) := Subtype.dist_eq x z
-  rw [d1] at hxz 
-  rw [dist_eq_norm] at hxz 
-  simp only [norm_eq_abs] at hxz 
+  rw [d1] at hxz
+  rw [dist_eq_norm] at hxz
+  simp only [norm_eq_abs] at hxz
   have := Complex.abs.sub_le (x : ℂ) (z : ℂ) 0
-  simp only [sub_zero] at this 
+  simp only [sub_zero] at this
   constructor
   have hre := le_trans (abs_re_le_abs x.1) this
-  simp_rw [UpperHalfPlane.re]
   simp  [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at *
   apply le_trans hre
   simp only [add_le_add_iff_right]
   apply le_trans hxz
-  simp_rw [UpperHalfPlane.im]
-  simp  [UpperHalfPlane.coe_im]
   have hxim : 0 ≤ |(z : ℂ).im| := by apply _root_.abs_nonneg
   ring_nf
   simp only [Int.ofNat_eq_coe, Nat.cast_one, Int.cast_one, Nat.cast_ofNat, gt_iff_lt, abs_pos, ne_eq,
     ge_iff_le]
   linarith
   have ineq1 := _root_.abs_sub_le z.1.2 x.1.2 0
-  simp  [sub_zero, UpperHalfPlane.coe_im] at ineq1 
+  simp  [sub_zero, UpperHalfPlane.coe_im] at ineq1
   simp only [abs_ofReal, ge_iff_le, tsub_le_iff_right]
   apply le_trans ineq1
   rw [add_comm]
   simp only [add_le_add_iff_left]
   have ki := le_trans (abs_im_le_abs (x.1 - z.1)) hxz
-  rw [sub_im] at ki 
-  rw [_root_.abs_sub_comm] at ki 
+  rw [sub_im] at ki
+  rw [_root_.abs_sub_comm] at ki
   convert ki
   constructor
   apply add_nonneg
@@ -203,7 +193,7 @@ theorem closedBall_in_slice (z : ℍ') :
   rw [← sub_pos]
   have hr : 0 < Complex.abs z.1.im := by simp; apply UpperHalfPlane.im_ne_zero z
   have hxim : 0 < |(z : ℂ).im| := by norm_cast at *
-  simp only [abs_ofReal, Int.ofNat_eq_coe, Nat.cast_ofNat, Int.int_cast_ofNat, Nat.cast_one, Int.cast_one, 
+  simp only [abs_ofReal, Int.ofNat_eq_coe, Nat.cast_ofNat, Int.int_cast_ofNat, Nat.cast_one, Int.cast_one,
     sub_pos, gt_iff_lt, abs_pos, ne_eq]
   linarith
 
@@ -221,39 +211,39 @@ theorem compact_in_slice' (S : Set ℂ) (hne : Set.Nonempty S) (hs : S ⊆ ℍ')
     by
     apply IsCompact.image_of_continuousOn
     simp; exact isCompact_iff_isCompact_univ.mp hs2;
-    apply Continuous.continuousOn 
+    apply Continuous.continuousOn
     apply  (continuous_inclusion hs)
   let t := (⟨Complex.I, by simp⟩ : ℍ)
-  have hb2 := Bounded.subset_ball_lt hh.bounded 0 t
+  have hb2 := _root_.Bornology.IsBounded.subset_ball_lt hh.isBounded 0 t
   obtain ⟨r, hr, hr2⟩ := hb2
   refine' ⟨r + 1, b.im, _⟩
   constructor
   have hbim := hs hb
-  simp at hbim 
-  rw [mem_uhs b] at hbim 
+  simp at hbim
+  rw [mem_uhs b] at hbim
   exact hbim
   intro z hz
   simp  [slice_mem, coe_re, coe_im, ge_iff_le, top_eq_univ,
     image_univ, range_inclusion] at *
   constructor
   have hr3 := hr2 hz
-  simp  at hr3 
+  simp  at hr3
   norm_cast at *
   apply le_trans (abs_re_le_abs z)
   have := Complex.abs.sub_le (z : ℂ) (t : ℂ) 0
-  simp only [sub_zero, Subtype.coe_mk, abs_I] at this 
+  simp only [sub_zero, Subtype.coe_mk, abs_I] at this
   have hds : dist z t = Complex.abs ((z : ℂ) - t) := by rfl
-  rw [hds] at hr3 
+  rw [hds] at hr3
   apply le_trans this
   simp only [add_le_add_iff_right]
-  apply hr3
+  apply hr3.le
   have hbz := HB  hz
   simp at *
   convert hbz
   simp
   have hhf := hs hz
-  rw [mem_uhs _] at hhf 
-  apply hhf.le  
+  rw [mem_uhs _] at hhf
+  apply hhf.le
 
 /-- The sum of Eise over the `square`'s-/
 def eisenSquare (k : ℤ) (n : ℕ) : ℍ → ℂ := fun z => ∑ x in square n, eise k z x
@@ -267,7 +257,7 @@ theorem Eisenstein_series_is_sum_eisen_squares (k : ℕ) (z : ℍ) (h : 3 ≤ k)
   have HI :=squares_cover_all
   let g := fun y : ℤ × ℤ => (eise k z) y
   have hgsumm : Summable g := by apply Eisenstein_tsum_summable k z h
-  have index_lem := tsum_lemma g (fun (n : ℕ) => square n) HI hgsumm; 
+  have index_lem := tsum_lemma g (fun (n : ℕ) => square n) HI hgsumm;
   exact index_lem
 
 def eisenSquareSlice (k : ℤ) (A B : ℝ) (n : ℕ) : upperHalfSpaceSlice A B → ℂ := fun x =>
@@ -284,9 +274,7 @@ section rfunct_bounds
 
 theorem rfunct_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfSpaceSlice A B) :
     rfunct (lbpoint A B h) ≤ rfunct z.1 := by
-  simp at *
   simp_rw [lbpoint]
-  simp  [min_le_iff, le_min_iff]
   have zpos := UpperHalfPlane.im_pos z.1
   have hz := z.2
   rw [slice_mem] at hz
@@ -305,10 +293,10 @@ theorem rfunct_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfSpaceS
   apply pow_two_nonneg
   right
   rw [Real.sqrt_le_sqrt_iff]
-  have := aux4 (z : ℂ).re (z : ℂ).im zpos 
+  have := aux4 (z : ℂ).re (z : ℂ).im zpos
   norm_cast at *
   simp at this
-  rw [this] 
+  rw [this]
   have t3 := aux4 A B h
   norm_cast at *
   rw [t3]
@@ -317,7 +305,7 @@ theorem rfunct_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfSpaceS
   simp
   apply mul_le_mul
   have t2 := abs_even_pow_eq_self (z : ℂ).re 2
-  simp only [TopologicalSpace.Opens.coe_mk, Nat.cast_ofNat, Real.rpow_two, forall_true_left, uhc] at t2 
+  simp only [TopologicalSpace.Opens.coe_mk, Nat.cast_ofNat, Real.rpow_two, forall_true_left, uhc] at t2
   norm_cast at t2
   rw [←t2]
   apply pow_le_pow_of_le_left (abs_nonneg _) hz.1 2
@@ -346,15 +334,15 @@ theorem rfunct_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfSpaceS
   apply pow_two_nonneg
 
 theorem rfunctbound (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice A B) :
-    8 / rfunct (z : ℍ') ^ k * Complex.abs (riemannZeta (k - 1)) ≤ 
+    8 / rfunct (z : ℍ') ^ k * Complex.abs (riemannZeta (k - 1)) ≤
       8 / rfunct (lbpoint A B hb) ^ k * Complex.abs (riemannZeta (k - 1))  :=
   by
   have h1 := rfunct_lower_bound_on_slice A B hb z
-  simp only at h1 
+  simp only at h1
   have v2 : 0 ≤ rfunct (lbpoint A B hb) := by have := rfunct_pos (lbpoint A B hb); linarith
   have h2 := pow_le_pow_of_le_left v2 h1 k
   ring_nf
-  rw [← inv_le_inv] at h2 
+  rw [← inv_le_inv] at h2
   have h3 : 0 ≤ Complex.abs (riemannZeta (k - 1)) := by
     apply Complex.abs.nonneg
   norm_cast
@@ -366,7 +354,7 @@ theorem rfunctbound (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice 
   apply rfunct_pos
 
 theorem rfunctbound' (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice A B) (n : ℕ) :
-    8 / rfunct (z : ℍ') ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ ≤ 
+    8 / rfunct (z : ℍ') ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ ≤
       8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ :=
   by
   have h1 := rfunct_lower_bound_on_slice A B hb z
@@ -389,25 +377,25 @@ theorem rfunctbound' (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice
   apply rfunct_pos
   linarith
 
-theorem Eisenstein_series_is_sum_eisen_squares_slice (k : ℕ) (h : 3 ≤ k) (A B : ℝ) 
+theorem Eisenstein_series_is_sum_eisen_squares_slice (k : ℕ) (h : 3 ≤ k) (A B : ℝ)
     (z : upperHalfSpaceSlice A B) :
     eisensteinSeriesRestrict k A B z = ∑' n : ℕ, eisenSquareSlice k A B n z := by
   rw [eisensteinSeriesRestrict]; simp_rw [eisenSquareSlice]
-  have HI :=squares_cover_all  
+  have HI :=squares_cover_all
   let g := fun y : ℤ × ℤ => (eise k z) y
   have hgsumm : Summable g := by apply Eisenstein_tsum_summable k z h
   have index_lem := tsum_lemma g (fun (n : ℕ) => square n) HI hgsumm
   exact index_lem
 
-lemma eisenslice_bounded (k n: ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) 
-  (z : upperHalfSpaceSlice A B ): Complex.abs (eisenSquareSlice (k) A B n z) ≤ 
+lemma eisenslice_bounded (k n: ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B)
+  (z : upperHalfSpaceSlice A B ): Complex.abs (eisenSquareSlice (k) A B n z) ≤
     8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ (↑k - 1))⁻¹ := by
   simp_rw [eisenSquareSlice]
   simp_rw [eisenSquare]
   simp_rw [eise]
   have SC := AbsEise_bounded_on_square k z h n
-  simp_rw [AbsEise] at SC 
-  simp at SC 
+  simp_rw [AbsEise] at SC
+  simp at SC
   simp
   have ineq1 :
     Complex.abs (∑ x : ℤ × ℤ in square n, ((↑x.fst * ↑↑z + ↑x.snd) ^ k)⁻¹) ≤
@@ -415,7 +403,7 @@ lemma eisenslice_bounded (k n: ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb
     by
     simp
     have := complex_abs_sum_le (square n) fun x : ℤ × ℤ => (((x.1 : ℂ) * (z : ℂ) + (x.2 : ℂ)) ^ k)⁻¹
-    simp at this 
+    simp at this
     exact this
   simp at *
   have SC2 := le_trans ineq1 SC
@@ -424,33 +412,33 @@ lemma eisenslice_bounded (k n: ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb
   apply le_trans SC2 rb
 
 
-lemma Eisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) 
+lemma Eisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B)
   (z : upperHalfSpaceSlice A B ) :
-   Complex.abs (eisensteinSeriesRestrict k A B z) ≤ 
-    ∑' n : ℕ,  8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ (k - 1))⁻¹ := by 
+   Complex.abs (eisensteinSeriesRestrict k A B z) ≤
+    ∑' n : ℕ,  8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ (k - 1))⁻¹ := by
   simp
   have :=Eisenstein_series_is_sum_eisen_squares_slice k h A B  z
   rw [this]
   have hs := EisensteinSeries.summable_rfunct_twist k (lbpoint A B hb) h
   apply le_trans (abs_tsum' _)
-  apply tsum_le_tsum 
+  apply tsum_le_tsum
   intro n
-  simpa using  (eisenslice_bounded k n h A B ha hb z) 
+  simpa using  (eisenslice_bounded k n h A B ha hb z)
   swap
   simpa using hs
   repeat {
-  apply summable_of_nonneg_of_le ?_ 
+  apply summable_of_nonneg_of_le ?_
   intro b
   apply (eisenslice_bounded k b h A B ha hb z)
   simpa using hs
   intro b
   apply Complex.abs.nonneg}
-  
-lemma AbsEisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B) 
-  (z : upperHalfSpaceSlice A B ) : ∑' (x : ℤ × ℤ), (AbsEise k z x) ≤  
+
+lemma AbsEisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
+  (z : upperHalfSpaceSlice A B ) : ∑' (x : ℤ × ℤ), (AbsEise k z x) ≤
     ∑' (n : ℕ),  8 / rfunct (lbpoint A B hb) ^ k * (((n) : ℝ) ^ (k - 1))⁻¹ := by
   let In := fun (n : ℕ) => square n
-  have HI := squares_cover_all 
+  have HI := squares_cover_all
   let g := fun y : ℤ × ℤ => (AbsEise k z) y
   have gpos : ∀ y : ℤ × ℤ, 0 ≤ g y := by  intro y; simp_rw [AbsEise]; simp
   have index_lem := tsum_lemma g In HI
@@ -481,17 +469,17 @@ lemma AbsEisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
 theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :
     TendstoUniformly (eisenParSumSlice k A B) (eisensteinSeriesRestrict k A B) Filter.atTop :=
   by
-  let M : ℕ → ℝ := fun x => 8 / rfunct (lbpoint A B hb) ^ k * ((x : ℝ) ^ ((k : ℤ) - 1))⁻¹  
+  let M : ℕ → ℝ := fun x => 8 / rfunct (lbpoint A B hb) ^ k * ((x : ℝ) ^ ((k : ℤ) - 1))⁻¹
   have := M_test_uniform ?_ (eisenSquareSlice k A B) M
-  simp_rw [← Eisenstein_series_is_sum_eisen_squares_slice k h A B  _] at this 
+  simp_rw [← Eisenstein_series_is_sum_eisen_squares_slice k h A B  _] at this
   apply this
   simp_rw [eisenSquareSlice]
   simp_rw [eisenSquare]
   simp_rw [eise]
   intro n a
   have SC := AbsEise_bounded_on_square k a h n
-  simp_rw [AbsEise] at SC 
-  simp at SC 
+  simp_rw [AbsEise] at SC
+  simp at SC
   simp
   have ineq1 :
     Complex.abs (∑ x : ℤ × ℤ in square n, ((↑x.fst * ↑↑a + ↑x.snd) ^ k)⁻¹) ≤
@@ -499,14 +487,16 @@ theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha
     by
     simp
     have := complex_abs_sum_le (square n) fun x : ℤ × ℤ => (((x.1 : ℂ) * (a : ℂ) + (x.2 : ℂ)) ^ k)⁻¹
-    simp at this 
+    simp at this
     exact this
   simp at *
   have SC2 := le_trans ineq1 SC
   have rb := rfunctbound' k A B hb a n
-  norm_cast at *
+  norm_cast at rb
+  norm_cast
+  norm_cast at SC2
   apply le_trans SC2 rb
-  have hk : 1 < (k - 1 : ℝ) := by 
+  have hk : 1 < (k - 1 : ℝ) := by
     have hy: 1 < (k -1  : ℤ) := by linarith
     norm_cast at *
   have nze : (8 / rfunct (lbpoint A B hb) ^ k : ℝ) ≠ 0 :=
@@ -517,12 +507,12 @@ theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha
     apply pow_ne_zero
     simp; by_contra HR
     have := rfunct_pos (lbpoint A B hb)
-    rw [HR] at this 
-    simp at this 
+    rw [HR] at this
+    simp at this
   have riesum := Real.summable_nat_rpow_inv.2 hk
   rw [← (summable_mul_left_iff nze).symm]
-  
-  --simp at riesum 
+
+  --simp at riesum
 
   apply riesum
   apply EisensteinSeries.nonemp A B ha hb
@@ -551,7 +541,6 @@ theorem Eisen_partial_tends_to_uniformly_on_ball (k : ℕ) (h : 3 ≤ k) (z : �
       (Metric.closedBall ⟨z, hz⟩ ε) :=
     by apply hu.tendstoUniformlyOn
   clear hu
-  simp_rw [eisensteinSeriesRestrict] at *
   simp_rw [Metric.tendstoUniformlyOn_iff] at *
   simp_rw [eisenParSumSlice] at *
   simp_rw [eisenSquareSlice] at *
@@ -602,4 +591,3 @@ theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℕ) (h : 3 ≤ k) (z : �
   rw [hf]
   rw [hFb]
   apply ha b hb x hxx hx
-

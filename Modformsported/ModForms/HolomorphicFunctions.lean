@@ -23,7 +23,7 @@ variable {α : Type _} {β : Type _} {s : Set α}
 def extendByZero [Zero β] (f : s → β) : α → β := fun z => if h : z ∈ s then f ⟨z, h⟩ else 0
 
 theorem extendByZero_eq_of_mem [Zero β] (f : s → β) (x : α) (hx : x ∈ s) :
-    (extendByZero f) x = f ⟨x, hx⟩ := by rw [extendByZero]; dsimp; split_ifs; tauto
+    (extendByZero f) x = f ⟨x, hx⟩ := by rw [extendByZero];  split_ifs; tauto
 
 theorem extendByZero_zero [Zero β] : extendByZero (fun _ => 0 : s → β) = fun h => 0 := by
   ext z ; by_cases h : z ∈ s <;> simp [extendByZero, h]
@@ -69,6 +69,7 @@ def IsHolomorphicOn {D : OpenSubs} (f : D.1 → ℂ) : Prop :=
 theorem isHolomorphicOn_iff_differentiableOn (D : OpenSubs) (f : D.1 → ℂ) :
     DifferentiableOn ℂ (extendByZero f) D.1 ↔ IsHolomorphicOn f :=
   by
+  classical!
   rw [IsHolomorphicOn]
   constructor
   rw [DifferentiableOn]
@@ -77,14 +78,22 @@ theorem isHolomorphicOn_iff_differentiableOn (D : OpenSubs) (f : D.1 → ℂ) :
   have h2 := DifferentiableWithinAt.hasFDerivWithinAt h1
   simp_rw [HasDerivWithinAt]
   simp_rw [HasDerivAtFilter]
-  simp_rw [HasFDerivWithinAt] at h2 
+  simp_rw [HasFDerivWithinAt] at h2
   simp at *
-  dsimp only [fderivWithin] at h2 
-  dsimp only [DifferentiableWithinAt] at h1 
-  rw [dif_pos h1] at h2 
+  dsimp only [DifferentiableWithinAt] at h1
+  by_cases H : ((nhdsWithin (↑z) (D.1 \ {↑z})) = (⊥ : Filter ℂ))
   use Classical.choose h1 1
   simp
-  exact h2
+  apply HasFDerivWithinAt_of_nhdsWithin_eq_bot H
+  simp_rw [fderivWithin] at h2
+  simp at H
+  rw [if_neg H] at h2
+  simp_rw [h1] at h2
+  use Classical.choose h1 1
+  simp
+  convert h2
+  rw [dif_pos]
+  trivial
   intro hz
   rw [DifferentiableOn]
   intro x hx
@@ -130,9 +139,9 @@ theorem const_hol (c : ℂ) : IsHolomorphicOn fun _ : D.1 => (c : ℂ) := by
   have H2 := ext_by_zero_eq D c
   constructor
   have h3 := D.2
-  simp at h3 
+  simp at h3
   have h4 := IsOpen.mem_nhds h3 z.2
-  simp 
+  simp
   convert h4
   simp
   exact h4
@@ -181,7 +190,7 @@ def holRing (D : OpenSubs) : Subring (D.1 → ℂ)
   carrier := {f : D.1 → ℂ | IsHolomorphicOn f}
   zero_mem' := zero_hol D
   add_mem' := add_hol _ _
-  neg_mem' := neg_hol _ 
+  neg_mem' := neg_hol _
   mul_mem' := mul_hol _ _
   one_mem' := one_hol D
 
@@ -213,7 +222,7 @@ theorem aux2 (x : ℂ) (a b : ℝ) : Metric.ball x a ∩ Metric.ball x b = Metri
   ext
   constructor
   simp [and_imp, Metric.mem_ball, lt_min_iff]
-  intro ha 
+  intro ha
   simp [and_imp, Metric.mem_ball, lt_min_iff]
   simp at ha
   simp only [ha, and_self_iff]
@@ -231,7 +240,7 @@ theorem diff_on_diff (f : D.1 → ℂ)
   have hh := h ⟨x, hx⟩
   obtain ⟨ε, hε, _, H⟩ := hh
   have HH := H x
-  simp only [Metric.mem_ball, Subtype.coe_mk, dist_self] at HH 
+  simp only [Metric.mem_ball, Subtype.coe_mk, dist_self] at HH
   have HHH := HH hε
   obtain ⟨f', hf'⟩ := HHH
   use f'
@@ -252,7 +261,7 @@ theorem diff_on_diff (f : D.1 → ℂ)
   simp only [he, hε, and_self_iff]
   simp only [true_and_iff]
   have : Metric.ball x e ∩ Metric.ball x ε = Metric.ball x (min e ε) := by apply aux2
-  rw [this] at HE 
+  rw [this] at HE
   apply aux _ _ _ HE
   apply HD
 
@@ -261,7 +270,7 @@ theorem tendsto_unif_extendByZero (F : ℕ → D.1 → ℂ) (f : D.1 → ℂ)
     TendstoUniformlyOn (fun n : ℕ => extendByZero (F n)) (extendByZero f) Filter.atTop D.1 :=
   by
   simp_rw [Metric.tendstoUniformlyOn_iff]
-  rw [Metric.tendstoUniformly_iff] at h 
+  rw [Metric.tendstoUniformly_iff] at h
   intro ε hε
   have h2 := h ε hε
   simp [gt_iff_lt, ge_iff_le, instNonempty, SetCoe.forall] at *
@@ -274,4 +283,3 @@ theorem tendsto_unif_extendByZero (F : ℕ → D.1 → ℂ) (f : D.1 → ℂ)
   rw [hf]
   rw [hFb]
   apply ha b hb x hx
-

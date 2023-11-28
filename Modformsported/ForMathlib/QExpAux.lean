@@ -63,7 +63,7 @@ theorem pos_sum_eq (k : ℕ) (hk : 0 < k) :
   left
   apply symm
   have := tsum_pNat fun n : ℕ => (2 * ↑π * I * n) ^ (k : ℕ) * Complex.exp (2 * ↑π * I * n * x)
-  simp at this 
+  simp at this
   apply this hk
 
 theorem series_eql' (z : ℍ) :
@@ -72,7 +72,7 @@ theorem series_eql' (z : ℍ) :
   by
   rw [← pi_cot_q_exp z]
   have h := cot_series_rep z
-  rw [sub_eq_iff_eq_add'] at h 
+  rw [sub_eq_iff_eq_add'] at h
   exact h
 
 @[simp]
@@ -92,16 +92,15 @@ theorem q_exp_iden'' (k : ℕ) (hk : 3 ≤ k) :
   have h2 := (iter_exp_eqOn (⟨k - 1, hkpos⟩ : ℕ+)).symm
   simp  [one_div,  Subtype.coe_mk, neg_mul, Algebra.id.smul_eq_mul] at *
   have h3 := pos_sum_eq (k - 1) hkpos
-  simp at h3 
-  rw [h3] at h2 
+  simp at h3
+  rw [h3] at h2
   apply EqOn.symm
   apply EqOn.trans h2
   apply iter_eqOn_cong
   intro z hz
   have H := series_eql' ⟨z, hz⟩
   simp  [Pi.add_apply, tsub_pos_iff_lt, Subtype.coe_mk, one_div] at *
-  simp_rw [EisensteinSeries.uhc] at H
-  norm_cast at *  
+  norm_cast at *
   simp at *
   rw [← H]
   simp
@@ -110,7 +109,7 @@ theorem q_exp_iden'' (k : ℕ) (hk : 3 ≤ k) :
   intro b
   apply congr_arg
   ring
-  
+
 
 theorem exp_comm (n : ℕ) (z : ℍ') : exp (2 * ↑π * I * ↑z * n) = exp (2 * ↑π * I * n * z) :=
   by
@@ -123,8 +122,8 @@ theorem q_exp_iden (k : ℕ) (hk : 3 ≤ k) (z : ℍ) :
   by
   have := q_exp_iden'' k hk z.2
   have hkk : 1 ≤ (k: ℤ) := by linarith
-  /-have he : ∀ (t : ℂ), t^(k-1) = t^((k-1) : ℕ) := by 
-    intro t; 
+  /-have he : ∀ (t : ℂ), t^(k-1) = t^((k-1) : ℕ) := by
+    intro t;
     apply nat_pow_aux k hk t-/
   simp [one_div, neg_mul] at *
   have hk2 : (-1 : ℂ) ^ ((k - 1) ) * (k - 1)! ≠ 0 := by
@@ -140,13 +139,12 @@ theorem q_exp_iden (k : ℕ) (hk : 3 ≤ k) (z : ℍ) :
     have hj :  (-1) ^ (↑k - 1) * ↑(k - 1)! * (-(2 * ↑π * I)) ^ (k : ℕ) * (↑(k - 1)!)⁻¹ =
        (-1) ^ (↑k - 1) * (-(2 * ↑π * I)) ^ (k : ℕ) * (↑(k - 1)!  * (↑(k - 1)!)⁻¹) := by ring
     norm_cast at *
-    rw [hj]   
+    rw [hj]
     rw [mul_inv_cancel]
     simp
     rw [mul_comm]
     rw [neg_pow]
     rw [mul_comm, ←mul_assoc]
-    simp
     rw [←pow_add]
     rw [Odd.neg_one_pow]
     ring
@@ -176,16 +174,16 @@ theorem q_exp_iden (k : ℕ) (hk : 3 ≤ k) (z : ℍ) :
     intro b
     rw [← mul_assoc]
     simp at *
-    have : (2 * ↑π * I) ^ (↑k - 1) * ↑↑b ^ (↑k - 1) = (2 * ↑π * I * b) ^ (↑k - 1) := by 
+    have : (2 * ↑π * I) ^ (↑k - 1) * ↑↑b ^ (↑k - 1) = (2 * ↑π * I * b) ^ (↑k - 1) := by
       norm_cast
       simp
-      ring  
-    norm_cast at *  
+      ring
+    norm_cast at *
     simp at *
     rw [this]
     simp
     left
-    exact (exp_comm b z).symm     
+    exact (exp_comm b z).symm
   simp at *
   rw [hee]
   rw [← mul_assoc]
@@ -201,5 +199,3 @@ theorem q_exp_iden (k : ℕ) (hk : 3 ≤ k) (z : ℍ) :
     simp
   rw [he2]
   norm_cast
-
-

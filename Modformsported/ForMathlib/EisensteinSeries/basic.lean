@@ -8,7 +8,7 @@ import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
 import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.NumberTheory.ModularForms.Basic
-import Mathlib.Analysis.Calculus.Deriv.ZPow 
+import Mathlib.Analysis.Calculus.Deriv.ZPow
 import Mathlib.Analysis.SpecialFunctions.Pow.Complex
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
@@ -22,7 +22,7 @@ noncomputable section
 
 /-! ### Eisenstein series -/
 
-/-- The function on `ℤ × ℤ` whose sum defines an Eisenstein series.-/ 
+/-- The function on `ℤ × ℤ` whose sum defines an Eisenstein series.-/
 def eise (k : ℤ) (z : ℍ) : ℤ × ℤ → ℂ := fun x => 1 / (x.1 * z.1 + x.2) ^ k
 instance : TopologicalSpace C(ℍ, ℂ) :=
   inferInstance
@@ -46,7 +46,6 @@ theorem Moebius_aux_lem (k : ℤ) (a b c d i1 i2 : ℂ) (z : ℍ) (h : c * z + d
   rw [h2]
   have h3 := div_add' (i1 * (a * z + b)) i2 (c * z + d) h
   rw [h3]
-  simp only [div_zpow, inv_div]
   rw [div_eq_inv_mul, mul_comm]
   ring_nf
   field_simp
@@ -55,7 +54,7 @@ theorem Moebius_aux_lem (k : ℤ) (a b c d i1 i2 : ℂ) (z : ℍ) (h : c * z + d
 def MoebiusPerm (A : SL(2,ℤ)) : ℤ × ℤ → ℤ × ℤ := fun z =>
   (z.1 * A.1 0 0 + z.2 * A.1 1 0, z.1 * A.1 0 1 + z.2 * A.1 1 1)
 
-theorem det_SL_eq_one (M : SL(2,ℤ)) : M.1 0 0 * M.1 1 1 -(M.1 0 1 * M.1 1 0) = 1 := by 
+theorem det_SL_eq_one (M : SL(2,ℤ)) : M.1 0 0 * M.1 1 1 -(M.1 0 1 * M.1 1 0) = 1 := by
   have H := Matrix.det_fin_two M.1
   simp at *
   rw [← H]
@@ -78,11 +77,11 @@ lemma MoebiusPerm_left_inv (A : SL(2,ℤ)) (z : ℤ × ℤ) : MoebiusPerm A⁻¹
       ring
       rw [hdet]
       apply one_mul
-    rw [h1,h2]  
+    rw [h1,h2]
 
 lemma MoebiusPerm_right_inv (A : SL(2,ℤ)) (z : ℤ × ℤ) : MoebiusPerm A (MoebiusPerm A⁻¹ z) = z := by
     have := MoebiusPerm_left_inv A⁻¹
-    rw [inv_inv] at this 
+    rw [inv_inv] at this
     apply this
 
 def MoebiusEquiv (A : SL(2,ℤ)) : ℤ × ℤ ≃ ℤ × ℤ
@@ -98,7 +97,7 @@ theorem eise_Moebius (k : ℤ) (z : ℍ) (A : SL(2,ℤ)) (i : ℤ × ℤ) :
       (A.1 1 0 * z.1 + A.1 1 1) ^ k * eise k z (MoebiusEquiv A i) :=
   by
   simp_rw [eise, UpperHalfPlane.specialLinearGroup_apply]
-  simp only [algebraMap_int_eq, eq_intCast, ofReal_int_cast, UpperHalfPlane.coe_mk, cpow_int_cast, 
+  simp only [algebraMap_int_eq, eq_intCast, ofReal_int_cast, UpperHalfPlane.coe_mk, cpow_int_cast,
     one_div]
   norm_cast
   have hc := Moebius_aux_lem k (A 0 0) (A 0 1) (A 1 0) (A 1 1) i.fst i.snd z ?_
