@@ -240,7 +240,7 @@ theorem eisenSquare'_diff_on (k : ℤ) (hkn : k ≠ 0) (n : ℕ) : IsHolomorphic
   apply DifferentiableOn.sum
   exact fun i _ => (isHolomorphicOn_iff_differentiableOn _ _).mpr (eisenSquare_diff_on k hkn i)
 
-theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
+theorem Eisenstein_is_holomorphic' (k : ℤ) (hk : 3 ≤ k) :
     IsHolomorphicOn (↑ₕ (Eisenstein_tsum k)) :=
   by
   rw [← isHolomorphicOn_iff_differentiableOn]
@@ -276,6 +276,7 @@ theorem Eisenstein_is_holomorphic' (k : ℕ) (hk : 3 ≤ k) :
   exact Metric.isOpen_ball
   exact isCompact_closedBall (x.1) ε
 
+/-
 theorem Eisenstein_is_holomorphic (k : ℤ) (hk : 3 ≤ k) :
     IsHolomorphicOn (↑ₕ (Eisenstein_tsum k)) :=
   by
@@ -287,10 +288,11 @@ theorem Eisenstein_is_holomorphic (k : ℤ) (hk : 3 ≤ k) :
   have := Eisenstein_is_holomorphic' n hn3
   convert this
   apply hn.symm
+  -/
 
 theorem Eisenstein_series_is_mdiff (k : ℤ) (hk : 3 ≤ k) :
     MDifferentiable 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ) (↑ₕ (Eisenstein_SIF ⊤ ↑k)) :=
   by
-  have := Eisenstein_is_holomorphic k hk
+  have := Eisenstein_is_holomorphic' k hk
   have h2 := (mdiff_iff_holo (↑ₕ (Eisenstein_SIF ⊤ k).toFun)).2 this
   convert h2

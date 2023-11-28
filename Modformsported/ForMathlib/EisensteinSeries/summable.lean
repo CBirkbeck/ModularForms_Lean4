@@ -39,9 +39,9 @@ theorem linear_ne_zero'' (c d : ℤ) (z : ℍ) (h : d ≠ 0) : (c : ℂ) * z + d
   exact this
   simp [h]
 
-theorem pow_linear_ne_zero'' (c d : ℤ) (z : ℍ) (h : d ≠ 0) (k : ℕ) : ((c : ℂ) * z + d)^k  ≠ 0 := by
+theorem pow_linear_ne_zero'' (c d : ℤ) (z : ℍ) (h : d ≠ 0) (k : ℤ) : ((c : ℂ) * z + d)^k  ≠ 0 := by
   norm_cast
-  apply pow_ne_zero _ (linear_ne_zero'' c d z h)
+  apply zpow_ne_zero _ (linear_ne_zero'' c d z h)
 
 theorem linear_eq_zero_iff (c d : ℤ) (z : ℍ): (c : ℂ) * z + d  = 0  ↔ c = 0 ∧ d = 0:= by
   constructor
@@ -71,9 +71,10 @@ namespace EisensteinSeries
 
 section Abs_Eisentein_summable
 
-lemma Eise_on_square_is_bounded_Case1 (k : ℕ) (z : ℍ) (n : ℕ) (x : ℤ × ℤ) (hn : 1 ≤ n)
+lemma Eise_on_square_is_bounded_Case1 (k : ℤ) (z : ℍ) (n : ℕ) (x : ℤ × ℤ) (hn : 1 ≤ n) (hk : 0 ≤ k)
   (C1 :Complex.abs (x.1 : ℂ) = n) : (Complex.abs (((x.1 : ℂ) * z + (x.2 : ℂ)) ^ (k : ℤ)))⁻¹ ≤
       (Complex.abs (rfunct z ^ (k : ℤ) * n ^ (k : ℤ)))⁻¹ := by
+  lift k to ℕ using hk
   rw [inv_le_inv]
   have h0 : (x.1 : ℂ) ≠ 0 := by
     norm_cast
@@ -114,9 +115,10 @@ lemma Eise_on_square_is_bounded_Case1 (k : ℕ) (z : ℍ) (n : ℕ) (x : ℤ × 
   simp only [Nat.one_ne_zero, le_zero_iff] at hn
   apply rfunct_mul_n_pos k z n hn
 
-lemma Eise_on_square_is_bounded_Case2 (k : ℕ) (z : ℍ) (n : ℕ) (x : ℤ × ℤ) (hn : 1 ≤ n)
+lemma Eise_on_square_is_bounded_Case2 (k : ℤ) (z : ℍ) (n : ℕ) (x : ℤ × ℤ) (hn : 1 ≤ n) (hk : 0 ≤ k)
   (C2 :Complex.abs (x.2 : ℂ) = n) : (Complex.abs (((x.1 : ℂ) * z + (x.2 : ℂ)) ^ (k : ℤ)))⁻¹ ≤
       (Complex.abs (rfunct z ^ (k : ℤ) * n ^ (k : ℤ)))⁻¹ := by
+  lift k to ℕ using hk
   rw [inv_le_inv]
   have h0 : (x.2 : ℂ) ≠ 0 := by
     norm_cast
@@ -127,17 +129,17 @@ lemma Eise_on_square_is_bounded_Case2 (k : ℕ) (z : ℍ) (n : ℕ) (x : ℤ × 
     rw [← C2] at hn
     simp only [Nat.one_ne_zero, le_zero_iff] at hn
   have h1 : (↑x.fst * ↑z + ↑x.snd) ^ (k : ℤ) =
-    (x.snd  : ℂ)^ (k : ℤ) * ((x.1 : ℂ) / (x.2 : ℂ) * (z : ℂ) + 1) ^ (k : ℤ) := by
+    (x.snd  : ℂ)^ (k) * ((x.1 : ℂ) / (x.2 : ℂ) * (z : ℂ) + 1) ^ (k) := by
     field_simp
-    ring
+    ring_nf
   rw [h1]
   simp_rw [map_mul Complex.abs]
-  have h3 : Complex.abs (n^k : ℕ) = Complex.abs (x.snd^k : ℤ) := by
-    have : Complex.abs (x.snd^k : ℤ) = Complex.abs (x.snd)^k := by
-      simp only [Int.cast_pow, map_pow, Real.rpow_nat_cast]
+  have h3 : Complex.abs (n^k ) = Complex.abs ((x.2)^k ) := by
+    have : Complex.abs (x.snd^k) = Complex.abs (x.snd)^k := by
+      simp  [Int.cast_pow, map_pow, Real.rpow_nat_cast]
     rw [this, C2]
     norm_cast
-    simp only [Nat.cast_pow, map_pow, abs_cast_nat]
+    simp [Nat.cast_pow, map_pow, abs_cast_nat]
   simp at *
   norm_cast at *
   rw [h3, mul_comm]
@@ -145,7 +147,8 @@ lemma Eise_on_square_is_bounded_Case2 (k : ℕ) (z : ℍ) (n : ℕ) (x : ℤ × 
   have := auxlem3 z x k
   simp at *
   norm_cast at *
-  simp only [ge_iff_le, map_nonneg, pow_nonneg]
+  norm_cast
+  simp  [ge_iff_le, map_nonneg, zpow_nonneg]
   apply Complex.abs.pos (pow_linear_ne_zero'' _ _ _ _ _)
   have h0 : (x.2 : ℂ) ≠ 0 := by
     norm_cast
@@ -159,75 +162,81 @@ lemma Eise_on_square_is_bounded_Case2 (k : ℕ) (z : ℍ) (n : ℕ) (x : ℤ × 
   apply rfunct_mul_n_pos k z n hn
 
 
-theorem Eise_on_square_is_bounded (k : ℕ) (z : ℍ) (n : ℕ) (x : ℤ × ℤ) (h : x ∈ square n)
+theorem Eise_on_square_is_bounded (k : ℤ) (hk : 0 ≤ k) (z : ℍ) (n : ℕ) (x : ℤ × ℤ) (h : x ∈ square n)
   (hn : 1 ≤ n) : (Complex.abs (((x.1 : ℂ) * z + (x.2 : ℂ)) ^ (k : ℤ)))⁻¹ ≤
     (Complex.abs (rfunct z ^ (k : ℤ) * n ^ (k : ℤ)))⁻¹ :=
   by
   by_cases C1 : Complex.abs (x.1 : ℂ) = n
-  apply Eise_on_square_is_bounded_Case1 k z n x hn C1
+  apply Eise_on_square_is_bounded_Case1 k z n x hn hk C1
   have C2 := Complex_abs_square_left_ne n x h C1
-  apply Eise_on_square_is_bounded_Case2 k z n x hn C2
+  apply Eise_on_square_is_bounded_Case2 k z n x hn hk C2
 
 
-theorem Eise_on_square_is_bounded' (k : ℕ) (z : ℍ) (n : ℕ) (hn : 1 ≤ n) :
+theorem Eise_on_square_is_bounded' (k : ℤ ) (hk : 0 ≤ k) (z : ℍ) (n : ℕ) (hn : 1 ≤ n) :
     ∀ x : ℤ × ℤ,
       x ∈ square n →
         (Complex.abs (((x.1 : ℂ) * z + (x.2 : ℂ)) ^ k))⁻¹ ≤
           (Complex.abs (rfunct z ^ k * n ^ k))⁻¹ :=
   by
   intro x hx
-  apply Eise_on_square_is_bounded k z n x hx hn
+  apply Eise_on_square_is_bounded k hk z n x hx hn
 
-theorem Eise_on_zero_square (k : ℕ) (z : ℍ) (h : 1 ≤ k) :
+theorem Eise_on_zero_square (k : ℤ) (hk : 0 ≤ k) (z : ℍ) (h : 1 ≤ k) :
     ∀ x : ℤ × ℤ,
       x ∈ square 0 →
         (Complex.abs (((x.1 : ℂ) * z + (x.2 : ℂ)) ^ k))⁻¹ ≤
           (Complex.abs (rfunct z ^ k * 0 ^ k))⁻¹ :=
   by
+  lift k to ℕ using hk
   intro x hx
   rw [square_zero] at hx
   simp only [Finset.mem_singleton] at hx
   simp_rw [hx]
   simp only [add_zero, Int.cast_zero, MulZeroClass.zero_mul, map_mul Complex.abs]
-  have h1 : (0 : ℂ) ^ k = 0 := by
-    simp only [cpow_nat_cast, ne_eq, zero_pow_eq_zero]
+  have h1 : (0 : ℝ) ^ (k : ℕ) = 0 := by
+    simp [cpow_nat_cast, ne_eq, zero_pow_eq_zero]
     linarith
+  norm_cast
+  simp
+  norm_cast at *
   rw [h1]
-  simp only [map_zero, inv_zero, cpow_nat_cast, map_pow, abs_ofReal, mul_zero, le_refl]
+  simp [map_zero, inv_zero, cpow_nat_cast, map_pow, abs_ofReal, mul_zero, le_refl]
 
-theorem Eise_on_square_is_bounded'' (k : ℕ) (z : ℍ) (n : ℕ) (hn : 1 ≤ k) :
+
+theorem Eise_on_square_is_bounded'' (k : ℤ) (hk : 0 ≤ k) (z : ℍ) (n : ℕ) (hn : 1 ≤ k) :
     ∀ x : ℤ × ℤ,
       x ∈ square n →
         (Complex.abs (((x.1 : ℂ) * z + (x.2 : ℂ)) ^ k))⁻¹ ≤
           (Complex.abs (rfunct z ^ k * n ^ k))⁻¹ :=
   by
   by_cases h0 : n = 0
-  · rw [h0]; have := Eise_on_zero_square k z hn; simp at *; apply this
+  · rw [h0]; have := Eise_on_zero_square k hk z hn; simp at *; apply this
   have Hn : 1 ≤ n := by
     have := Nat.pos_of_ne_zero h0
     linarith
   intro x hx
-  apply Eise_on_square_is_bounded k z n x hx Hn
+  apply Eise_on_square_is_bounded k hk z n x hx Hn
 
-theorem AbsEise_bounded_on_square (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
+
+theorem AbsEise_bounded_on_square (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
     ∀ n : ℕ, ∑ y : ℤ × ℤ in square n, (AbsEise k z) y ≤ 8 / rfunct z ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ :=
   by
   intro n
   simp_rw [AbsEise]
   simp [one_div, Complex.abs_pow, abs_inv, zpow_ofNat]
+  have hk0 : 0 ≤ k := by linarith
   have k0 : 1 ≤ k := by linarith
-  have BO := Eise_on_square_is_bounded'' (k : ℕ) (z : ℍ) (n : ℕ) k0
+  have BO := Eise_on_square_is_bounded'' (k ) hk0 (z : ℍ) (n : ℕ) k0
   by_cases n0 : n = 0
   · rw [n0]
     norm_cast
     rw [square_zero]
-    simp only [add_zero, Int.cast_zero, Nat.cast_zero, MulZeroClass.zero_mul, Finset.sum_singleton]
-    have H0 : (0 : ℂ) ^ k = 0 := by simp; linarith
-    simp [abs_zero, inv_zero]
-    have H00 : (0 : ℝ) ^ (k - 1) = 0 := by norm_cast; simp; linarith
-    norm_cast at *
-    rw [H00]
-    simp [inv_zero, MulZeroClass.mul_zero]; norm_cast at *; rw [H0]
+    simp  [add_zero, Int.cast_zero, Nat.cast_zero, MulZeroClass.zero_mul, Finset.sum_singleton]
+    rw [zero_zpow]
+    rw [zero_zpow]
+    simp
+    linarith
+    linarith
   have := Finset.sum_le_sum BO
   simp only [Finset.sum_const, map_mul Complex.abs, nsmul_eq_mul] at this
   rw [square_size' n] at this
@@ -241,22 +250,30 @@ theorem AbsEise_bounded_on_square (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
     field_simp
     ring_nf
     simp
+    rw [mul_comm]
     congr
-    norm_cast
-    have := natpowsinv n k ?_
-    norm_cast at *
-    rw [this]
-    apply mul_comm
-    norm_cast at *
     rw [abs_eq_self]
     apply (EisensteinSeries.rfunct_pos z).le
-  norm_cast at *
+    have := natpowsinv n k ?_
+    rw [mul_comm]
+    simp at *
+    rw [←this]
+    simp
+
+    norm_cast at *
+    congr
+    rw [add_comm]
+    congr
+    norm_cast at *
+  simp at ne
   rw [←ne]
-  norm_cast
-  simp at *
-  apply this
+  simp at this
+  convert this
+  lift k to ℕ using hk0
+  simp
   have hhh := Nat.pos_of_ne_zero n0
   linarith
+
 
 /-
 theorem AbsEise_sum_on_square_bounded (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
@@ -276,7 +293,7 @@ theorem AbsEise_sum_on_square_bounded (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
   apply BIGCLAIM n
 -/
 
-lemma summable_rfunct_twist  (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
+lemma summable_rfunct_twist  (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
   Summable fun n : ℕ => 8 / rfunct z ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ := by
   have hk : 1 < (k - 1 : ℝ) := by
     have : 1 < (k -1  : ℤ) := by linarith
@@ -288,7 +305,7 @@ lemma summable_rfunct_twist  (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
     simp only [Ne.def, not_false_iff, bit0_eq_zero, one_ne_zero]
     linarith
     norm_cast
-    apply pow_ne_zero
+    apply zpow_ne_zero
     simp only [Ne.def]
     by_contra HR
     have := rfunct_pos z
@@ -299,11 +316,16 @@ lemma summable_rfunct_twist  (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
   simp
   linarith
 
-theorem real_eise_is_summable (k : ℕ) (z : ℍ) (h : 3 ≤ k) : Summable (AbsEise k z) :=by
+theorem real_eise_is_summable (k : ℤ) (z : ℍ) (h : 3 ≤ k) : Summable (AbsEise k z) :=by
   let In := fun (n : ℕ) => square n
   have HI := squares_cover_all
   let g := fun y : ℤ × ℤ => (AbsEise k z) y
-  have gpos : ∀ y : ℤ × ℤ, 0 ≤ g y := by  intro y; simp_rw [AbsEise]; simp
+  have gpos : ∀ y : ℤ × ℤ, 0 ≤ g y := by
+    intro y
+    simp_rw [AbsEise]
+    simp
+    apply zpow_nonneg
+    apply Complex.abs.nonneg
   have index_lem := sum_lemma g gpos In HI
   rw [index_lem]
   let e := fun x : ℕ => ∑ y : ℤ × ℤ in In x, g y
@@ -321,7 +343,7 @@ theorem real_eise_is_summable (k : ℕ) (z : ℍ) (h : 3 ≤ k) : Summable (AbsE
     simp only [Ne.def, not_false_iff, bit0_eq_zero, one_ne_zero]
     linarith
     norm_cast
-    apply pow_ne_zero
+    apply zpow_ne_zero
     simp only [Ne.def]
     by_contra HR
     have := rfunct_pos z
@@ -336,7 +358,7 @@ theorem real_eise_is_summable (k : ℕ) (z : ℍ) (h : 3 ≤ k) : Summable (AbsE
   apply this
   apply riesum'
 
-theorem Eisenstein_tsum_summable (k : ℕ) (z : ℍ) (h : 3 ≤ k) : Summable (eise k z) :=
+theorem Eisenstein_tsum_summable (k : ℤ) (z : ℍ) (h : 3 ≤ k) : Summable (eise k z) :=
   by
   rw [summable_norm_iff.symm]
   have := real_eise_is_summable k z h

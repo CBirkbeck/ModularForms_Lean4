@@ -435,7 +435,8 @@ theorem lhs_summable_2 (z : ℍ) (k : ℕ) (hk : 2 ≤ k) :
   by
   --have HT := int_pnat_sum _ (lhs_summable_int z k hk)
   --norm_cast at *
-  have := Eise_on_square_is_bounded k z
+  have hk0 : 0 ≤ (k : ℤ) := by linarith
+  have := Eise_on_square_is_bounded k hk0 z
   have h1 := aux_rie_sum z k hk
   apply summable_of_norm_bounded _ h1
   intro i
@@ -453,7 +454,8 @@ theorem lhs_summable_2 (z : ℍ) (k : ℕ) (hk : 2 ≤ k) :
 theorem lhs_summable_2' (z : ℍ) (k : ℕ) (hk : 2 ≤ k) :
     Summable fun n : ℕ+ => 1 / ((z : ℂ) + n) ^ k :=
   by
-  have := Eise_on_square_is_bounded k z
+  have hk0 : 0 ≤ (k : ℤ) := by linarith
+  have := Eise_on_square_is_bounded k hk0 z
   have h1 := aux_rie_sum z k hk
   apply summable_of_norm_bounded _ h1
   intro i
@@ -690,8 +692,9 @@ theorem sub_bound (s : ℍ'.1) (A B : ℝ) (hB : 0 < B) (hs : s ∈ upperHalfSpa
   norm_cast
   simp
   rw [mul_le_mul_left]
-  have hk : 1 ≤ k + 2 := by linarith
-  have := Eise_on_square_is_bounded'' (k + 2) s n hk ⟨1, -(n : ℤ)⟩
+  have hk : 1 ≤ (k + 2 : ℤ) := by linarith
+  have hk20 : 0 ≤ (k + 2 : ℤ) := by linarith
+  have := Eise_on_square_is_bounded'' (k + 2) hk20 s n hk ⟨1, -(n : ℤ)⟩
   have hn : 1 ≤ (n : ℕ) := by have hn2 := n.2; norm_cast;
   simp at this
   have ht := this hn
@@ -725,8 +728,9 @@ theorem add_bound (s : ℍ'.1) (A B : ℝ) (hB : 0 < B) (hs : s ∈ upperHalfSpa
   norm_cast
   simp
   rw [mul_le_mul_left]
-  have hk : 1 ≤ k + 2 := by linarith
-  have := Eise_on_square_is_bounded'' (k + 2) s n hk ⟨1, (n : ℤ)⟩
+  have hk : 1 ≤ (k + 2 : ℤ) := by linarith
+  have hk20 : 0 ≤ (k + 2 : ℤ) := by linarith
+  have := Eise_on_square_is_bounded'' (k + 2) hk20 s n hk ⟨1, (n : ℤ)⟩
   have hn : 1 ≤ (n : ℕ) := by have hn2 := n.2; norm_cast;
   simp at this
   have ht := this hn
@@ -811,6 +815,7 @@ theorem aut_bound_on_comp (K : Set ℂ) (hk : K ⊆ ℍ'.1) (hk2 : IsCompact K) 
   map_one, one_pow, Nat.cast_add, one_mul, _root_.abs_pow, Nat.cast_ofNat] at he1
   simp only [Int.cast_pow, Int.cast_negSucc, zero_add, Nat.cast_one, map_pow, map_neg_eq_map,
   map_one, one_pow, Nat.cast_add, one_mul, _root_.abs_pow, Nat.cast_ofNat]
+
   convert he1
   apply hAB
   simp  at *
@@ -981,7 +986,7 @@ theorem tsum_aexp_contDiffOn (k : ℕ) :
   simpa using hN
 
 
-theorem summable_factor (n : ℤ) (z : ℍ) (k : ℕ) (hk : 3 ≤ k) :
+theorem summable_factor (n : ℤ) (z : ℍ) (k : ℤ) (hk : 3 ≤ k) :
     Summable fun d : ℤ => ((-((n : ℂ) * z) + d) ^ k)⁻¹ :=
   by
   have H := Eisenstein_tsum_summable k z hk
@@ -1023,7 +1028,7 @@ theorem aux_iter_der_tsum (k : ℕ) (hk : 2 ≤ k) (x : ℍ') :
   simpa using lhs_summable_2' x (k + 1) hk2
   simp only [Nat.factorial_ne_zero, Ne.def, neg_one_pow_mul_eq_zero_iff, Nat.cast_eq_zero,
     not_false_iff]
-  have hk3 : 3 ≤ k + 1 := by linarith
+  have hk3 : 3 ≤ (k + 1 : ℤ) := by linarith
   have := summable_factor (-1 : ℤ) x (k + 1) hk3
   simpa using this
   have := aut_contDiffOn 0 k

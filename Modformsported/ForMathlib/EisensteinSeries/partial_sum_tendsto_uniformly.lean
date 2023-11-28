@@ -240,7 +240,7 @@ theorem compact_in_slice' (S : Set ℂ) (hne : Set.Nonempty S) (hs : S ⊆ ℍ')
   have hbz := HB  hz
   simp at *
   convert hbz
-  simp
+  simp only [abs_eq_self]
   have hhf := hs hz
   rw [mem_uhs _] at hhf
   apply hhf.le
@@ -250,7 +250,7 @@ def eisenSquare (k : ℤ) (n : ℕ) : ℍ → ℂ := fun z => ∑ x in square n,
 
 def eisenSquare' (k : ℤ) (n : ℕ) : ℍ' → ℂ := fun z : ℍ' => ∑ x in Finset.range n, eisenSquare k x z
 
-theorem Eisenstein_series_is_sum_eisen_squares (k : ℕ) (z : ℍ) (h : 3 ≤ k) :
+theorem Eisenstein_series_is_sum_eisen_squares (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
     Eisenstein_tsum k z = ∑' n : ℕ, eisenSquare k n z :=
   by
   rw [Eisenstein_tsum]; simp_rw [eisenSquare]
@@ -377,7 +377,7 @@ theorem rfunctbound' (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice
   apply rfunct_pos
   linarith
 
-theorem Eisenstein_series_is_sum_eisen_squares_slice (k : ℕ) (h : 3 ≤ k) (A B : ℝ)
+theorem Eisenstein_series_is_sum_eisen_squares_slice (k : ℤ) (h : 3 ≤ k) (A B : ℝ)
     (z : upperHalfSpaceSlice A B) :
     eisensteinSeriesRestrict k A B z = ∑' n : ℕ, eisenSquareSlice k A B n z := by
   rw [eisensteinSeriesRestrict]; simp_rw [eisenSquareSlice]
@@ -387,7 +387,7 @@ theorem Eisenstein_series_is_sum_eisen_squares_slice (k : ℕ) (h : 3 ≤ k) (A 
   have index_lem := tsum_lemma g (fun (n : ℕ) => square n) HI hgsumm
   exact index_lem
 
-lemma eisenslice_bounded (k n: ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B)
+lemma eisenslice_bounded (k : ℤ) (n : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B)
   (z : upperHalfSpaceSlice A B ): Complex.abs (eisenSquareSlice (k) A B n z) ≤
     8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ (↑k - 1))⁻¹ := by
   simp_rw [eisenSquareSlice]
@@ -407,12 +407,14 @@ lemma eisenslice_bounded (k n: ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb
     exact this
   simp at *
   have SC2 := le_trans ineq1 SC
+  have hk0 : 0 ≤ k := by linarith
+  lift k to ℕ using hk0
   have rb := rfunctbound' k A B hb z n
   norm_cast at *
   apply le_trans SC2 rb
 
 
-lemma Eisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B)
+lemma Eisen_slice_bounded (k : ℤ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B)
   (z : upperHalfSpaceSlice A B ) :
    Complex.abs (eisensteinSeriesRestrict k A B z) ≤
     ∑' n : ℕ,  8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ (k - 1))⁻¹ := by
@@ -434,19 +436,26 @@ lemma Eisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb
   intro b
   apply Complex.abs.nonneg}
 
-lemma AbsEisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
+lemma AbsEisen_slice_bounded (k : ℤ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
   (z : upperHalfSpaceSlice A B ) : ∑' (x : ℤ × ℤ), (AbsEise k z x) ≤
     ∑' (n : ℕ),  8 / rfunct (lbpoint A B hb) ^ k * (((n) : ℝ) ^ (k - 1))⁻¹ := by
   let In := fun (n : ℕ) => square n
   have HI := squares_cover_all
   let g := fun y : ℤ × ℤ => (AbsEise k z) y
-  have gpos : ∀ y : ℤ × ℤ, 0 ≤ g y := by  intro y; simp_rw [AbsEise]; simp
+  have gpos : ∀ y : ℤ × ℤ, 0 ≤ g y := by
+    intro y
+    simp_rw [AbsEise]
+    simp
+    apply zpow_nonneg
+    apply Complex.abs.nonneg
   have index_lem := tsum_lemma g In HI
   simp at *
   rw [index_lem]
   apply tsum_le_tsum
   have smallerclaim := AbsEise_bounded_on_square k z h
   intro n
+  have hk0 : 0 ≤ k := by linarith
+  lift k to ℕ using hk0
   have rb := rfunctbound' k A B hb z n
   simp at *
   apply le_trans _ rb
@@ -464,9 +473,159 @@ lemma AbsEisen_slice_bounded (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
   apply real_eise_is_summable k z h
 
 
+/-
+lemma lattice_tsum_upper_bound  (k : ℕ) (h : 3 ≤ k) (z : ℍ) :
+  ∑' (n : ℕ),  8 / rfunct (z) ^ k * (((n) : ℝ) ^ (k - 1))⁻¹ =
+    ∑' (n : ℕ), ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ := by
+
+    sorry
+
+lemma lattice_tsum_upper_bound' (k : ℕ) (h : 3 ≤ k) (z : ℍ) :
+ ∑' (n : ℕ),  8 / rfunct (z) ^ k * (((n) : ℝ) ^ (k - 1))⁻¹ = ∑' (x : ℤ × ℤ),
+  (1/(rfunct (z)^k))*((max x.1.natAbs x.2.natAbs : ℝ)^k)⁻¹ := by
+  rw [lattice_tsum_upper_bound]
+
+  rw [tsum_lemma _ (fun (n : ℕ) => square n)]
+  congr
+  ext1 n
+  simp only [Real.rpow_nat_cast, one_div, Finset.sum_const, nsmul_eq_mul, ge_iff_le, Int.cast_le]
+  have : ∑ v in square n, (1/(rfunct (z)^k))*((max v.1.natAbs v.2.natAbs: ℝ)^k)⁻¹ =
+    ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ := by
+     apply Finset.sum_congr
+     rfl
+     intro x hx
+     simp at hx
+     congr
+     simp at *
+     norm_cast at *
+  simp at *
+  rw [this]
+  apply squares_cover_all
+  rw [sum_lemma _ _ (fun (n : ℕ) => square n)]
+  have : ∀ n : ℕ, ∑ v in square n, (1/(rfunct (z)^k))*((max v.1.natAbs v.2.natAbs: ℝ)^k)⁻¹ =
+     ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ := by
+     intro n
+     apply Finset.sum_congr
+     rfl
+     intro x hx
+     simp at hx
+     congr
+     simp at *
+     norm_cast at *
+  have hs : Summable (fun n : ℕ => ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ )  := by
+    simp
+    apply Summable.congr (summable_rfunct_twist k z h)
+    intro b
+    by_cases b0 : b = 0
+    rw [b0]
+    have hk : (0: ℝ)^((k : ℤ)-1) = 0:= by
+      simp
+      rw [Real.zero_rpow]
+      have hk3 : (3 : ℝ) ≤ k := by norm_cast at *
+      linarith
+
+    simp at *
+    rw [hk]
+    simp
+    right
+    linarith
+    have hb: 1 ≤ b := by
+      exact Iff.mpr Nat.one_le_iff_ne_zero b0
+    rw [square_size' b hb]
+    field_simp
+    ring_nf
+    simp_rw [mul_assoc]
+    have hbb : (b : ℝ)^(-1 + (k : ℝ)) = (b : ℝ)⁻¹ * b^(k : ℝ) := by
+      rw [Real.rpow_add]
+      congr
+      exact Real.rpow_neg_one ↑b
+      norm_cast
+    rw [hbb]
+    ring_nf
+    simp
+  apply Summable.congr hs
+  intro b
+  apply (this b).symm
+  apply squares_cover_all
+  intro y
+  apply mul_nonneg
+  simp
+  apply pow_nonneg
+  apply (rfunct_pos z).le
+  simp only [ge_iff_le, Nat.cast_le, Real.rpow_nat_cast, inv_nonneg, le_max_iff, Nat.cast_nonneg,
+    or_self, pow_nonneg]
+  apply h
+-/
+
+lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
+ Summable fun (x : ℤ × ℤ) =>
+  (1/(rfunct (z)^k))*((max x.1.natAbs x.2.natAbs : ℝ)^k)⁻¹ := by
+  rw [sum_lemma _ _ (fun (n : ℕ) => square n)]
+  have : ∀ n : ℕ, ∑ v in square n, (1/(rfunct (z)^k))*((max v.1.natAbs v.2.natAbs: ℝ)^k)⁻¹ =
+     ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ := by
+     intro n
+     apply Finset.sum_congr
+     rfl
+     intro x hx
+     simp at hx
+     congr
+     norm_cast at *
+  have hs : Summable (fun n : ℕ => ∑ v in square n, (1/(rfunct (z)^k))*((n : ℝ)^k)⁻¹ )  := by
+    simp
+    apply Summable.congr (summable_rfunct_twist k z h)
+    intro b
+    by_cases b0 : b = 0
+    rw [b0]
+    have hk : (0: ℝ)^((k : ℤ)-1) = 0:= by
+      rw [Real.zero_rpow]
+      have hk3 : (3 : ℝ) ≤ k := by norm_cast at *
+      linarith
+    simp at *
+    rw [hk]
+    simp
+    right
+    have hk0 : 0 ≤ k := by linarith
+    lift k to ℕ using hk0
+    simp only [zpow_coe_nat, ne_eq, zero_pow_eq_zero, gt_iff_lt]
+    linarith
+    have hb: 1 ≤ b := by
+      exact Iff.mpr Nat.one_le_iff_ne_zero b0
+    rw [square_size' b hb]
+    field_simp
+    ring_nf
+    simp_rw [mul_assoc]
+    have hbb : (b : ℝ)^(-1 + (k : ℝ)) = (b : ℝ)⁻¹ * b^(k : ℝ) := by
+      rw [Real.rpow_add]
+      congr
+      exact Real.rpow_neg_one ↑b
+      norm_cast
+    rw [hbb]
+    ring_nf
+    simp
+  apply Summable.congr hs
+  intro b
+  apply (this b).symm
+  apply squares_cover_all
+  intro y
+  apply mul_nonneg
+  simp
+  apply zpow_nonneg
+  apply (rfunct_pos z).le
+  simp  [ge_iff_le, Nat.cast_le, Real.rpow_nat_cast, inv_nonneg, le_max_iff, Nat.cast_nonneg,
+    or_self, zpow_nonneg]
 
 
-theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :
+
+
+
+
+
+
+def AbsEisenBound (A B : ℝ) (hb : 0 < B) (k : ℕ)  : ℝ :=
+  ∑' (n : ℕ),  8 / rfunct (lbpoint A B hb) ^ k * (((n) : ℝ) ^ (k - 1))⁻¹
+
+
+theorem Eisen_partial_tends_to_uniformly (k : ℤ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) :
     TendstoUniformly (eisenParSumSlice k A B) (eisensteinSeriesRestrict k A B) Filter.atTop :=
   by
   let M : ℕ → ℝ := fun x => 8 / rfunct (lbpoint A B hb) ^ k * ((x : ℝ) ^ ((k : ℤ) - 1))⁻¹
@@ -491,6 +650,8 @@ theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha
     exact this
   simp at *
   have SC2 := le_trans ineq1 SC
+  have hk0 : 0 ≤ k := by linarith
+  lift k to ℕ using hk0
   have rb := rfunctbound' k A B hb a n
   norm_cast at rb
   norm_cast
@@ -504,7 +665,7 @@ theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha
     apply div_ne_zero
     simp
     norm_cast
-    apply pow_ne_zero
+    apply zpow_ne_zero
     simp; by_contra HR
     have := rfunct_pos (lbpoint A B hb)
     rw [HR] at this
@@ -519,7 +680,7 @@ theorem Eisen_partial_tends_to_uniformly (k : ℕ) (h : 3 ≤ k) (A B : ℝ) (ha
 
 
 
-theorem Eisen_partial_tends_to_uniformly_on_ball (k : ℕ) (h : 3 ≤ k) (z : ℍ') :
+theorem Eisen_partial_tends_to_uniformly_on_ball (k : ℤ) (h : 3 ≤ k) (z : ℍ') :
     ∃ A B ε : ℝ,
       0 < ε ∧
         Metric.closedBall z ε ⊆ upperHalfSpaceSlice A B ∧
@@ -560,7 +721,7 @@ theorem Eisen_partial_tends_to_uniformly_on_ball (k : ℕ) (h : 3 ≤ k) (z : �
   apply hball
   simp only [hxx, Metric.mem_closedBall]
 
-theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℕ) (h : 3 ≤ k) (z : ℍ') :
+theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℤ) (h : 3 ≤ k) (z : ℍ') :
     ∃ A B ε : ℝ,
       0 < ε ∧
         Metric.closedBall z ε ⊆ upperHalfSpaceSlice A B ∧
