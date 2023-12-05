@@ -29,6 +29,26 @@ def lvl_N_congr (N : ℕ) (a b : ℤ ) := {x : ℤ × ℤ  | (x.1 : ZMod N) = a 
 def lvl_N_congr' (N : ℕ) (a b : ℤ ) := {f : (Fin 2) → ℤ  | (f 0 : ZMod N) = a ∧ (f 1 : ZMod N) = b ∧
   (f 0).gcd (f 1) = 1 }
 
+def int_vec_gcd_n (n : ℕ) := {f : (Fin 2) → ℤ  | (f 0).gcd (f 1) = n }
+
+def vec_gcd_vec_equiv : ((Fin 2) → ℤ) ≃ (⋃ n : ℕ, int_vec_gcd_n n) where
+  toFun  := by
+    intro v
+    refine ⟨v,?_⟩
+    simp
+    use (v 0).gcd (v 1)
+    rfl
+  invFun := fun v => v.1
+  left_inv := by
+    intro v
+    simp
+  right_inv := by
+    intro v
+    simp
+
+
+
+
 @[simp]
 lemma lvl_N_congr_mem (N : ℕ) (a b : ℤ ) (x : ℤ × ℤ) : x ∈ lvl_N_congr N a b ↔
   (x.1 : ZMod N) = a ∧ (x.2 : ZMod N) = b ∧ (x.1).gcd (x.2) = 1 := by rfl
@@ -45,6 +65,21 @@ lemma lvl_1_congr (a b c d : ℤ ) : lvl_N_congr' 1 a b = lvl_N_congr' 1 c d := 
 def lvl1_equiv (a b c d : ℤ) : (lvl_N_congr' 1 a b) ≃ (lvl_N_congr' 1 c d) := by
   refine Equiv.Set.ofEq (lvl_1_congr a b c d)
 
+/-
+def vec_equiv_2 : (⋃ n : ℕ, int_vec_gcd_n n) ≃  (⋃ n : ℕ, lvl_N_congr' 1 0 0) where
+  toFun := by
+    intro v
+    let n := (v.1 0).gcd (v.1 1)
+    by_cases hn : 0 < n
+    use ![(v.1 0)/n, (v.1 1)/n]
+    simp
+    apply Int.gcd_div_gcd_div_gcd hn
+    simp at hn
+
+  invFun := _
+  left_inv := _
+  right_inv := _
+-/
 /-
 def lvl1_equiv_Z_Z (a b : ℤ) : (lvl_N_congr' 1 a b) ≃ (Fin 2 → ℤ) where
   toFun  x := x.1
@@ -878,15 +913,18 @@ lemma level_1_mod_form_eq (a b c d : ℤ) : EisensteinSeries_lvl_N_ModularForm a
   apply (level_1_SIF_eq k a b c d)
 
 
+
 /-
 lemma Eis_1_eq_Eis (a b : ℤ) :
   (fun z : ℍ => (riemannZeta (k))*(Eisenstein_N_tsum k 1 a b z)) = Eisenstein_tsum k := by
 
   ext1 z
   rw [Eisenstein_N_tsum, Eisenstein_tsum]
-  simp
+
 
   sorry
+
+
 
 lemma level_1_can (a b : ℤ) : HEq (EisensteinSeries_lvl_N_ModularForm a b 1 k hk one_pos)
   (EisensteinSeriesModularForm k hk) := by

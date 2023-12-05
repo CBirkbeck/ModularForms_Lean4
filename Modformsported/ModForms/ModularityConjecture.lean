@@ -1,7 +1,7 @@
 import Modformsported.ForMathlib.ModForms2
 import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups
 import Mathlib.AlgebraicGeometry.EllipticCurve.Weierstrass
-import Mathlib.MeasureTheory.Integral.CircleTransform 
+import Mathlib.MeasureTheory.Integral.CircleTransform
 
 open ModularForm Complex
 
@@ -38,9 +38,10 @@ instance apFintype (E : EllipticCurve ℚ) (p : ℕ+) : Fintype (setOfPointsModN
 def EllipticCurve.ap (E : EllipticCurve ℚ) (p : ℕ) : ℕ :=
   p - Cardinal.toNat  (Cardinal.mk (setOfPointsModN E p))
 
+
 def IsNormalisedEigenform {N : ℕ} {k : ℤ} (f : CuspForm (Gamma0 N) k) : Prop :=
   a_[1]f = 1 ∧
-    ∀ (m n : ℕ) (hmn : m.coprime n),
+    ∀ (m n : ℕ) (hmn : m.Coprime n),
       a_[n * m]f = a_[n]f * a_[m]f ∧
         ∀ (p r : ℕ) (hp : p.Prime) (hr : 2 ≤ r) (HpN : (N : ZMod p) ≠ 0),
           a_[p ^ r]f = a_[p]f * a_[p ^ (r - 1)]f - p ^ (k - 1) * a_[p ^ (r - 2)]f ∧
@@ -48,7 +49,6 @@ def IsNormalisedEigenform {N : ℕ} {k : ℤ} (f : CuspForm (Gamma0 N) k) : Prop
               a_[p ^ r]f = (a_[p]f) ^ r
 
 theorem modularity_conjecture (E : EllipticCurve ℚ) :
-    ∃ (N : ℕ) (f : CuspForm (Gamma0 N) 2) (hf : IsNormalisedEigenform f),
+    ∃ (N : ℕ+) (f : CuspForm (Gamma0 N) 2) (hf : IsNormalisedEigenform f),
       ∀ (p : ℕ) (hp : p.Prime) (hN : (N : ZMod p) ≠ 0), a_[p]f = E.ap p :=
   by sorry
-
