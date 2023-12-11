@@ -384,10 +384,12 @@ def lvl_n_smul_dvd (n : ℕ) (v : n • (lvl_N_congr'  N a b)) : (lvl_N_congr'  
     refine mem_smul_set.mp ?_
     norm_cast at *
     sorry
+  sorry
 
-
+/-
 lemma feise_smull (k : ℤ) (n : ℕ) (z : ℍ) (v : n • (lvl_N_congr'  N a b)):
-  vector_eise k z v = n^k * feise k z (v / n) := by
+  vector_eise k z v = n^k * feise k z (v / n) := by sorry
+  -/
 
 /-- The Eisenstein series of weight `k : ℤ` -/
 def Eisenstein_N_tsum (k : ℤ) (N : ℕ) (a b : ℤ) : ℍ → ℂ := fun z => ∑' x : (lvl_N_congr'  N a b),
