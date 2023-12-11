@@ -7,7 +7,7 @@ import Modformsported.ForMathlib.EisensteinSeries.ModularForm
 import Modformsported.ForMathlib.AuxpLemmas
 import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups
 import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
-
+import Mathlib.Data.Set.Pointwise.SMul
 
 noncomputable section
 
@@ -31,13 +31,16 @@ def lvl_N_congr' (N : ℕ) (a b : ℤ ) := {f : (Fin 2) → ℤ  | (f 0 : ZMod N
 
 def int_vec_gcd_n (n : ℕ) := {f : (Fin 2) → ℤ  | (f 0).gcd (f 1) = n }
 
+@[simp]
+lemma inv_vec_gcd_n_mem (n : ℕ) (f : (Fin 2) → ℤ ) : f ∈ int_vec_gcd_n n ↔ (f 0).gcd (f 1) = n := by
+  rfl
+
+
 def vec_gcd_vec_equiv : ((Fin 2) → ℤ) ≃ (⋃ n : ℕ, int_vec_gcd_n n) where
   toFun  := by
     intro v
     refine ⟨v,?_⟩
     simp
-    use (v 0).gcd (v 1)
-    rfl
   invFun := fun v => v.1
   left_inv := by
     intro v
@@ -45,9 +48,6 @@ def vec_gcd_vec_equiv : ((Fin 2) → ℤ) ≃ (⋃ n : ℕ, int_vec_gcd_n n) whe
   right_inv := by
     intro v
     simp
-
-
-
 
 @[simp]
 lemma lvl_N_congr_mem (N : ℕ) (a b : ℤ ) (x : ℤ × ℤ) : x ∈ lvl_N_congr N a b ↔
@@ -65,32 +65,47 @@ lemma lvl_1_congr (a b c d : ℤ ) : lvl_N_congr' 1 a b = lvl_N_congr' 1 c d := 
 def lvl1_equiv (a b c d : ℤ) : (lvl_N_congr' 1 a b) ≃ (lvl_N_congr' 1 c d) := by
   refine Equiv.Set.ofEq (lvl_1_congr a b c d)
 
-/-
-def vec_equiv_2 : (⋃ n : ℕ, int_vec_gcd_n n) ≃  (⋃ n : ℕ, lvl_N_congr' 1 0 0) where
-  toFun := by
-    intro v
-    let n := (v.1 0).gcd (v.1 1)
-    by_cases hn : 0 < n
-    use ![(v.1 0)/n, (v.1 1)/n]
+open Pointwise
+
+
+def vec_equiv_2 : (⋃ n : ℕ, int_vec_gcd_n n)  ≃  (⋃ n : ℕ, n • (lvl_N_congr' 1 n 0)) where
+  toFun := fun v =>
+    ⟨(v.1 0).gcd (v.1 1) • ![(v.1 0)/(v.1 0).gcd (v.1 1), (v.1 1)/(v.1 0).gcd (v.1 1)], by
+    simp only [mem_iUnion]
+    use (v.1 0).gcd (v.1 1)
+    by_cases hn : 0 < (v.1 0).gcd (v.1 1)
+    refine Set.nsmul_mem_nsmul ?h.ha (Int.gcd (v.1 0) (v.1 1))
     simp
     apply Int.gcd_div_gcd_div_gcd hn
     simp at hn
-
-  invFun := _
-  left_inv := _
-  right_inv := _
--/
-/-
-def lvl1_equiv_Z_Z (a b : ℤ) : (lvl_N_congr' 1 a b) ≃ (Fin 2 → ℤ) where
-  toFun  x := x.1
-  invFun := by
-    intro x
-    use x
+    rw [hn]
+    simp⟩
+  invFun := fun v => ⟨ v.1, by simp⟩
+  left_inv := by
+    intro v
     simp
+    ext i
+    fin_cases i
+    by_cases hv : v.1 = 0
+    simp
+    rw [hv]
+    simp
+    simp
+    apply Int.mul_ediv_cancel'
+    exact Int.gcd_dvd_left (v.1 0) (v.1 1)
+    apply Int.mul_ediv_cancel'
+    exact Int.gcd_dvd_right (v.1 0) (v.1 1)
+  right_inv := by
+    intro v
+    ext i
+    fin_cases i
+    simp
+    apply Int.mul_ediv_cancel'
+    exact Int.gcd_dvd_left (v.1 0) (v.1 1)
+    apply Int.mul_ediv_cancel'
+    exact Int.gcd_dvd_right (v.1 0) (v.1 1)
 
-  left_inv := _
-  right_inv := _
-  -/
+
 
 section
 
@@ -357,8 +372,22 @@ lemma summable_Eisenstein_N_tsum (k : ℤ) (hk : 3 ≤ k) (N : ℕ) (a b : ℤ) 
   apply (Eisenstein_tsum_summable k z hk).subtype
 
 
+def vector_eise (k : ℤ) (z : ℍ) (v : (Fin 2) → ℤ) : ℂ := (eise k z ((piFinTwoEquiv fun _ => ℤ) v))
 
 def feise (k : ℤ) (z : ℍ) (v : (lvl_N_congr'  N a b)) : ℂ := (eise k z ((piFinTwoEquiv fun _ => ℤ) v.1))
+
+def lvl_n_smul_dvd (n : ℕ) (v : n • (lvl_N_congr'  N a b)) : (lvl_N_congr'  N a b) := by
+  use ![v.1 0 / n, v.1 1/ n]
+  simp
+  have hv2 := v.2
+  have hh : ∃ y, y ∈ (lvl_N_congr'  N a b) ∧ n • y = v := by
+    refine mem_smul_set.mp ?_
+    norm_cast at *
+    sorry
+
+
+lemma feise_smull (k : ℤ) (n : ℕ) (z : ℍ) (v : n • (lvl_N_congr'  N a b)):
+  vector_eise k z v = n^k * feise k z (v / n) := by
 
 /-- The Eisenstein series of weight `k : ℤ` -/
 def Eisenstein_N_tsum (k : ℤ) (N : ℕ) (a b : ℤ) : ℍ → ℂ := fun z => ∑' x : (lvl_N_congr'  N a b),
