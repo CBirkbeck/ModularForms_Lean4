@@ -68,18 +68,25 @@ def lvl1_equiv (a b c d : ℤ) : (lvl_N_congr' 1 a b) ≃ (lvl_N_congr' 1 c d) :
 open Pointwise
 
 
-def vec_equiv_2 : (⋃ n : ℕ, int_vec_gcd_n n)  ≃  (⋃ n : ℕ, n • (lvl_N_congr' 1 n 0)) where
+def vec_equiv_2 : (⋃ n : ℕ, int_vec_gcd_n n)  ≃  (⋃ n : ℕ, ({n} : Set ℕ)  • (lvl_N_congr' 1 0 0)) where
   toFun := fun v =>
     ⟨(v.1 0).gcd (v.1 1) • ![(v.1 0)/(v.1 0).gcd (v.1 1), (v.1 1)/(v.1 0).gcd (v.1 1)], by
     simp only [mem_iUnion]
     use (v.1 0).gcd (v.1 1)
     by_cases hn : 0 < (v.1 0).gcd (v.1 1)
-    refine Set.nsmul_mem_nsmul ?h.ha (Int.gcd (v.1 0) (v.1 1))
+    apply Set.smul_mem_smul
     simp
-    apply Int.gcd_div_gcd_div_gcd hn
+    rw [lvl_N_congr'_mem]
+    simp
+    apply  Int.gcd_div_gcd_div_gcd hn
     simp at hn
     rw [hn]
-    simp⟩
+    simp
+    rw [Set.zero_smul_set]
+    simp
+    use ![1,1]
+    simp
+    ⟩
   invFun := fun v => ⟨ v.1, by simp⟩
   left_inv := by
     intro v
@@ -376,20 +383,61 @@ def vector_eise (k : ℤ) (z : ℍ) (v : (Fin 2) → ℤ) : ℂ := (eise k z ((p
 
 def feise (k : ℤ) (z : ℍ) (v : (lvl_N_congr'  N a b)) : ℂ := (eise k z ((piFinTwoEquiv fun _ => ℤ) v.1))
 
-def lvl_n_smul_dvd (n : ℕ) (v : n • (lvl_N_congr'  N a b)) : (lvl_N_congr'  N a b) := by
-  use ![v.1 0 / n, v.1 1/ n]
-  simp
+open Pointwise
+def lvl_n_smul_dvd (n : ℕ) (hn : n ≠ 0) (v : (({n} : Set ℕ ) • (lvl_N_congr'  N a b))) :
+  (lvl_N_congr'  N a b) := by
+  use ![v.1 0 /n, v.1 1 /n]
   have hv2 := v.2
-  have hh : ∃ y, y ∈ (lvl_N_congr'  N a b) ∧ n • y = v := by
-    refine mem_smul_set.mp ?_
+  rw [Set.mem_smul] at hv2
+  let H:= hv2.choose_spec
+  have := H.choose_spec
+  have hm : hv2.choose = n := by
+    have h1 := this.1
+    rw [mem_singleton_iff] at h1
+    exact h1
+  have h2 := this.2.2
+  rw [←h2]
+  have A : hv2.choose • H.choose  = n  * H.choose := by
+    congr
+  rw [A]
+  have B : (n  * H.choose) 0 /n = H.choose 0 :=  by
+    refine Int.ediv_eq_of_eq_mul_right ?H1 rfl
     norm_cast at *
-    sorry
-  sorry
+  have B1 : (n  * H.choose) 1 /n = H.choose 1 :=  by
+    refine Int.ediv_eq_of_eq_mul_right ?H2 rfl
+    norm_cast at *
+  rw [B, B1]
+  convert this.2.1
+  ext1 i
+  fin_cases i
+  simp
+  rfl
 
 /-
-lemma feise_smull (k : ℤ) (n : ℕ) (z : ℍ) (v : n • (lvl_N_congr'  N a b)):
-  vector_eise k z v = n^k * feise k z (v / n) := by sorry
+have hv2 := v.2
+rw [Set.mem_smul] at hv2
+let H:= hv2.choose_spec
+use H.choose
+have := H.choose_spec
+apply this.2.1
   -/
+lemma lvl_n_smul_eq_dvd (n : ℕ) (hn : n ≠ 0) (v : (({n} : Set ℕ ) • (lvl_N_congr'  N a b))) :
+  (lvl_n_smul_dvd n hn v).1 = ![ v.1 0 / n, v.1 1 /n] := by
+  rfl
+
+--lemma nsmul_div_n (n : ℤ) (v : ({n} : Set ℕ ) • (lvl_N_congr'  N a b)) :
+
+lemma feise_smul (k : ℤ) (n : ℕ) (hn : n ≠ 0) (z : ℍ) (v : ({n} : Set ℕ ) • (lvl_N_congr'  N a b)):
+  vector_eise k z v = (1/(n^k)) * feise k z (lvl_n_smul_dvd n hn v) := by
+    simp_rw [vector_eise, feise, lvl_n_smul_dvd, eise]
+    simp
+    field_simp
+    congr
+    rw [← mul_zpow]
+    ring
+
+    sorry
+
 
 /-- The Eisenstein series of weight `k : ℤ` -/
 def Eisenstein_N_tsum (k : ℤ) (N : ℕ) (a b : ℤ) : ℍ → ℂ := fun z => ∑' x : (lvl_N_congr'  N a b),
