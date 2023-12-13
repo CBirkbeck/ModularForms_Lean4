@@ -8,6 +8,7 @@ import Modformsported.ForMathlib.AuxpLemmas
 import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups
 import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
 import Mathlib.Data.Set.Pointwise.SMul
+import Mathlib.Analysis.Normed.Field.InfiniteSum
 
 noncomputable section
 
@@ -112,7 +113,13 @@ def vec_equiv_2 : (⋃ n : ℕ, int_vec_gcd_n n)  ≃  (⋃ n : ℕ, ({n} : Set 
     apply Int.mul_ediv_cancel'
     exact Int.gcd_dvd_right (v.1 0) (v.1 1)
 
+def top_equiv : ((Fin 2) → ℤ) ≃ (⋃ n : ℕ, ({n} : Set ℕ)  • (lvl_N_congr' 1 0 0)) := by
+  apply Equiv.trans vec_gcd_vec_equiv vec_equiv_2
 
+
+lemma smul_disjoint ( i j : ℕ) (hij : i ≠ j) : Disjoint (({i} : Set ℕ)  • (lvl_N_congr' 1 0 0))
+  (({j} : Set ℕ)  • (lvl_N_congr' 1 0 0)) := by
+  sorry
 
 section
 
@@ -374,6 +381,7 @@ def index_equiv (N : ℕ)  (a b : ℤ ) : (lvl_N_congr' N a b) ≃ (lvl_N_congr 
   simp
 
 
+
 lemma summable_Eisenstein_N_tsum (k : ℤ) (hk : 3 ≤ k) (N : ℕ) (a b : ℤ) (z : ℍ):
   Summable (fun (x : (lvl_N_congr  N a b)) => (eise k z  x.1) ) := by
   apply (Eisenstein_tsum_summable k z hk).subtype
@@ -384,28 +392,30 @@ def vector_eise (k : ℤ) (z : ℍ) (v : (Fin 2) → ℤ) : ℂ := (eise k z ((p
 def feise (k : ℤ) (z : ℍ) (v : (lvl_N_congr'  N a b)) : ℂ := (eise k z ((piFinTwoEquiv fun _ => ℤ) v.1))
 
 open Pointwise
-def lvl_n_smul_dvd (n : ℕ) (hn : n ≠ 0) (v : (({n} : Set ℕ ) • (lvl_N_congr'  N a b))) :
+def lvl_n_smul_dvd (n : ℕ) (v : (({n+1} : Set ℕ ) • (lvl_N_congr'  N a b))) :
   (lvl_N_congr'  N a b) := by
-  use ![v.1 0 /n, v.1 1 /n]
+  use ![v.1 0 /(n + 1), v.1 1 /(n + 1)]
   have hv2 := v.2
   rw [Set.mem_smul] at hv2
   let H:= hv2.choose_spec
   have := H.choose_spec
-  have hm : hv2.choose = n := by
+  have hm : hv2.choose = n + 1 := by
     have h1 := this.1
     rw [mem_singleton_iff] at h1
     exact h1
   have h2 := this.2.2
   rw [←h2]
-  have A : hv2.choose • H.choose  = n  * H.choose := by
+  have A : hv2.choose • H.choose  = (n + 1)  * H.choose := by
     congr
   rw [A]
-  have B : (n  * H.choose) 0 /n = H.choose 0 :=  by
+  have B : ((n + 1)  * H.choose) 0 /(n + 1) = H.choose 0 :=  by
     refine Int.ediv_eq_of_eq_mul_right ?H1 rfl
     norm_cast at *
-  have B1 : (n  * H.choose) 1 /n = H.choose 1 :=  by
+    linarith
+  have B1 : ((n + 1)  * H.choose) 1 /(n + 1) = H.choose 1 :=  by
     refine Int.ediv_eq_of_eq_mul_right ?H2 rfl
     norm_cast at *
+    linarith
   rw [B, B1]
   convert this.2.1
   ext1 i
@@ -421,50 +431,108 @@ use H.choose
 have := H.choose_spec
 apply this.2.1
   -/
-lemma lvl_n_smul_eq_dvd (n : ℕ) (hn : n ≠ 0) (v : (({n} : Set ℕ ) • (lvl_N_congr'  N a b))) :
-  (lvl_n_smul_dvd n hn v).1 = ![ v.1 0 / n, v.1 1 /n] := by
+lemma lvl_n_smul_eq_dvd (n : ℕ)  (v : (({n + 1} : Set ℕ ) • (lvl_N_congr'  N a b))) :
+  (lvl_n_smul_dvd n v).1 = ![ v.1 0 / (n + 1), v.1 1 /(n + 1)] := by
   rfl
 
-lemma nsmul_div_n (n : ℕ) (v : ({n} : Set ℕ ) • (lvl_N_congr'  N a b)) (i : Fin 2) :
+lemma nsmul_v_zero (m N : ℕ) (a b  : ℤ) (h : m = 0) (v : ({m} : Set ℕ ) • (lvl_N_congr'  N a b)) :
+   v.1 = 0 := by
+  have hv2 := v.2
+  rw [Set.mem_smul] at hv2
+  obtain ⟨x,y,H1, H2⟩ := hv2
+  rw [h] at H1
+  simp at H1
+  rw [H1] at H2
+  simp at H2
+  apply H2.2.symm
+
+
+lemma nsmul_div_n (n N : ℕ) (a b  : ℤ) (v : ({n} : Set ℕ ) • (lvl_N_congr'  N a b)) (i : Fin 2) :
   n * ((v.1 i) /n) = v.1 i := by
   by_cases hn : n = 0
-  sorry
+  have := nsmul_v_zero n N a b hn v
+  rw [this]
+  simp
   apply Int.mul_ediv_cancel'
   have hv2 := v.2
   rw [Set.mem_smul] at hv2
-  let H:= hv2.choose_spec
-  have := H.choose_spec
-  have hm : hv2.choose = n := by
-    have h1 := this.1
-    rw [mem_singleton_iff] at h1
-    exact h1
-  have h2 := this.2.2
-  have B : (n  * H.choose) i /n = H.choose i :=  by
-    refine Int.ediv_eq_of_eq_mul_right ?H1 rfl
-    norm_cast at *
+  obtain ⟨x,y,H1, H2⟩ := hv2
+  simp at H1
+  have h2 := H2.2
   refine dvd_def.mpr ?_
+  use y i
   rw [←h2]
-  use H.choose i
   rw [nsmul_eq_mul]
+  apply Mathlib.Tactic.Ring.mul_congr
+  rw [H1]
+  rfl
+  congr
 
-  sorry
+
+def prod_equiv : ℕ × (lvl_N_congr' 1 0 0) ≃ (Σ n : ℕ, ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0)) where
+  toFun := fun r => ⟨r.1,(r.1+1) • r.2.1, by
+    rw [Set.mem_smul]
+    use r.1+1
+    use r.2
+    simp ⟩
+  invFun := fun v => ⟨v.1, (lvl_n_smul_dvd v.1 v.2), by simp  ⟩
+  left_inv := by
+    intro v
+    simp
+    congr
+    rw [lvl_n_smul_dvd]
+    simp
+    congr
+    ext i
+    fin_cases i
+    simp
+    refine EuclideanDomain.mul_div_cancel_left (v.2.1 0) ?e_snd.e_val.h.head.a0
+    linarith
+    simp
+    refine EuclideanDomain.mul_div_cancel_left (v.2.1 1) ?e_snd.e_val.h.head.a0
+  right_inv := by
+    intro v
+    simp
+    congr
+    rw [lvl_n_smul_dvd]
+    simp
+    ext i
+    fin_cases i
+    simp
+    apply nsmul_div_n
+    simp
+    apply nsmul_div_n
 
 
-lemma feise_smul (k : ℤ) (n : ℕ) (hn : n ≠ 0) (z : ℍ) (v : ({n} : Set ℕ ) • (lvl_N_congr'  N a b)):
-  vector_eise k z v = (1/(n^k)) * feise k z (lvl_n_smul_dvd n hn v) := by
+lemma feise_smul (k a b : ℤ) (n N: ℕ) (z : ℍ) (v : ({n + 1} : Set ℕ ) • (lvl_N_congr'  N a b)):
+  vector_eise k z v = (1/((n+1)^k)) * feise k z (lvl_n_smul_dvd n v) := by
     simp_rw [vector_eise, feise, lvl_n_smul_dvd, eise]
     simp
     field_simp
     congr
     rw [← mul_zpow]
-    ring
-
+    ring_nf
+    have := nsmul_div_n (n+1) N a b v 1
+    have t0 := nsmul_div_n (n+1) N a b v 0
     sorry
+    /-
+    norm_cast
+    rw [this]
+    norm_cast
+    conv =>
+     enter [1,1,1]
+     rw [←t0, mul_comm]
+     simp
+    ring_nf
+    -/
+def Eisenstein_1_tsum (k : ℤ) : ℍ → ℂ := fun z =>  ∑' x : Fin 2 → ℤ, (vector_eise k z x)
+
 
 
 /-- The Eisenstein series of weight `k : ℤ` -/
 def Eisenstein_N_tsum (k : ℤ) (N : ℕ) (a b : ℤ) : ℍ → ℂ := fun z => ∑' x : (lvl_N_congr'  N a b),
   (feise k z  x)
+
 
 
 lemma summable_Eisenstein_N_tsum' (k : ℤ) (hk : 3 ≤ k) (N : ℕ) (a b : ℤ) (z : ℍ):
@@ -1016,18 +1084,67 @@ lemma level_1_mod_form_eq (a b c d : ℤ) : EisensteinSeries_lvl_N_ModularForm a
 
 
 
-/-
-lemma Eis_1_eq_Eis (a b : ℤ) :
-  (fun z : ℍ => (riemannZeta (k))*(Eisenstein_N_tsum k 1 a b z)) = Eisenstein_tsum k := by
+
+lemma Eis_1_eq_Eis (a b : ℤ) (k : ℕ ) (hk : 3 ≤ k) :
+  (fun z : ℍ => (riemannZeta (k))*(Eisenstein_N_tsum k 1 0 0 z)) = Eisenstein_1_tsum k := by
 
   ext1 z
-  rw [Eisenstein_N_tsum, Eisenstein_tsum]
+  have : ∑' (x : (⋃ n : ℕ, ({n} : Set ℕ)  • (lvl_N_congr' 1 0 0))),
+    vector_eise k z (top_equiv.symm x) = Eisenstein_1_tsum k z := by
+    rw [Eisenstein_1_tsum]
+    apply top_equiv.symm.tsum_eq
+  rw [←this]
+  rw [Eisenstein_N_tsum]
+  have H : ∑' (x : (⋃ n : ℕ, ({n} : Set ℕ)  • (lvl_N_congr' 1 0 0))),
+    vector_eise k z (top_equiv.symm x) =  ∑' (x : (Σn : ℕ, ({n} : Set ℕ)  • (lvl_N_congr' 1 0 0))),
+    vector_eise k z x.2 := by
+    have := smul_disjoint
+    let h0 := (Set.unionEqSigmaOfDisjoint this).symm
+    rw [ ← h0.tsum_eq]
+    apply tsum_congr
+    intro v
+    congr
+  rw [H]
+  rw [tsum_sigma]
+  rw [tsum_eq_zero_add]
+  have hk1 : 1 < k := by linarith
 
+  have hr := zeta_nat_eq_tsum_of_gt_one hk1
+  rw [hr]
+  rw [tsum_mul_tsum_of_summable_norm]
+  rw [tsum_prod]
+  rw [tsum_eq_zero_add]
+  have H2 : ∑' (n : ℕ) (v : ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0) ), vector_eise k z v =
+  ∑' (n : ℕ) (v : ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0) ),
+    (1/((n +1)^k)) * feise k z (lvl_n_smul_dvd n v) := by
+    apply tsum_congr
+    intro b
+    apply tsum_congr
+    intro v
+    apply feise_smul k 0 0 (b) 1 z v
+  rw [H2]
+  simp
+  stop
+  /-
+  rw [tsum_sigma]
+  simp
+  rw [tsum_eq_zero_add]
 
+  have H2 : ∑' (n : ℕ) (v : ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0) ), vector_eise k z v =
+    ∑' (n : ℕ) (v : ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0) ),
+      (1/((n +1)^k)) * feise k z (lvl_n_smul_dvd n v) := by
+      apply tsum_congr
+      intro b
+      apply tsum_congr
+      intro v
+      apply feise_smul k 0 0 (b) 1 z v
+  rw [H2]
+  rw [← tsum_mul_tsum]
+  -/
   sorry
 
 
-
+/-
 lemma level_1_can (a b : ℤ) : HEq (EisensteinSeries_lvl_N_ModularForm a b 1 k hk one_pos)
   (EisensteinSeriesModularForm k hk) := by
 
@@ -1043,4 +1160,4 @@ lemma level_1_can (a b : ℤ) : HEq (EisensteinSeries_lvl_N_ModularForm a b 1 k 
   simp_rw [Eisenstein_tsum, Eisenstein_SIF_lvl_N, Eisenstein_N_tsum]
   simp
   simp_rw [Eisenstein_N_tsum]
-  -/
+-/
