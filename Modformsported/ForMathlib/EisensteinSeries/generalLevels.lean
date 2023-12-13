@@ -425,7 +425,30 @@ lemma lvl_n_smul_eq_dvd (n : ℕ) (hn : n ≠ 0) (v : (({n} : Set ℕ ) • (lvl
   (lvl_n_smul_dvd n hn v).1 = ![ v.1 0 / n, v.1 1 /n] := by
   rfl
 
---lemma nsmul_div_n (n : ℤ) (v : ({n} : Set ℕ ) • (lvl_N_congr'  N a b)) :
+lemma nsmul_div_n (n : ℕ) (v : ({n} : Set ℕ ) • (lvl_N_congr'  N a b)) (i : Fin 2) :
+  n * ((v.1 i) /n) = v.1 i := by
+  by_cases hn : n = 0
+  sorry
+  apply Int.mul_ediv_cancel'
+  have hv2 := v.2
+  rw [Set.mem_smul] at hv2
+  let H:= hv2.choose_spec
+  have := H.choose_spec
+  have hm : hv2.choose = n := by
+    have h1 := this.1
+    rw [mem_singleton_iff] at h1
+    exact h1
+  have h2 := this.2.2
+  have B : (n  * H.choose) i /n = H.choose i :=  by
+    refine Int.ediv_eq_of_eq_mul_right ?H1 rfl
+    norm_cast at *
+  refine dvd_def.mpr ?_
+  rw [←h2]
+  use H.choose i
+  rw [nsmul_eq_mul]
+
+  sorry
+
 
 lemma feise_smul (k : ℤ) (n : ℕ) (hn : n ≠ 0) (z : ℍ) (v : ({n} : Set ℕ ) • (lvl_N_congr'  N a b)):
   vector_eise k z v = (1/(n^k)) * feise k z (lvl_n_smul_dvd n hn v) := by
