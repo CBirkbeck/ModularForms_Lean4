@@ -13,7 +13,7 @@ import Mathlib.Analysis.Normed.Field.InfiniteSum
 noncomputable section
 
 open ModularForm EisensteinSeries UpperHalfPlane TopologicalSpace Set MeasureTheory intervalIntegral
-  Metric Filter Function Complex   Manifold
+  Metric Filter Function Complex   Manifold Pointwise
 
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
 
@@ -60,6 +60,7 @@ lemma lvl_N_congr'_mem (N : ℕ) (a b : ℤ ) (f : (Fin 2) → ℤ ) : f ∈ lvl
 
 lemma lvl_1_congr (a b c d : ℤ ) : lvl_N_congr' 1 a b = lvl_N_congr' 1 c d := by
   simp [lvl_N_congr']
+  simp only [eq_iff_true_of_subsingleton]
 
 
 
@@ -78,7 +79,9 @@ def vec_equiv_2 : (⋃ n : ℕ, int_vec_gcd_n n)  ≃  (⋃ n : ℕ, ({n} : Set 
     apply Set.smul_mem_smul
     simp
     rw [lvl_N_congr'_mem]
-    simp
+    simp  [Matrix.cons_val_zero, Int.cast_zero, Matrix.cons_val_one,eq_iff_true_of_subsingleton,
+       Matrix.head_cons]
+
     apply  Int.gcd_div_gcd_div_gcd hn
     simp at hn
     rw [hn]
@@ -86,7 +89,7 @@ def vec_equiv_2 : (⋃ n : ℕ, int_vec_gcd_n n)  ≃  (⋃ n : ℕ, ({n} : Set 
     rw [Set.zero_smul_set]
     simp
     use ![1,1]
-    simp
+    simp [eq_iff_true_of_subsingleton]
     ⟩
   invFun := fun v => ⟨ v.1, by simp⟩
   left_inv := by
@@ -120,9 +123,11 @@ def top_equiv : ((Fin 2) → ℤ) ≃ (⋃ n : ℕ, ({n} : Set ℕ)  • (lvl_N_
 
 lemma smul_disjoint ( i j : ℕ) (hij : i ≠ j) : Disjoint (({i} : Set ℕ)  • (lvl_N_congr' 1 0 0))
   (({j} : Set ℕ)  • (lvl_N_congr' 1 0 0)) := by
+  simp only [singleton_smul]
   sorry
 
-section
+
+
 
 variable {n : Type u} [DecidableEq n] [Fintype n] {R : Type v} [CommRing R]
 
@@ -132,7 +137,7 @@ def SpecialLinearGroup.transpose ( A:  Matrix.SpecialLinearGroup n R)  :
   rw [Matrix.det_transpose]
   apply A.2
 
-section gcd_to_sl_lemmas
+
 
 def gcd_one_to_SL (a b : ℤ) (hab : a.gcd b =1) : SL(2, ℤ) := by
   use !![a, -Int.gcdB a b;  b, Int.gcdA a b]
@@ -392,38 +397,44 @@ def vector_eise (k : ℤ) (z : ℍ) (v : (Fin 2) → ℤ) : ℂ := (eise k z ((p
 
 def feise (k : ℤ) (z : ℍ) (v : (lvl_N_congr'  N a b)) : ℂ := (eise k z ((piFinTwoEquiv fun _ => ℤ) v.1))
 
+
+
 open Pointwise
-def lvl_n_smul_dvd (n : ℕ) (v : (({n+1} : Set ℕ ) • (lvl_N_congr'  N a b))) :
+
+
+def smullset (n N : ℕ) ( a b : ℤ): Set ((Fin 2) → ℤ) := ( ({n} : Set ℕ)  • (lvl_N_congr' N a b))
+
+
+
+def lvl_n_smul_dvd (n N : ℕ) (a b  : ℤ) (v : smullset (n+1) N a b) :
   (lvl_N_congr'  N a b) := by
   use ![v.1 0 /(n + 1), v.1 1 /(n + 1)]
   have hv2 := v.2
+  simp_rw [smullset] at *
   rw [Set.mem_smul] at hv2
-  let H:= hv2.choose_spec
-  have := H.choose_spec
-  have hm : hv2.choose = n + 1 := by
-    have h1 := this.1
-    rw [mem_singleton_iff] at h1
-    exact h1
-  have h2 := this.2.2
-  rw [←h2]
-  have A : hv2.choose • H.choose  = (n + 1)  * H.choose := by
-    congr
-  rw [A]
-  have B : ((n + 1)  * H.choose) 0 /(n + 1) = H.choose 0 :=  by
+  simp at hv2
+  obtain ⟨H, HH⟩:= hv2
+  simp at *
+  rw [←HH.1.1, ←HH.1.2.1]
+
+  have HT := HH.2
+  rw [←HT]
+  simp
+  norm_cast
+  have B : ((n + 1)  * H) 0 /(n + 1) = H 0 :=  by
     refine Int.ediv_eq_of_eq_mul_right ?H1 rfl
     norm_cast at *
     linarith
-  have B1 : ((n + 1)  * H.choose) 1 /(n + 1) = H.choose 1 :=  by
+  have B1 : ((n + 1)  * H) 1 /(n + 1) = H 1 :=  by
     refine Int.ediv_eq_of_eq_mul_right ?H2 rfl
     norm_cast at *
     linarith
-  rw [B, B1]
-  convert this.2.1
-  ext1 i
-  fin_cases i
-  simp
-  rfl
-
+  constructor
+  exact congrArg Int.cast B
+  constructor
+  exact congrArg Int.cast B1
+  norm_cast at *
+  convert HH.1.2.2
 /-
 have hv2 := v.2
 rw [Set.mem_smul] at hv2
@@ -432,23 +443,26 @@ use H.choose
 have := H.choose_spec
 apply this.2.1
   -/
-lemma lvl_n_smul_eq_dvd (n : ℕ)  (v : (({n + 1} : Set ℕ ) • (lvl_N_congr'  N a b))) :
-  (lvl_n_smul_dvd n v).1 = ![ v.1 0 / (n + 1), v.1 1 /(n + 1)] := by
+lemma lvl_n_smul_eq_dvd (n : ℕ)  (v : smullset (n+1) N a b) :
+  (lvl_n_smul_dvd n _ _ _ v).1 = ![ v.1 0 / (n + 1), v.1 1 /(n + 1)] := by
   rfl
 
-lemma nsmul_v_zero (m N : ℕ) (a b  : ℤ) (h : m = 0) (v : ({m} : Set ℕ ) • (lvl_N_congr'  N a b)) :
+lemma nsmul_v_zero (m N : ℕ) (a b  : ℤ) (h : m = 0) (v : smullset m N a b) :
    v.1 = 0 := by
   have hv2 := v.2
+  simp_rw [smullset] at *
   rw [Set.mem_smul] at hv2
   obtain ⟨x,y,H1, H2⟩ := hv2
-  rw [h] at H1
-  simp at H1
-  rw [H1] at H2
+  rw [h] at *
+  simp at *
+  rw [y] at H2
   simp at H2
-  apply H2.2.symm
+  have H22:= H2.2
+  rw [←H22]
+  ext1
+  simp
 
-
-lemma nsmul_div_n (n N : ℕ) (a b  : ℤ) (v : ({n} : Set ℕ ) • (lvl_N_congr'  N a b)) (i : Fin 2) :
+lemma nsmul_div_n (n N : ℕ) (a b  : ℤ) (v : smullset n N a b) (i : Fin 2) :
   n * ((v.1 i) /n) = v.1 i := by
   by_cases hn : n = 0
   have := nsmul_v_zero n N a b hn v
@@ -456,27 +470,32 @@ lemma nsmul_div_n (n N : ℕ) (a b  : ℤ) (v : ({n} : Set ℕ ) • (lvl_N_cong
   simp
   apply Int.mul_ediv_cancel'
   have hv2 := v.2
+  simp_rw [smullset] at *
   rw [Set.mem_smul] at hv2
   obtain ⟨x,y,H1, H2⟩ := hv2
-  simp at H1
+  simp at *
   have h2 := H2.2
   refine dvd_def.mpr ?_
-  use y i
+  use H1 i
   rw [←h2]
-  rw [nsmul_eq_mul]
-  apply Mathlib.Tactic.Ring.mul_congr
-  rw [H1]
-  rfl
-  congr
+  simp
+  left
+  exact y
 
 
-def prod_equiv : ℕ × (lvl_N_congr' 1 0 0) ≃ (Σ n : ℕ, ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0)) where
+def prod_equiv : ℕ × (lvl_N_congr' 1 0 0) ≃ (Σ n : ℕ, smullset (n+1) 1 0 0) where
   toFun := fun r => ⟨r.1,(r.1+1) • r.2.1, by
+    simp_rw [smullset] at *
     rw [Set.mem_smul]
     use r.1+1
+    simp
     use r.2
-    simp ⟩
-  invFun := fun v => ⟨v.1, (lvl_n_smul_dvd v.1 v.2), by simp  ⟩
+    simp [eq_iff_true_of_subsingleton]
+    have hr2 := r.2.2
+    rw [lvl_N_congr'_mem] at hr2
+    exact hr2.2.2
+    ⟩
+  invFun := fun v => ⟨v.1, (lvl_n_smul_dvd v.1 _ _ _ v.2), by simp  ⟩
   left_inv := by
     intro v
     simp
@@ -505,9 +524,10 @@ def prod_equiv : ℕ × (lvl_N_congr' 1 0 0) ≃ (Σ n : ℕ, ({n+1} : Set ℕ) 
     apply nsmul_div_n
 
 
-lemma feise_smul (k a b : ℤ) (n N: ℕ) (z : ℍ) (v : ({n + 1} : Set ℕ ) • (lvl_N_congr'  N a b)):
-  vector_eise k z v = (1/((n+1)^k)) * feise k z (lvl_n_smul_dvd n v) := by
-    simp_rw [vector_eise, feise, lvl_n_smul_dvd, eise]
+
+lemma feise_smul (k a b : ℤ) (n N: ℕ) (z : ℍ) (v : smullset (n+1) N a b):
+  vector_eise k z v = (1/((n+1)^k)) * feise k z (lvl_n_smul_dvd n _ _ _ v) := by
+    simp_rw [vector_eise, feise,  smullset,lvl_n_smul_dvd, eise]
     simp
     field_simp
     congr
@@ -518,13 +538,15 @@ lemma feise_smul (k a b : ℤ) (n N: ℕ) (z : ℍ) (v : ({n + 1} : Set ℕ ) �
 
     sorry
 
-def nsmul_equiv (n : ℕ) :  ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0) ≃ (lvl_N_congr' 1 0 0) where
-  toFun := fun v => lvl_n_smul_dvd n v
+def nsmul_equiv (n : ℕ) :  smullset (n+1) 1 0 0 ≃ (lvl_N_congr' 1 0 0) where
+  toFun := fun v => lvl_n_smul_dvd n _ _ _ v
   invFun := fun v => ⟨(n+1 : Fin 2 → ℤ) * v.1, by
-    rw [Set.mem_smul]
+    rw [smullset, Set.mem_smul]
     use n+1
+    simp
     use v
-    simp⟩
+    simp
+    sorry⟩
   left_inv := sorry
   right_inv := sorry
 
@@ -596,10 +618,10 @@ lemma averaver (A: SL(2, ℤ)) : equivla  (SpecialLinearGroup.transpose A)  = Mo
   rw [equivla, prod_fun_equiv]
   simp only [Equiv.symm_symm, Equiv.coe_trans, piFinTwoEquiv_apply, LinearEquiv.coe_toEquiv,
   piFinTwoEquiv_symm_apply,
-    MoebiusEquiv,MoebiusPerm]
-  simp
+    MoebiusEquiv,MoebiusPerm, Matrix.SpecialLinearGroup.coe_inv]
   ext1 v
-  simp
+  simp only [Equiv.trans_apply, piFinTwoEquiv_symm_apply, LinearEquiv.coe_toEquiv,
+    piFinTwoEquiv_apply, Equiv.coe_fn_mk, Prod.mk.injEq, MoebiusPerm]
   constructor
   rw [Matrix.SpecialLinearGroup.toLin'_apply,SpecialLinearGroup.transpose ]
   simp
@@ -673,7 +695,7 @@ lemma slash_apply (k : ℤ) (A : SL(2,ℤ)) (f : ℍ → ℂ) (z : ℍ): (f∣[k
   simp only [Matrix.SpecialLinearGroup.map_apply_coe, RingHom.mapMatrix_apply, Int.coe_castRingHom, Matrix.map_apply,
     ofReal_int_cast, uhc, UpperHalfPlane.sl_moeb]
   norm_cast
-  rw [zpow_neg]
+
   congr
   simp
 
@@ -770,7 +792,6 @@ theorem lvl_N_periodic (N : ℕ) (k : ℤ) (f : SlashInvariantForm (Gamma N) k) 
     ∀ (z : ℍ) (n : ℤ), f (((ModularGroup.T^N)^n)  • z) = f z :=
   by
   have h := SlashInvariantForm.slash_action_eqn' k (Gamma N) f
-  simp only [SlashInvariantForm.slash_action_eqn']
   intro z n
   simp only [Subgroup.top_toSubmonoid, subgroup_to_sl_moeb, Subgroup.coe_top, Subtype.forall,
     Subgroup.mem_top, forall_true_left] at h
@@ -778,23 +799,12 @@ theorem lvl_N_periodic (N : ℕ) (k : ℤ) (f : SlashInvariantForm (Gamma N) k) 
   simp only [zpow_coe_nat, Int.natAbs_ofNat] at Hn
   have H:= h ((ModularGroup.T^N)^n) Hn z
   rw [H]
-  have h0 : (((ModularGroup.T^N)^n) : GL (Fin 2) ℤ) 1 0 = 0  := by
-    rw [slcoe]
-    have : ((ModularGroup.T^N)^n)  = (ModularGroup.T^((N : ℤ)*n)) := by
+  have : ((ModularGroup.T^N)^n)  = (ModularGroup.T^((N : ℤ)*n)) := by
       rw [zpow_mul]
       simp
-    rw [this]
-    rw [ModularGroup.coe_T_zpow (N*n)]
-    rfl
-  have h1: (((ModularGroup.T^N)^n) : GL (Fin 2) ℤ) 1 1 = 1  := by
-    rw [slcoe]
-    have : ((ModularGroup.T^N)^n)  = (ModularGroup.T^((N : ℤ)*n)) := by
-      rw [zpow_mul]
-      simp
-    rw [this]
-    rw [ModularGroup.coe_T_zpow (N*n)]
-    rfl
-  rw [h0,h1]
+  simp_rw [this]
+  have hh := ModularGroup.coe_T_zpow (N*n)
+  rw [slcoe (ModularGroup.T^(N*n)) 1 0, slcoe (ModularGroup.T^(N*n)) 1 1, hh]
   ring_nf
   simp
 
@@ -836,7 +846,6 @@ theorem Eisenstein_series_is_bounded (a b: ℤ) (N: ℕ) (k : ℤ) (hk : 3 ≤ k
     apply z.2.le
   have := AbsEisenstein_bound_unifomly_on_stip ( k) hk N 2 (by linarith) ⟨Z, hZ⟩
   convert this
-  simp
   apply hk
 
 def upperHalfPlaneSlice (A B : ℝ) :=
@@ -932,7 +941,7 @@ lemma  Eisenstein_lvl_N_tendstolocunif2 (a b k: ℤ) (N : ℕ) (hk : 3 ≤ k) :
   apply mul_le_mul
   rw [inv_le_inv]
   lift k to ℕ using hk0
-  apply pow_le_pow_of_le_left
+  apply pow_le_pow_left
   apply (rfunct_pos _).le
   rw [abs_of_pos (rfunct_pos _)]
   exact rfunct_lower_bound_on_slice A B hB ⟨x, HABK hx⟩
@@ -1115,7 +1124,7 @@ lemma level_1_mod_form_eq (a b c d : ℤ) : EisensteinSeries_lvl_N_ModularForm a
 
 
 lemma Aux1 (z : ℍ) (k : ℕ ) :  ∑' (x : (⋃ n : ℕ, ({n} : Set ℕ)  • (lvl_N_congr' 1 0 0))),
-    vector_eise k z (top_equiv.symm x) =  ∑' (x : (Σn : ℕ, ({n} : Set ℕ)  • (lvl_N_congr' 1 0 0))),
+    vector_eise k z (top_equiv.symm x) =  ∑' (x : (Σn : ℕ, smullset (n) 1 0 0)),
     vector_eise k z x.2 := by
     have := smul_disjoint
     let h0 := (Set.unionEqSigmaOfDisjoint this).symm
@@ -1124,17 +1133,17 @@ lemma Aux1 (z : ℍ) (k : ℕ ) :  ∑' (x : (⋃ n : ℕ, ({n} : Set ℕ)  • 
     intro v
     congr
 
-lemma Aux2 (z : ℍ) (k : ℕ) : ∑' (n : ℕ) (v : ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0) ), vector_eise k z v =
-    ∑' (n : ℕ) (v : ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0) ),
-      (1/((n +1)^k)) * feise k z (lvl_n_smul_dvd n v) := by
+lemma Aux2 (z : ℍ) (k : ℕ) : ∑' (n : ℕ) (v : smullset (n+1) 1 0 0 ), vector_eise k z v =
+    ∑' (n : ℕ) (v : smullset (n+1) 1 0 0 ),
+      (1/((n +1)^k)) * feise k z (lvl_n_smul_dvd n _ _ _ v) := by
       apply tsum_congr
       intro b
       apply tsum_congr
       intro v
       apply feise_smul k 0 0 (b) 1 z v
 
-lemma Aux3 (z : ℍ) (k : ℕ ) (hk : 3 ≤ k) : ∑' (n : ℕ) (v : ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0) ),
-      (1/((n +1)^k)) * feise k z (lvl_n_smul_dvd n v) = ∑' (n : ℕ) (v : (lvl_N_congr' 1 0 0) ),
+lemma Aux3 (z : ℍ) (k : ℕ ) (hk : 3 ≤ k) : ∑' (n : ℕ) (v : smullset (n+1) 1 0 0 ),
+      (1/((n +1)^k)) * feise k z (lvl_n_smul_dvd n _ _ _ v) = ∑' (n : ℕ) (v : (lvl_N_congr' 1 0 0) ),
       (1/((n +1)^k)) * feise k z (v) := by
         apply tsum_congr
         intro b
@@ -1158,13 +1167,13 @@ lemma Aux4 (z : ℍ) (k : ℕ) (hk : 3 ≤ k):
   rw [h0]
   simp only [inv_zero, zero_mul, tsum_zero]
 
-lemma Aux5 (z : ℍ) (k : ℕ)  : ∑' (c : (({0} : Set ℕ) • lvl_N_congr' 1 0 0)), vector_eise (k) z c = 0  := by
+lemma Aux5 (z : ℍ) (k : ℕ)  : ∑' (c : (smullset 0 1 0 0)), vector_eise (k) z c = 0  := by
   have h0 :  (({0} : Set ℕ) • lvl_N_congr' 1 0 0) = 0 := by
     simp
     rw [Set.zero_smul_set]
     use ![1,1]
-    simp
-  rw [h0]
+    simp [eq_iff_true_of_subsingleton]
+  rw [smullset,h0]
   convert  tsum_zero
   rw [vector_eise, eise]
   simp
@@ -1241,7 +1250,7 @@ lemma Eis_1_eq_Eis (a b : ℤ) (k : ℕ ) (hk : 3 ≤ k) :
 
   sorry
 
-
+  stop
 /-
 lemma level_1_can (a b : ℤ) : HEq (EisensteinSeries_lvl_N_ModularForm a b 1 k hk one_pos)
   (EisensteinSeriesModularForm k hk) := by

@@ -18,6 +18,7 @@ These results are useful for proving that the uniform limit of a sequence of hol
 is holomorphic.
 -/
 
+/-
 
 open TopologicalSpace Set MeasureTheory intervalIntegral Metric Filter Function Complex
 
@@ -132,7 +133,7 @@ theorem circleIntegralForm_differentiableOn {R : ℝ} {f : ℂ → ℂ} (hR : 0 
     simp_rw [circleTransform, circleTransformDeriv] at this
     intro y hy x hx
     simp [Real.two_pi_pos.le] at hy
-    exact this y x (h_ball hx) 
+    exact this y x (h_ball hx)
   have :=
     intervalIntegral.hasDerivAt_integral_of_dominated_loc_of_deriv_le hε hF_meas hF_int hF'_meas
       h_bound bound_integrable h_diff
@@ -244,18 +245,18 @@ theorem circleTransform_of_unifom_limit {R : ℝ} {F : ℕ → ℂ → ℂ} (hR 
       Complex.abs ((2 * π * I : ℂ)⁻¹ * circleMap 0 R y * I * (circleMap z R y - ↑w)⁻¹) *
         Complex.abs (F b (z + ↑R * exp (↑y * I)) - f (z + ↑R * exp (↑y * I))) :=
     by
-    simp only [circleMap, mul_inv_rev, inv_I, neg_mul, zero_add, map_neg_eq_map, map_mul, abs_I, 
+    simp only [circleMap, mul_inv_rev, inv_I, neg_mul, zero_add, map_neg_eq_map, map_mul, abs_I,
       map_inv₀, abs_ofReal,abs_two, one_mul, abs_exp_ofReal_mul_I, mul_one]
-  
+
     ring
   simp only [mul_inv_rev, inv_I, neg_mul, norm_neg, norm_mul, norm_eq_abs, abs_I, norm_inv, abs_ofReal,
-    IsROrC.norm_ofNat, one_mul, abs_circleMap_zero, mul_one, gt_iff_lt] 
+    IsROrC.norm_ofNat, one_mul, abs_circleMap_zero, mul_one, gt_iff_lt]
   simp only [mul_inv_rev, inv_I, neg_mul, map_neg_eq_map, map_mul, abs_I, map_inv₀, abs_ofReal, abs_two, one_mul,
     abs_circleMap_zero, mul_one] at hg
-  simp_rw [hg]     
+  simp_rw [hg]
   have hab0 := (circleMap_mem_sphere z hR.le y)
   rw [circleMap] at hab0
-  have hab2 := (ha b hb) (z + ↑R * exp (↑y * I)) 
+  have hab2 := (ha b hb) (z + ↑R * exp (↑y * I))
   have hab := hab2 hab0
   have habb := mul_lt_mul_of_pos_left hab hr
   simp at habb
@@ -265,10 +266,10 @@ theorem circleTransform_of_unifom_limit {R : ℝ} {F : ℕ → ℂ → ℂ} (hR 
   simp_rw [div_eq_inv_mul, ← mul_assoc]
   have := mul_inv_cancel (ne_of_gt hr)
   simp at this
-  have hfinn : |π|⁻¹ * 2⁻¹ * |R| * (Complex.abs (circleMap z R y - ↑w))⁻¹ * Complex.abs (circleMap z R y - ↑w) 
-    * |R|⁻¹ * 2 * |π| * 2⁻¹ * ε = 
-    (|π|⁻¹ * 2⁻¹ * |R| * (Complex.abs (circleMap z R y - ↑w))⁻¹ * 
-      (Complex.abs (circleMap z R y - ↑w) * (|R|⁻¹ * (2 * |π|))))*2⁻¹ *ε := 
+  have hfinn : |π|⁻¹ * 2⁻¹ * |R| * (Complex.abs (circleMap z R y - ↑w))⁻¹ * Complex.abs (circleMap z R y - ↑w)
+    * |R|⁻¹ * 2 * |π| * 2⁻¹ * ε =
+    (|π|⁻¹ * 2⁻¹ * |R| * (Complex.abs (circleMap z R y - ↑w))⁻¹ *
+      (Complex.abs (circleMap z R y - ↑w) * (|R|⁻¹ * (2 * |π|))))*2⁻¹ *ε :=
       by ring
   rw [hfinn, this]
   simp only [inv_eq_one_div]
@@ -338,7 +339,7 @@ theorem circleTransform_of_uniform_exists_bounding_function {R : ℝ} {F : ℕ �
     apply_rules [Integrable.add, Integrable.add, integrable_finset_sum]
     refine' fun _ _ => circleTransform_integrable_abs hR z (F_cts _) w
     apply circleTransform_integrable_abs hR z continuous_const.continuousOn
-    apply circleTransform_integrable_abs hR z f_cont 
+    apply circleTransform_integrable_abs hR z f_cont
 #align complex.circle_transform_of_uniform_exists_bounding_function Complex.circleTransform_of_uniform_exists_bounding_function
 
 /-- The integral of a uniform limit of functions `F n` tends to the integral of the limit function
@@ -375,7 +376,7 @@ theorem Ineq1 (a b c d e f r : ℂ) (ε : ℝ) (hε : 0 < ε) (h1 : abs (a - b) 
     (abs r)⁻¹ * abs (a - b - (c - d) + (b - d) - (e - f)) < ε :=
   by
   have h4 :
-    Complex.abs (a - b - (c - d) + (b - d) - (e - f)) ≤ Complex.abs (a - b - (c - d)) + 
+    Complex.abs (a - b - (c - d) + (b - d) - (e - f)) ≤ Complex.abs (a - b - (c - d)) +
       Complex.abs (b - d - (e - f)) := by
     have:= Complex.abs.add_le' (a - b - (c - d)) (b - d - (e - f))
     simp at this
@@ -392,8 +393,8 @@ theorem Ineq1 (a b c d e f r : ℂ) (ε : ℝ) (hε : 0 < ε) (h1 : abs (a - b) 
     (abs r)⁻¹ * abs (a - b - (c - d) + (b - d) - (e - f)) ≤
       (abs r)⁻¹ * abs (a - b) + (abs r)⁻¹ * abs (c - d) + (abs r)⁻¹ * abs (b - d - (e - f)) :=
     by
-    simp_rw [← mul_add]; 
-    apply mul_le_mul_of_nonneg_left; 
+    simp_rw [← mul_add];
+    apply mul_le_mul_of_nonneg_left;
     swap; rw [inv_nonneg]; simp; simp_rw [← add_assoc]
     apply le_trans h4; simp_rw [← add_assoc]; simp only [h5, add_le_add_iff_right]
   have hr : 0 < abs r := by
@@ -434,7 +435,7 @@ theorem Ineq2 (a b c d r : ℂ) (ε : ℝ) (hε : 0 < ε)
     (abs r)⁻¹ * abs (a - y - (b - x) - (c - d - (y - x))) ≤
       (abs r)⁻¹ * abs (a - y) + (abs r)⁻¹ * abs (b - x) + (abs r)⁻¹ * abs (c - d - (y - x)) :=
     by
-    simp_rw [← mul_add]; 
+    simp_rw [← mul_add];
     apply mul_le_mul_of_nonneg_left; swap; simp
     have h4 :
       abs (a - y - (b - x) + -(c - d - (y - x))) ≤ abs (a - y - (b - x)) + abs (c - d - (y - x)) :=
@@ -598,3 +599,5 @@ theorem uniform_of_diff_circle_int_is_diff {R : ℝ} (F : ℕ → ℂ → ℂ) (
 #align complex.uniform_of_diff_circle_int_is_diff Complex.uniform_of_diff_circle_int_is_diff
 
 end Complex
+
+-/
