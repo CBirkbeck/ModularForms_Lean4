@@ -59,8 +59,8 @@ lemma lvl_N_congr'_mem (N : ℕ) (a b : ℤ ) (f : (Fin 2) → ℤ ) : f ∈ lvl
   (f 0 : ZMod N) = a ∧ (f 1 : ZMod N) = b ∧ (f 0).gcd (f 1) = 1 := by rfl
 
 lemma lvl_1_congr (a b c d : ℤ ) : lvl_N_congr' 1 a b = lvl_N_congr' 1 c d := by
-  simp_rw [lvl_N_congr']
-  simp
+  simp [lvl_N_congr']
+
 
 
 def lvl1_equiv (a b c d : ℤ) : (lvl_N_congr' 1 a b) ≃ (lvl_N_congr' 1 c d) := by
