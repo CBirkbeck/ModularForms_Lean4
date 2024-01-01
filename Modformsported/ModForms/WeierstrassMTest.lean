@@ -22,7 +22,7 @@ theorem M_test_summable (F : ℕ → α → ℂ) (M : ℕ → ℝ)
   rw [summable_norm_iff.symm]
   have c1 : ∀ n : ℕ, 0 ≤ Complex.abs (F n a) := by intro n; apply Complex.abs.nonneg (F n a)
   have H1 : ∀ n : ℕ, Complex.abs (F n a) ≤ M n := by simp only [h1, forall_const]
-  apply summable_of_nonneg_of_le c1 H1
+  apply Summable.of_nonneg_of_le c1 H1
   exact h2
 
 theorem sum_sub_tsum_nat_add {f : ℕ → ℂ} (k : ℕ) (h : Summable f) :
@@ -63,27 +63,27 @@ theorem M_test_uniform (h : Nonempty α) (F : ℕ → α → ℂ) (M : ℕ → �
   have hS := M_test_summable F M h1 h2
   simp only [Filter.eventually_atTop, gt_iff_lt, ge_iff_le] at *
   have H := summable_iff_vanishing_norm.1 h2 ε hε
-  simp only at H 
+  simp only at H
   have HU : ∃ a : ℕ, ∀ b : ℕ, a ≤ b → |∑' i, M (i + b)| < ε :=
     by
     have HC := tendsto_sum_nat_add M
-    simp [tendsto_iff_dist_tendsto_zero] at HC 
-    simp only [dist_zero_right, norm_norm] at HC 
-    simp_rw [Metric.tendsto_nhds] at HC 
-    simp only [Filter.eventually_atTop, gt_iff_lt, ge_iff_le, dist_zero_right, norm_norm] at HC 
+    simp [tendsto_iff_dist_tendsto_zero] at HC
+    simp only [dist_zero_right, norm_norm] at HC
+    simp_rw [Metric.tendsto_nhds] at HC
+    simp only [Filter.eventually_atTop, gt_iff_lt, ge_iff_le, dist_zero_right, norm_norm] at HC
     simp at *
     have HXX := HC ε hε
     obtain ⟨a, ha⟩ := HXX
     refine' ⟨a, _⟩
     intro b hb
     convert ha b hb
-  have c1 : ∀ (a : α) (n : ℕ), 0 ≤ Complex.abs (F n a) := by 
+  have c1 : ∀ (a : α) (n : ℕ), 0 ≤ Complex.abs (F n a) := by
     intro a n
     apply Complex.abs.nonneg (F _ _)
   have H1 : ∀ (a : α) (n : ℕ), Complex.abs (F n a) ≤ M n := by simp [h1]
-  have S1 : ∀ a : α, Summable fun i : ℕ => Complex.abs (F i a) := by 
+  have S1 : ∀ a : α, Summable fun i : ℕ => Complex.abs (F i a) := by
     intro a
-    apply summable_of_nonneg_of_le (c1 a) (H1 a) h2
+    apply Summable.of_nonneg_of_le (c1 a) (H1 a) h2
   have BU : ∃ a : ℕ, ∀ b : ℕ, a ≤ b → ∀ r : α, ∑' i, Complex.abs (F (i + b) r) < ε :=
     by
     obtain ⟨a, ha⟩:= HU
@@ -123,5 +123,3 @@ theorem M_test_uniform (h : Nonempty α) (F : ℕ → α → ℂ) (M : ℕ → �
   exact gt_of_gt_of_ge BUC f_um
   have f_sum := S1 r
   apply (summable_nat_add_iff b).2 f_sum
-
-

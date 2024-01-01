@@ -28,28 +28,21 @@ noncomputable section
 
 namespace EisensteinSeries
 
-lemma slcoe (M : SL(2, ℤ)) : (M : GL (Fin 2) ℤ) i j = M i j  := by
+lemma slcoe (M : SL(2, ℤ)) (i j : Fin 2) : (M : GL (Fin 2) ℤ) i j = M i j  := by
   rfl
 
 theorem mod_form_periodic (k : ℤ) (f : SlashInvariantForm (⊤ : Subgroup SL(2,ℤ)) k) :
     ∀ (z : ℍ) (n : ℤ), f ((ModularGroup.T^n)  • z) = f z :=
   by
   have h := SlashInvariantForm.slash_action_eqn' k ⊤ f
-  simp only [SlashInvariantForm.slash_action_eqn']
+
   intro z n
   simp only [Subgroup.top_toSubmonoid, subgroup_to_sl_moeb, Subgroup.coe_top, Subtype.forall,
     Subgroup.mem_top, forall_true_left] at h
   have H:= h (ModularGroup.T^n) z
   rw [H]
-  have h0 : ((ModularGroup.T^n) : GL (Fin 2) ℤ) 1 0 = 0  := by
-    rw [slcoe]
-    rw [ModularGroup.coe_T_zpow n]
-    rfl
-  have h1: ((ModularGroup.T^n) : GL (Fin 2) ℤ) 1 1 = 1  := by
-    rw [slcoe]
-    rw [ModularGroup.coe_T_zpow n]
-    rfl
-  rw [h0,h1]
+  have hh := ModularGroup.coe_T_zpow n
+  rw [slcoe (ModularGroup.T^n) 1 0, slcoe (ModularGroup.T^n) 1 1, hh]
   ring_nf
   simp
 
@@ -144,7 +137,6 @@ theorem AbsEisenstein_bound (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
   have hk : 1 < (k-1 : ℝ) := by norm_cast at *
   have hk1 : 1 < (k -1) := by linarith
   rw [AbsEisenstein_tsum, riemannZeta_abs_int (k-1) hk1 ]
-  simp only [Real.rpow_nat_cast]
   norm_cast
   rw [←tsum_mul_left]
   let In := fun (n : ℕ) => square n
@@ -168,8 +160,8 @@ theorem AbsEisenstein_bound (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
   have riesum' : Summable fun n : ℕ => 8 / rfunct z ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ :=
     by
     rw [← (summable_mul_left_iff nze).symm]
-    simp
-    linarith
+    convert riesum
+    norm_cast
   apply tsum_le_tsum
   simp at *
   norm_cast at smallclaim
@@ -204,9 +196,9 @@ theorem eis_bound_by_real_eis (k : ℤ) (z : ℍ) (hk : 3 ≤ k) :
   simp_rw [eise]
   apply abs_tsum'
   have := real_eise_is_summable k z hk
-  simp_rw [AbsEise] at this
-  simp only [one_div, Complex.abs_pow, abs_inv, norm_eq_abs, zpow_ofNat] at *
-  apply this
+  simp  [one_div, Complex.abs_pow, abs_inv, norm_eq_abs, zpow_ofNat] at *
+  convert this
+  simp [AbsEise]
 
 theorem Eisenstein_is_bounded' (k : ℤ) (hk : 3 ≤ k) :
     UpperHalfPlane.IsBoundedAtImInfty ((Eisenstein_SIF ⊤ k)) :=

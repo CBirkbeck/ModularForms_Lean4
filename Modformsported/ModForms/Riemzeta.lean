@@ -25,11 +25,12 @@ def rZ (k : ℝ) : ℝ :=
   ∑' x : ℕ, rie k x
 
 theorem RZ_is_summmable (k : ℝ) (h : 1 < k) : Summable (rie k) := by
-  simp_rw [rie]
-  simp only [one_div, Real.summable_nat_rpow_inv]
-  exact h
+  have := Real.summable_nat_rpow_inv.2 h
+  convert this
+  simp [rie]
 
-theorem int_RZ_is_summmable (k : ℤ) (h : 1 < k) : Summable (rie k) := by 
+
+theorem int_RZ_is_summmable (k : ℤ) (h : 1 < k) : Summable (rie k) := by
   apply RZ_is_summmable
   norm_cast
 
@@ -45,4 +46,3 @@ theorem rZ_pos (k : ℝ) (h : 1 < k) : 0 < rZ k :=
   apply Real.rpow_nonneg_of_nonneg
   norm_cast
   linarith
-

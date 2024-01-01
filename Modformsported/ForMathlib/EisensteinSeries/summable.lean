@@ -97,7 +97,7 @@ lemma Eise_on_square_is_bounded_Case1 (k : ℤ) (z : ℍ) (n : ℕ) (x : ℤ × 
       simp only [Int.cast_pow, map_pow, Real.rpow_nat_cast]
     rw [this, C1]
     norm_cast
-    simp only [Nat.cast_pow, map_pow, abs_cast_nat]
+    simp only [Nat.cast_pow, map_pow, abs_natCast]
   rw [h3, mul_comm]
   apply mul_le_mul_of_nonneg_left _ (Complex.abs.nonneg _)
   have := auxlem2 z x k
@@ -139,7 +139,7 @@ lemma Eise_on_square_is_bounded_Case2 (k : ℤ) (z : ℍ) (n : ℕ) (x : ℤ × 
       simp  [Int.cast_pow, map_pow, Real.rpow_nat_cast]
     rw [this, C2]
     norm_cast
-    simp [Nat.cast_pow, map_pow, abs_cast_nat]
+    simp [Nat.cast_pow, map_pow, abs_natCast]
   simp at *
   norm_cast at *
   rw [h3, mul_comm]
@@ -253,10 +253,11 @@ theorem AbsEise_bounded_on_square (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
     rw [mul_comm]
     congr
     rw [abs_eq_self]
+    apply zpow_nonneg
     apply (EisensteinSeries.rfunct_pos z).le
     have := natpowsinv n k ?_
     rw [mul_comm]
-    simp at *
+
     rw [←this]
     simp
 
@@ -313,8 +314,8 @@ lemma summable_rfunct_twist  (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
     simp only [lt_self_iff_false] at this
   rw [← (summable_mul_left_iff nze).symm]
   simp only [Int.cast_ofNat, Int.cast_one, Int.cast_sub] at riesum
-  simp
-  linarith
+  convert riesum
+  norm_cast
 
 theorem real_eise_is_summable (k : ℤ) (z : ℍ) (h : 3 ≤ k) : Summable (AbsEise k z) :=by
   let In := fun (n : ℕ) => square n
@@ -352,9 +353,11 @@ theorem real_eise_is_summable (k : ℤ) (z : ℍ) (h : 3 ≤ k) : Summable (AbsE
   have riesum' : Summable fun n : ℕ => 8 / rfunct z ^ k * ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ :=
     by
     rw [← (summable_mul_left_iff nze).symm]
-    simp
-    linarith
-  have := summable_of_nonneg_of_le epos smallerclaim
+    norm_cast
+    have riesum := Real.summable_nat_rpow_inv.2 hk
+    convert riesum
+    norm_cast
+  have := Summable.of_nonneg_of_le epos smallerclaim
   apply this
   apply riesum'
 
@@ -362,5 +365,4 @@ theorem Eisenstein_tsum_summable (k : ℤ) (z : ℍ) (h : 3 ≤ k) : Summable (e
   by
   rw [summable_norm_iff.symm]
   have := real_eise_is_summable k z h
-  simp_rw [AbsEise] at this
   exact this

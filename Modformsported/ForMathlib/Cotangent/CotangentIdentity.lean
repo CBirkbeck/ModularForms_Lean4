@@ -80,7 +80,7 @@ theorem logDeriv_eq_1 (x : ℍ) (n : ℕ) :
   have := upper_ne_int x (n + 1)
   norm_cast at *
 
-theorem upper_half_ne_nat_pow_two (z : ℍ) : ∀ n : ℕ, (z : ℂ) ^ 2 ≠ n ^ 2 :=
+theorem upper_half_ne_nat_pow_two (z : ℍ) : ∀ n : ℕ, (z : ℂ) ^ 2 ≠ (n : ℂ) ^ 2 :=
   by
   intro n
   have := upper_half_plane_ne_int_pow_two z n
@@ -192,6 +192,7 @@ theorem logDeriv_of_prod (x : ℍ) (n : ℕ) :
   apply upper_half_plane_isOpen
   apply x.2
 
+
 theorem prod_be_exp (f : ℕ → ℂ) (s : Finset ℕ) :
     ∏ i in s, (1 + Complex.abs (f i)) ≤ Real.exp (∑ i in s, Complex.abs (f i)) :=
   by
@@ -203,7 +204,7 @@ theorem prod_be_exp (f : ℕ → ℂ) (s : Finset ℕ) :
   apply Complex.abs.nonneg
   intro i _
   rw [add_comm]
-  apply Real.add_one_le_exp_of_nonneg (Complex.abs.nonneg _)
+  apply Real.add_one_le_exp
 
 theorem prod_le_prod_abs (f : ℕ → ℂ) (n : ℕ) :
     Complex.abs (∏ i in Finset.range n, (f i + 1) - 1) ≤
@@ -369,7 +370,6 @@ theorem abs_tsum_of_pos (F : ℕ → ℂ → ℂ) :
   intro x N
   have := abs_tsum_of_poss (fun n : ℕ => fun x : ℂ => Complex.abs (F (n + N) x)) ?_ x
   rw [← this]
-  simp
   rw [←Complex.abs_ofReal _]
   congr
   rw [tsum_coe]
@@ -580,7 +580,6 @@ theorem ball_abs_le_center_add_rad (r : ℝ) (z : ℂ) (x : ball z r) : Complex.
   rw [hx]
   apply lt_of_le_of_lt (Complex.abs.add_le (x - z) z)
   norm_cast
-  simp
   rw [add_comm]
   simp only [add_lt_add_iff_left]
   have hxx := x.2
@@ -607,10 +606,11 @@ theorem summable_rie_twist (x : ℂ) : Summable fun n : ℕ => Complex.abs (x ^ 
   intro b
   simp
   rw [← Complex.abs_pow]
-  have := Complex.abs_of_nat ((b+1)^2)
-  symm
   simp at *
   norm_cast at *
+  rw [Complex.abs_natCast]
+  simp
+
 
 theorem rie_twist_bounded_on_ball (z : ℂ) (r : ℝ) :
     ∃ T : ℝ, ∀ x : ℂ, x ∈ ball z r → ∑' n : ℕ, Complex.abs (-x ^ 2 / (↑n + 1) ^ 2) ≤ T :=
@@ -622,10 +622,9 @@ theorem rie_twist_bounded_on_ball (z : ℂ) (r : ℝ) :
   apply tsum_le_tsum
   intro b
   apply div_le_div_of_le
-  norm_cast
+  apply pow_nonneg
   apply Complex.abs.nonneg
-  simp
-  apply pow_le_pow_of_le_left
+  apply pow_le_pow_left
   apply Complex.abs.nonneg
   apply (ball_abs_le_center_add_rad r z ⟨x, hx⟩).le
   convert this
@@ -657,10 +656,10 @@ theorem euler_sin_prod' (x : ℂ) (h0 : x ≠ 0) :
     ∏ i : ℕ in Finset.range n, (1 + -x ^ 2 / (↑i + 1) ^ 2) - sin (↑π * x) / (↑π * x) =
       (↑π * x * ∏ i : ℕ in Finset.range n, (1 + -x ^ 2 / (↑i + 1) ^ 2) - sin (↑π * x)) / (↑π * x) :=
     by
-    have :=
+    have tt :=
       sub_div' (sin (↑π * x)) (∏ i : ℕ in Finset.range n, (1 + -x ^ 2 / (↑i + 1) ^ 2)) (↑π * x) hh
     simp at *
-    rw [this]
+    rw [tt]
     ring
   norm_cast at *
   rw [this]
@@ -711,11 +710,12 @@ theorem tendsto_locally_uniformly_euler_sin_prod' (z : ℍ') (r : ℝ) (hr : 0 <
   simp only [map_div₀, Complex.abs_pow, ofReal_div, ofReal_pow, abs_ofReal, Complex.abs_abs,
     ofReal_add]
   apply div_le_div_of_le
+  apply pow_nonneg
   apply Complex.abs.nonneg
   norm_cast
-  rw [ Complex.abs_pow]
+
   simp
-  apply pow_le_pow_of_le_left (Complex.abs.nonneg _)
+  apply pow_le_pow_left (Complex.abs.nonneg _)
   have hxx : (x : ℂ) ∈ ball (z : ℂ) r := by have := x.2; rw [mem_inter_iff] at this ; apply this.1
   have A := ball_abs_le_center_add_rad r z (⟨x, hxx⟩ : ball (z : ℂ) r)
   simp at *

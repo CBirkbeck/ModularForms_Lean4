@@ -29,6 +29,7 @@ theorem exp_upperHalfPlane_lt_one (z : ℍ) : Complex.abs (Complex.exp (2 * ↑�
   norm_cast
   have := abs_exp_ofReal_mul_I (2 * ↑π * ↑z.re)
   simp at this
+  norm_cast at *
   rw [this]
   simp only [ofReal_mul,  ofReal_one, one_mul]
   ring_nf
@@ -44,7 +45,7 @@ theorem exp_upperHalfPlane_lt_one (z : ℍ) : Complex.abs (Complex.exp (2 * ↑�
 theorem summable_iter_derv' (k : ℕ) (y : ℍ') :
     Summable fun n : ℕ => (2 * ↑π * I * n) ^ k * Complex.exp (2 * ↑π * I * n * y) :=
   by
-  apply summable_of_summable_norm
+  apply Summable.of_norm
   simp
   have hv1 :
     ∀ b : ℕ,
@@ -68,7 +69,8 @@ theorem summable_iter_derv' (k : ℕ) (y : ℍ') :
   rw [summable_mul_left_iff _]
   simp_rw [← mul_assoc]
   norm_cast at hv1
-  simp only [Opens.coe_mk, Nat.cast_pow] at hv1
+  simp only [Nat.cast_pow, ofReal_mul, ofReal_ofNat, Opens.coe_mk,
+    pow_eq_zero_iff', Nat.cast_eq_zero, ne_eq] at hv1
   apply Summable.congr _ hv1
   apply summable_pow_mul_geometric_of_norm_lt_1
   simp only [Real.norm_eq_abs, Complex.abs_abs]
@@ -99,7 +101,7 @@ theorem summable_pow_mul_exp {k : ℕ} (z : ℍ) :
   have lj :=
     nat_pos_tsum2 fun x : ℕ => (x : ℝ) ^ (k + 1) * Complex.abs (Complex.exp (2 * ↑π * I * z)) ^ x
   norm_cast at *
-  simp only [PNat.pow_coe, Nat.cast_pow, map_pow, abs_cast_nat, ofReal_mul, ofReal_ofNat] at *
+  simp only [PNat.pow_coe, Nat.cast_pow, map_pow, abs_natCast, ofReal_mul, ofReal_ofNat] at *
   rw [lj ]
   apply summable_pow_mul_geometric_of_norm_lt_1
   simp
@@ -121,6 +123,7 @@ theorem exp_iter_deriv (n m : ℕ) :
   rw [deriv_const_mul]
   simp
   norm_cast
+  rw [pow_succ]
   ring
   exact differentiableAt_id'
   apply differentiableAt_id'.const_mul
@@ -135,7 +138,7 @@ theorem iteratedDerivWithin_of_is_open (n m : ℕ) :
   · intro x hx
     rw [iteratedDeriv_succ, iteratedDerivWithin_succ]
     dsimp
-    rw [derivWithin_of_open upper_half_plane_isOpen]
+    rw [derivWithin_of_isOpen upper_half_plane_isOpen]
     apply Filter.EventuallyEq.deriv_eq
     filter_upwards [upper_half_plane_isOpen.mem_nhds hx]
     apply IH
@@ -246,13 +249,13 @@ theorem iter_deriv_comp_bound2 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
         constructor
         norm_cast
         simp only [Nat.cast_pow, ofReal_mul, ofReal_ofNat, map_pow, map_mul, Complex.abs_two, abs_ofReal, abs_I,
-          mul_one, abs_cast_nat]
-        have hh : |π| = π := by simp [Real.pi_pos.le]
+          mul_one, abs_natCast]
+        have hh : |2 * π| =2 * π := by simp [Real.pi_pos.le]
         rw [hh]
         ring
     apply Summable.congr _ this
     rw [summable_mul_left_iff]
-    norm_cast
+
     simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal, abs_norm]
     apply summable_pow_mul_geometric_of_norm_lt_1
     simp only [norm_norm]
@@ -284,7 +287,7 @@ theorem iter_deriv_comp_bound2 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
           ring_nf
     rw [hw1]
     norm_cast
-    apply pow_le_pow_of_le_left
+    apply pow_le_pow_left
     apply Complex.abs.nonneg
     simp only [norm_nonneg]
     have :=
@@ -328,13 +331,13 @@ theorem iter_deriv_comp_bound3 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
         constructor
         norm_cast
         simp only [Nat.cast_pow, ofReal_mul, ofReal_ofNat, map_pow, map_mul, Complex.abs_two, abs_ofReal, abs_I,
-          mul_one, abs_cast_nat]
-        have hh : |π| = π := by simp [Real.pi_pos.le]
+          mul_one, abs_natCast]
+        have hh : |2 *π| = 2 * π := by simp [Real.pi_pos.le]
         rw [hh]
         ring
     apply Summable.congr _ this
     rw [summable_mul_left_iff]
-    norm_cast
+
     simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal, abs_norm]
     apply summable_pow_mul_geometric_of_norm_lt_1
     simp only [norm_norm]
@@ -355,7 +358,7 @@ theorem iter_deriv_comp_bound3 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
         rw [← Complex.abs_pow]; congr; rw [← exp_nat_mul]; ring_nf
     rw [hw1]
     norm_cast
-    apply pow_le_pow_of_le_left
+    apply pow_le_pow_left
     apply Complex.abs.nonneg
     simp only [norm_nonneg]
     have :=
@@ -363,10 +366,10 @@ theorem iter_deriv_comp_bound3 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
         (BoundedContinuousFunction.mkOfCompact (cts_exp_two_pi_n K)) t
     simp  [norm_norm, BoundedContinuousFunction.norm_mkOfCompact, norm_nonneg,
       AbsoluteValue.map_mul, Complex.abs_pow, Complex.abs_two,  abs_I, mul_one,
-      abs_cast_nat, BoundedContinuousFunction.mkOfCompact_apply, norm_eq_abs, abs_norm] at *
+      abs_natCast, BoundedContinuousFunction.mkOfCompact_apply, norm_eq_abs, abs_norm] at *
     exact this
   simp [AbsoluteValue.map_mul, Complex.abs_pow, Complex.abs_two,  abs_I, mul_one,
-    abs_cast_nat, BoundedContinuousFunction.norm_mkOfCompact, abs_norm]
+    abs_natCast, BoundedContinuousFunction.norm_mkOfCompact, abs_norm]
   apply mul_le_mul
   rfl
   simp only [norm_norm, BoundedContinuousFunction.norm_mkOfCompact] at ineqe
@@ -396,7 +399,6 @@ theorem exp_series_ite_deriv_uexp2 (k : ℕ) (x : ℍ') :
     apply IH x
   simp_rw [HH]
   rw [deriv_tsum_fun']
-  simp only
   apply tsum_congr
   intro b
   rw [iteratedDerivWithin_succ]
@@ -409,7 +411,6 @@ theorem exp_series_ite_deriv_uexp2 (k : ℕ) (x : ℍ') :
   apply symm
   apply exp_iter_deriv_within k b hy
   intro K hK1 hK2
-  simp only
   apply iter_deriv_comp_bound2 K hK1 hK2 k
   apply der_iter_eq_der_aux2
   apply IsOpen.uniqueDiffWithinAt upper_half_plane_isOpen x.2
@@ -458,14 +459,14 @@ theorem tsum_uexp_contDiffOn (k : ℕ) :
   intro n r
   have HU2 := hu2 n r
   simp only [cpow_nat_cast, deriv_const_mul_field', map_mul, map_pow, Complex.abs_two, abs_ofReal,
-    abs_I, mul_one,abs_cast_nat, ge_iff_le]
+    abs_I, mul_one,abs_natCast, ge_iff_le]
   apply le_trans _ HU2
   apply le_of_eq
   norm_cast
   rw [deriv_cexp]
   rw [deriv_const_mul]
   simp only [ofReal_mul, ofReal_ofNat, deriv_id'', mul_one, map_mul, Complex.abs_two, abs_ofReal,
-    abs_I, abs_cast_nat]
+    abs_I, abs_natCast]
   ring
   apply differentiable_id.differentiableAt
   apply Differentiable.differentiableAt
@@ -474,7 +475,6 @@ theorem tsum_uexp_contDiffOn (k : ℕ) :
   intro n r
   apply Differentiable.differentiableAt
   apply Differentiable.mul
-  simp only [cpow_nat_cast]
   apply Differentiable.pow
   apply differentiable_const
   apply Differentiable.cexp

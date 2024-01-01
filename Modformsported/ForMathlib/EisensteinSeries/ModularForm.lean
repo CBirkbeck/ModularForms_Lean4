@@ -56,7 +56,6 @@ lemma SlashInvariantForm_neg_one_in_lvl_odd_wt_eq_zero
   apply FunLike.ext
   intro z
   have hO : (-1 :ℂ)^k = -1 := by
-    simp
     apply hkO.neg_one_zpow
   have := slash_action_eqn'' k Γ f
   simp at *

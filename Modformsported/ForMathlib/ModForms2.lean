@@ -75,160 +75,20 @@ open scoped Topology Manifold UpperHalfPlane
 
 variable (F : Type _) (Γ : Subgroup SL(2, ℤ)) (k : ℤ)
 
-instance : Coe  (CuspForm Γ k) (ModularForm Γ k) := by 
+instance : Coe  (CuspForm Γ k) (ModularForm Γ k) := by
   refine { coe := ?coe }
   intro h
   use h
   apply h.holo'
-  intro A 
+  intro A
   apply (h.zero_at_infty' A).boundedAtFilter
 
---cast for modular forms, which is useful for removing `heq`'s.
-def mcast {a b : ℤ} {Γ : Subgroup SL(2, ℤ)} (h : a = b) (f : ModularForm Γ a) : ModularForm Γ b
-    where
-  toFun := (f : ℍ → ℂ)
-  slash_action_eq' := by intro A; have := f.slash_action_eq' A; convert this; exact h.symm
-  holo' := f.holo'
-  bdd_at_infty' := by intro A; convert f.bdd_at_infty' A <;> exact h.symm
-
-#align modular_form.mcast ModularForm.mcast
-
-theorem type_eq {a b : ℤ} (Γ : Subgroup SL(2, ℤ)) (h : a = b) : ModularForm Γ a = ModularForm Γ b := by
-  induction h
-  rfl
-
-theorem cast_eq_mcast {a b : ℤ} {Γ : Subgroup SL(2, ℤ)} (h : a = b) (f : ModularForm Γ a) :
-    cast (type_eq Γ h) f = mcast h f := by
-  induction h
-  ext1
-  rfl
-
-theorem hEq_one_mul (k : ℤ) {Γ : Subgroup SL(2, ℤ)} (f : ModularForm Γ k) :
-    HEq ((1 : ModularForm Γ 0).mul f) f := by
-  apply heq_of_cast_eq (type_eq Γ (zero_add k).symm).symm
-  funext
-  rw [cast_eq_mcast, mcast]
-  simp [one_coe_eq_one, one_mul]
-  ext1
-  rfl
-  simp only [zero_add]
-
-theorem hEq_mul_one (k : ℤ) {Γ : Subgroup SL(2, ℤ)} (f : ModularForm Γ k) :
-    HEq (f.mul (1 : ModularForm Γ 0)) f :=
-  by
-  apply heq_of_cast_eq (type_eq Γ (add_zero k).symm).symm
-  funext
-  rw [cast_eq_mcast, mcast]
-  simp only [mul_coe, one_coe_eq_one, mul_one]
-  ext1
-  rfl
-  simp only [add_zero]
-
-theorem hEq_mul_assoc {a b c : ℤ} (f : ModularForm Γ a) (g : ModularForm Γ b)
-    (h : ModularForm Γ c) : HEq ((f.mul g).mul h) (f.mul (g.mul h)) := by
-  apply heq_of_cast_eq (type_eq Γ (add_assoc a b c))
-  rw [cast_eq_mcast, mcast]
-  ext1
-  simp only [mul_coe, Pi.mul_apply, ← mul_assoc]
-  rfl
-  apply add_assoc
-
-theorem hEq_mul_comm (a b : ℤ) (f : ModularForm Γ a) (g : ModularForm Γ b) :
-    HEq (f.mul g) (g.mul f) := by
-  apply heq_of_cast_eq (type_eq Γ (add_comm a b))
-  rw [cast_eq_mcast, mcast]
-  ext1
-  simp only [mul_coe, Pi.mul_apply, mul_comm]
-  rfl
-  apply add_comm
-
-section
-variable (ι : Type _) (A : ι → Type _)
-variable [Zero ι]
-variable [GradedMonoid.GOne A]
-@[simp]
-theorem one_fst : (1 : GradedMonoid A).fst = 0 :=
-  rfl
-@[simp]
-theorem one_snd : (1 : GradedMonoid A).snd = 1 :=
-  rfl
-end
-
-instance (Γ : Subgroup SL(2, ℤ)) : GradedMonoid.GOne fun k => ModularForm Γ k
-    where
-  one := 1
-
-instance (Γ : Subgroup SL(2, ℤ)) : GradedMonoid.GMul fun k => ModularForm Γ k
-    where
-  mul f g := f.mul g
-
-theorem GradedMonoid.mk_snd  {A : ι → Type _} (i : ι) (a : A i) :
-  (GradedMonoid.mk i a).snd = a := rfl
-
-instance gradedModRing (Γ : Subgroup SL(2, ℤ)) : DirectSum.GCommRing fun k => ModularForm Γ k
-    where
-  mul f g := f.mul g
-  one := 1
-  one_mul := by
-    intro f
-    rw [GradedMonoid.GOne.toOne, GradedMonoid.GMul.toMul]
-    apply Sigma.ext
-    · simp only [(· * ·), one_fst, zero_add]
-    · simp only [(· * ·), one_fst, one_snd, Submodule.coe_mk, one_mul, hEq_one_mul]
-  mul_one := by
-    intro f
-    rw [GradedMonoid.GOne.toOne, GradedMonoid.GMul.toMul]
-    apply Sigma.ext
-    · simp only [(· * ·), one_fst, add_zero]
-    · simp only [(· * ·), one_fst, one_snd, Submodule.coe_mk, mul_one, hEq_mul_one]
-  mul_assoc := by
-    intro f g h
-    rw [GradedMonoid.GMul.toMul]
-    apply Sigma.ext
-    · apply add_assoc
-    · simp only [(· * ·), Submodule.coe_mk, hEq_mul_assoc]
-  mul_zero := by intro i j f; ext1; simp
-  zero_mul := by intro i j f; ext1; simp
-  mul_add := by
-    intro i j f g h
-    ext1
-    simp only [Pi.mul_apply, mul_add, mul_coe, add_apply]
-  add_mul := by
-    intro i j f g h
-    ext1
-    simp only [add_mul, mul_coe, Pi.mul_apply, add_apply]
-  mul_comm := by
-    intro f g
-    rw [GradedMonoid.GMul.toMul]
-    apply Sigma.ext
-    · apply add_comm
-    · apply hEq_mul_comm
-  gnpow_zero' := by
-    intro f
-    apply Sigma.ext <;> rw [GradedMonoid.GMonoid.gnpowRec_zero]
-  gnpow_succ' := by
-    intro n f
-    rw [GradedMonoid.GMul.toMul]
-    apply Sigma.ext <;> rw [GradedMonoid.GMonoid.gnpowRec_succ]
-  natCast n := n • (1 : ModularForm Γ 0)
-  natCast_zero := by simp
-  natCast_succ := by intro n; simp only [add_smul, one_nsmul, add_right_inj]
-  intCast n := n • (1 : ModularForm Γ 0)
-  intCast_ofNat := by simp
-  intCast_negSucc_ofNat := by intro; simp only [Int.negSucc_coe]; apply _root_.neg_smul
-#align modular_form.graded_mod_ring ModularForm.gradedModRing
-
-
-end ModularForm
-
-end GradedRing
 
 section PeterssonProduct
 
 def pet (f g : ℍ → ℂ) (k : ℤ) : ℍ → ℂ := fun z => conj (f z) * (g z  : ℂ)* (UpperHalfPlane.im z : ℂ) ^ k
 
 def petSelf (f : ℍ → ℂ) (k : ℤ) : ℍ → ℝ := fun z => Complex.abs (f z) ^ 2 * UpperHalfPlane.im z ^ k
-#align pet_self petSelf
 
 
 theorem pet_is_invariant {k : ℤ} {Γ : Subgroup SL(2, ℤ)} (f : SlashInvariantForm Γ k)
@@ -263,7 +123,7 @@ theorem pet_is_invariant {k : ℤ} {Γ : Subgroup SL(2, ℤ)} (f : SlashInvarian
     congr 2
     have h1 : D ^ k ≠ 0 := zpow_ne_zero _ hD
     have h2 : conj D ^ k ≠ 0 := by
-      apply zpow_ne_zero; rw [starRingEnd_apply, star_ne_zero]; exact hD  
+      apply zpow_ne_zero; rw [starRingEnd_apply, star_ne_zero]; exact hD
     rw [div_div, mul_assoc]; apply div_mul_cancel; apply mul_ne_zero h1 h2
   have : ((γ • z : ℍ) : ℂ).im = UpperHalfPlane.im z / Complex.normSq D :=
     by
@@ -283,7 +143,7 @@ theorem pet_is_invariant {k : ℤ} {Γ : Subgroup SL(2, ℤ)} (f : SlashInvarian
   convert this
   simp only [UpperHalfPlane.coe_im, Complex.ofReal_div]
   rw [div_div, mul_conj]
-#align pet_is_invariant pet_is_invariant
+
 
 theorem petSelf_eq (f : ℍ → ℂ) (k : ℤ) (z : ℍ) : petSelf f k z = re (pet f f k z) :=
   by
@@ -301,12 +161,11 @@ theorem petSelf_eq (f : ℍ → ℂ) (k : ℤ) (z : ℍ) : petSelf f k z = re (p
   simp only [MonoidWithZeroHom.coe_mk, IsROrC.star_def, mul_re, conj_re, conj_im, mul_neg,
     sub_neg_eq_add]
   simp only [ZeroHom.coe_mk]
-#align pet_self_eq petSelf_eq
+
 
 theorem petSelf_is_invariant {k : ℤ} {Γ : Subgroup SL(2, ℤ)} (f : SlashInvariantForm Γ k)
     {γ : SL(2, ℤ)} (hγ : γ ∈ Γ) (z : ℍ) : petSelf f k (γ • z) = petSelf f k z := by
   rw [petSelf_eq, petSelf_eq]; congr 1; exact pet_is_invariant f f hγ z
-#align pet_self_is_invariant petSelf_is_invariant
+
 
 end PeterssonProduct
-

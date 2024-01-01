@@ -84,7 +84,7 @@ theorem isHolomorphicOn_iff_differentiableOn (D : OpenSubs) (f : D.1 → ℂ) :
   by_cases H : ((nhdsWithin (↑z) (D.1 \ {↑z})) = (⊥ : Filter ℂ))
   use Classical.choose h1 1
   simp
-  apply HasFDerivWithinAt_of_nhdsWithin_eq_bot H
+  apply HasFDerivWithinAt.of_nhdsWithin_eq_bot H
   simp_rw [fderivWithin] at h2
   simp at H
   rw [if_neg H] at h2

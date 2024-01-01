@@ -16,7 +16,7 @@ theorem embedding_coer : Embedding (Complex.ofReal' : ℝ → ℂ) :=
   apply Isometry.embedding
   have := isometry_ofReal
   convert this
-  
+
 
 @[norm_cast]
 theorem tendsto_coe {α : Type _} {f : Filter α} {m : α → ℝ} {a : ℝ} :
@@ -33,10 +33,10 @@ theorem hasSum_coe {α : Type _} {f : α → ℝ} {r : ℝ} :
     HasSum (fun a => (f a : ℂ)) ↑r ↔ HasSum f r :=
   by
   have :
-    (fun s : Finset α => ∑ a in s, ↑(f a)) = 
+    (fun s : Finset α => ∑ a in s, ↑(f a)) =
       (Complex.ofReal' : ℝ → ℂ) ∘ fun s : Finset α => ∑ a in s, f a :=
     funext fun s => coe_finset_sum'.symm
-  unfold HasSum 
+  unfold HasSum
   rw [this]
   apply tendsto_coe
 
@@ -47,7 +47,7 @@ theorem tsum_coe_eq {α : Type _} {f : α → ℝ} {r : ℝ} (h : HasSum f r) :
 theorem coe_tsum {α : Type _} {f : α → ℝ} : Summable f → ↑(tsum f) = ∑' a, (f a : ℂ)
   | ⟨r, hr⟩ => by rw [hr.tsum_eq, tsum_coe_eq hr]
 
-theorem coe_summable {α : Type _} (f : α → ℝ) : 
+theorem coe_summable {α : Type _} (f : α → ℝ) :
   Summable ((Complex.ofReal' : ℝ → ℂ) ∘ f) ↔ Summable f :=
   by
   apply Summable.map_iff_of_leftInverse Complex.ofReal Complex.reAddGroupHom
@@ -68,9 +68,9 @@ theorem tsum_coe {α : Type _} (f : α → ℝ) : ∑' i, (f i : ℂ) = (∑' i,
 
 section pnat_tsums
 
-theorem nat_pos_tsum2   {α : Type _} [TopologicalSpace α] [AddCommMonoid α] 
+theorem nat_pos_tsum2   {α : Type _} [TopologicalSpace α] [AddCommMonoid α]
   (f : ℕ → α) (hf : f 0 = 0) : (Summable fun x : ℕ+ => f x) ↔ Summable f :=
-  by 
+  by
   apply Function.Injective.summable_iff
   exact PNat.coe_injective
   intro x hx
@@ -82,7 +82,7 @@ theorem nat_pos_tsum2   {α : Type _} [TopologicalSpace α] [AddCommMonoid α]
   rw [h]
   exact hf
 
-variable {α : Type _} 
+variable {α : Type _}
 
 theorem hasSum_pnat' (f : ℕ → ℂ) (hf2 : Summable f) :
     HasSum (fun n : ℕ => f (n + 1)) (∑' n : ℕ+, f n) :=
@@ -92,7 +92,7 @@ theorem hasSum_pnat' (f : ℕ → ℂ) (hf2 : Summable f) :
   simp at *
   have hf3 : Summable ((fun n : ℕ => f (n + 1)) ∘ PNat.natPred) :=
     by
-    have hs : Summable fun n : ℕ+ => f n := by 
+    have hs : Summable fun n : ℕ+ => f n := by
       apply hf2.subtype
     apply Summable.congr hs
     intro b; simp
@@ -117,7 +117,7 @@ theorem nat_pos_tsum2' [TopologicalSpace α] [AddCommMonoid α]  (f : ℕ → α
 
 
 
-theorem tsum_pNat {α : Type _} [AddCommGroup α] [UniformSpace α] [UniformAddGroup α] [T2Space α] 
+theorem tsum_pNat {α : Type _} [AddCommGroup α] [UniformSpace α] [UniformAddGroup α] [T2Space α]
   [CompleteSpace α] (f : ℕ → α) (hf : f 0 = 0) : ∑' n : ℕ+, f n = ∑' n, f n :=
   by
   by_cases hf2 : Summable f
@@ -131,7 +131,7 @@ theorem tsum_pNat {α : Type _} [AddCommGroup α] [UniformSpace α] [UniformAddG
     simp at *
     have hf3 : Summable ((fun n : ℕ => f (n + 1)) ∘ PNat.natPred) :=
       by
-      have hs : Summable fun n : ℕ+ => f n := by 
+      have hs : Summable fun n : ℕ+ => f n := by
         apply hf2.subtype
       apply Summable.congr hs
       intro b; simp
@@ -143,11 +143,11 @@ theorem tsum_pNat {α : Type _} [AddCommGroup α] [UniformSpace α] [UniformAddG
   apply hpos.tsum_eq
   apply hf2
   have h1 := tsum_eq_zero_of_not_summable hf2
-  rw [← nat_pos_tsum2 f hf] at hf2 
+  rw [← nat_pos_tsum2 f hf] at hf2
   have h2 := tsum_eq_zero_of_not_summable hf2
   simp [h1, h2]
 
-theorem tsum_pnat' [TopologicalSpace α] [AddCommMonoid α]  [T2Space α] (f : ℕ → α) : 
+theorem tsum_pnat' [TopologicalSpace α] [AddCommMonoid α]  [T2Space α] (f : ℕ → α) :
   ∑' n : ℕ+, f n = ∑' n, f (n + 1) :=
   by
   by_cases hf2 : Summable fun n : ℕ+ => f n
@@ -167,7 +167,7 @@ theorem tsum_pnat' [TopologicalSpace α] [AddCommMonoid α]  [T2Space α] (f : �
   apply symm
   apply hpos.tsum_eq
   have h1 := tsum_eq_zero_of_not_summable hf2
-  rw [nat_pos_tsum2'] at hf2 
+  rw [nat_pos_tsum2'] at hf2
   have h2 := tsum_eq_zero_of_not_summable hf2
   simp [h1, h2]
 
@@ -175,7 +175,7 @@ theorem tsum_pnat' [TopologicalSpace α] [AddCommMonoid α]  [T2Space α] (f : �
 
 
 
-section prod_lems 
+section prod_lems
 
 
 variable {α : Type u} {β : Type v} {γ : Type w} {i : α → Set β}
@@ -183,7 +183,7 @@ variable {α : Type u} {β : Type v} {γ : Type w} {i : α → Set β}
 def unionEquiv (ι : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ ι i) :
     (⋃ s : ℕ, ((ι s) : Set (ℤ × ℤ))) ≃ ℤ × ℤ where
   toFun x := x.1
-  invFun x := by 
+  invFun x := by
     use x
     simp
     obtain ⟨i, hi1,_⟩:= HI x
@@ -198,7 +198,7 @@ theorem summable_disjoint_union_of_nonneg {i : α → Set β} {f : (⋃ x, i x) 
         Summable fun x => ∑' y : i x, f ⟨y, Set.mem_iUnion_of_mem (x) y.2 ⟩ :=
   by
   let h0 := (Set.unionEqSigmaOfDisjoint h).symm
-  have h01 : Summable f ↔ Summable (f ∘ h0) := by 
+  have h01 : Summable f ↔ Summable (f ∘ h0) := by
    rw [Equiv.summable_iff]
   have h22 : ∀ y : Σ s : α, i s, 0 ≤ (f ∘ h0) y :=
     by
@@ -233,7 +233,7 @@ theorem disjoint_aux (In : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ
   simp at *
   have HI0 := HI a_fst a_snd
   have := ExistsUnique.unique HI0 (h1 h3) (h2 h3)
-  rw [this] at h 
+  rw [this] at h
   simp at *
 
 theorem sum_lemma (f : ℤ × ℤ → ℝ) (h : ∀ y : ℤ × ℤ, 0 ≤ f y) (ι : ℕ → Finset (ℤ × ℤ))
@@ -243,7 +243,7 @@ theorem sum_lemma (f : ℤ × ℤ → ℝ) (h : ∀ y : ℤ × ℤ, 0 ≤ f y) (
   have h22 : ∀ y : ⋃ s : ℕ, (ι s), 0 ≤ (f ∘ h2) y :=
     by
     intro y
-    apply h  
+    apply h
   have hdis' := disjoint_aux ι HI
   have hdis : ∀ a b : ℕ, a ≠ b → Disjoint ((ι a)) ((ι b)) :=
     by
@@ -271,7 +271,7 @@ theorem sum_lemma (f : ℤ × ℤ → ℝ) (h : ∀ y : ℤ × ℤ, 0 ≤ f y) (
   norm_cast
 
 theorem tsum_lemma {γ : Type} [AddCommGroup γ]  [ UniformSpace γ]
-    [UniformAddGroup γ] [CompleteSpace γ] [T0Space γ] [T2Space γ] 
+    [UniformAddGroup γ] [CompleteSpace γ] [T0Space γ] [T2Space γ]
     (f : ℤ × ℤ → γ) (ι : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : ℤ × ℤ, ∃! i : ℕ, y ∈ ι i)
     (hs : Summable f) : ∑' x, f x = ∑' n : ℕ, ∑ x in ι n, f x :=
   by
@@ -279,28 +279,28 @@ theorem tsum_lemma {γ : Type} [AddCommGroup γ]  [ UniformSpace γ]
   have hdis' := disjoint_aux ι HI
   have hdis : ∀ a b : ℕ, a ≠ b → Disjoint ( (ι a)) ((ι b)) :=
     by
-    intro a b hab; 
+    intro a b hab;
     apply hdis'; exact hab
   have HS : Summable (f ∘ h2) := by rw [Equiv.summable_iff h2]; exact hs
   have HH := tsum_disjoint_union_of_nonneg' ?_ HS
-  simp at HH 
+  simp at HH
   have := Equiv.tsum_eq h2 f
   rw [← this]
   rw [HH]
   rw [unionEquiv]
   simp
-  norm_cast  
+  norm_cast
 
 
 
 
 
-theorem prod_sum  
+theorem prod_sum
   (f : ℤ × ℤ → ℂ) (hf : Summable f) : Summable fun a => ∑' b, f ⟨a, b⟩ :=
   by
-  rw [← Equiv.summable_iff (Equiv.sigmaEquivProd ℤ ℤ)] at hf 
+  rw [← Equiv.summable_iff (Equiv.sigmaEquivProd ℤ ℤ)] at hf
   have H := Summable.sigma hf
-  simp at H 
+  simp at H
   apply Summable.congr H
   intro b
   simp
@@ -325,11 +325,11 @@ def sigmaAntidiagonalEquivProd : (Σ n : ℕ+, Nat.divisorsAntidiagonal n) ≃ �
   toFun x := mapdiv x.1 x.2
   invFun x :=
     ⟨⟨x.1.1 * x.2.1, by apply mul_pos x.1.2 x.2.2⟩, ⟨x.1, x.2⟩, by
-      rw [Nat.mem_divisorsAntidiagonal]; simp; constructor; rfl; rw [not_or]; constructor; 
+      rw [Nat.mem_divisorsAntidiagonal]; simp; constructor; rfl; rw [not_or]; constructor;
         linarith [x.1.2]; linarith [x.2.2] ⟩
   left_inv := by
     rintro ⟨n, ⟨k, l⟩, h⟩
-    rw [Nat.mem_divisorsAntidiagonal] at h 
+    rw [Nat.mem_divisorsAntidiagonal] at h
     simp_rw [mapdiv]
     simp only [h, PNat.mk_coe, eq_self_iff_true, Subtype.coe_eta, true_and_iff]
     ext
@@ -342,13 +342,13 @@ def sigmaAntidiagonalEquivProd : (Σ n : ℕ+, Nat.divisorsAntidiagonal n) ≃ �
     rintro ⟨n, ⟨k, l⟩, h⟩
     simp_rw [mapdiv]
     exfalso
-    simp only [not_lt_zero'] at h 
+
     simp at *
     simp_rw [mapdiv]
     simp [eq_self_iff_true, Subtype.coe_eta]
     norm_cast
 
-theorem summable_mul_prod_iff_summable_mul_sigma_antidiagonall {α : Type _} [TopologicalSpace α] 
+theorem summable_mul_prod_iff_summable_mul_sigma_antidiagonall {α : Type _} [TopologicalSpace α]
   [AddCommMonoid α] {f : ℕ+ × ℕ+ → α} :
     (Summable fun x : ℕ+ × ℕ+ => f x) ↔
       Summable fun x : Σ n : ℕ+, Nat.divisorsAntidiagonal n =>
@@ -363,7 +363,7 @@ theorem nat_pos_tsum' (ξ : ℂ) :
   by
   intro h
   apply h.subtype
- -/ 
+ -/
 
 theorem sumaux [TopologicalSpace α] [AddCommMonoid α]  (f : ℕ × ℕ → α) (e : ℕ+) :
     ∑ x : Nat.divisorsAntidiagonal e, f x = ∑ x : ℕ × ℕ in Nat.divisorsAntidiagonal e, f x :=
@@ -394,14 +394,14 @@ theorem int_nat_sum [AddCommGroup α] [UniformSpace α] [ UniformAddGroup α]  [
   simp
   apply congr_arg
   exact Eq.symm (Equiv.apply_ofInjective_symm Nat.cast_injective b)
-  
+
 theorem int_pnat_sum [AddCommGroup α] [UniformSpace α] [ UniformAddGroup α]  [CompleteSpace α]
   (f : ℤ → α) : Summable f → Summable fun x : ℕ+ => f x := by
   intro h
   have :=int_nat_sum f h
   apply this.subtype
 
-theorem sum_int_even  [UniformSpace α] [CommRing α]  [ UniformAddGroup α] [CompleteSpace α] 
+theorem sum_int_even  [UniformSpace α] [CommRing α]  [ UniformAddGroup α] [CompleteSpace α]
   [T2Space α] (f : ℤ → α) (hf : ∀ n : ℤ, f n = f (-n)) (hf2 : Summable f) :
     ∑' n, f n = f 0 + 2 * ∑' n : ℕ+, f n :=
   by
@@ -446,7 +446,7 @@ def succEquiv : ℤ ≃ ℤ where
   left_inv := by apply Int.pred_succ
   right_inv := by apply Int.succ_pred
 
-theorem summable_neg  [TopologicalSpace α] [AddCommMonoid α] (f : ℤ → α) (hf : Summable f) : 
+theorem summable_neg  [TopologicalSpace α] [AddCommMonoid α] (f : ℤ → α) (hf : Summable f) :
   Summable fun d => f (-d) :=
   by
   have h : (fun d => f (-d)) = (fun d => f d) ∘ negEquiv.toFun :=
@@ -458,7 +458,7 @@ theorem summable_neg  [TopologicalSpace α] [AddCommMonoid α] (f : ℤ → α) 
   have := negEquiv.summable_iff.mpr hf
   apply this
 
-theorem int_sum_neg [AddCommMonoid α] [TopologicalSpace α] [T2Space α] (f : ℤ → α) : 
+theorem int_sum_neg [AddCommMonoid α] [TopologicalSpace α] [T2Space α] (f : ℤ → α) :
   ∑' d : ℤ, f d = ∑' d, f (-d) :=
   by
   have h : (fun d => f (-d)) = (fun d => f d) ∘ negEquiv.toFun :=
@@ -472,7 +472,7 @@ theorem int_sum_neg [AddCommMonoid α] [TopologicalSpace α] [T2Space α] (f : �
 
 
 theorem int_tsum_pNat [UniformSpace α] [CommRing α]  [ UniformAddGroup α] [CompleteSpace α]
-  [T2Space α] (f : ℤ → α) (hf2 : Summable f) : 
+  [T2Space α] (f : ℤ → α) (hf2 : Summable f) :
   ∑' n, f n = f 0 + ∑' n : ℕ+, f n + ∑' m : ℕ+, f (-m) :=
   by
   have hpos : HasSum (fun n : ℕ => f (n + 1)) (∑' n : ℕ+, f n) :=
@@ -540,8 +540,8 @@ theorem hasDerivAt_tsum_fun {α : Type _} (f : α → ℂ → ℂ)
     apply Summable.hasSum
     simp
     apply hf y hy
-  apply hasDerivAt_of_tendstoLocallyUniformlyOn hs _ _ A
-  exact hx
+
+  apply hasDerivAt_of_tendstoLocallyUniformlyOn hs _ _ A hx
   use fun n : Finset α => fun a => ∑ i in n, deriv (fun z => f i z) a
   rw [tendstoLocallyUniformlyOn_iff_forall_isCompact hs]
   intro K hK1 hK2
@@ -557,7 +557,7 @@ theorem hasDerivAt_tsum_fun {α : Type _} (f : α → ℂ → ℂ)
   intro q _
   rw [hasDerivAt_deriv_iff]
   simp
-  apply hf2 q ⟨r, hr⟩ 
+  apply hf2 q ⟨r, hr⟩
 
 /- ./././Mathport/Syntax/Translate/Basic.lean:635:2: warning: expanding binder collection (K «expr ⊆ » s) -/
 theorem hasDerivWithinAt_tsum_fun {α : Type _} (f : α → ℂ → ℂ)
@@ -569,7 +569,7 @@ theorem hasDerivWithinAt_tsum_fun {α : Type _} (f : α → ℂ → ℂ)
           ∃ u : α → ℝ, Summable u ∧ ∀ (n : α) (k : K), Complex.abs (deriv (f n) k) ≤ u n)
     (hf2 : ∀ (n : α) (r : s), DifferentiableAt ℂ (f n) r) :
     HasDerivWithinAt (fun z => ∑' n : α, f n z) (∑' n : α, deriv (fun z => f n z) x) s x := by
-  apply (hasDerivAt_tsum_fun f hs x hx hf hu hf2).hasDerivWithinAt 
+  apply (hasDerivAt_tsum_fun f hs x hx hf hu hf2).hasDerivWithinAt
 
 /- ./././Mathport/Syntax/Translate/Basic.lean:635:2: warning: expanding binder collection (K «expr ⊆ » s) -/
 theorem hasDerivWithinAt_tsum_fun' {α : Type _} (f : α → ℂ → ℂ)
@@ -584,7 +584,7 @@ theorem hasDerivWithinAt_tsum_fun' {α : Type _} (f : α → ℂ → ℂ)
   by
   have := hasDerivWithinAt_tsum_fun f hs x hx hf hu hf2
   have Hd : (∑' (n : α), deriv (fun z => f n z) x) = (∑' n : α, derivWithin (fun z => f n z) s x) :=
-    by 
+    by
     apply tsum_congr
     intro n
     apply symm
@@ -605,5 +605,4 @@ theorem deriv_tsum_fun' {α : Type _} (f : α → ℂ → ℂ) {s : Set ℂ}
     derivWithin (fun z => ∑' n : α, f n z) s x = ∑' n : α, derivWithin (fun z => f n z) s x := by
   apply
     HasDerivWithinAt.derivWithin (hasDerivWithinAt_tsum_fun' f hs x hx hf hu hf2)
-      (IsOpen.uniqueDiffWithinAt hs hx) 
-
+      (IsOpen.uniqueDiffWithinAt hs hx)

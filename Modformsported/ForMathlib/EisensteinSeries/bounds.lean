@@ -108,11 +108,6 @@ theorem lowbound (z : ℍ) (δ : ℝ) :
   simp at *
   rw [H2]
   rw [← sub_nonneg]
-  have H3 :
-    (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 - (z.1.2 ^ 4 + (z.1.1 * z.1.2) ^ 2) =
-      z.1.1 ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) :=by
-        norm_cast
-        ring
   have H4 :
     δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 3 +
             2 * δ * z.1.1 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 +
@@ -196,18 +191,16 @@ theorem auxlem (z : ℍ) (δ : ℝ) :
     norm_cast
 
 lemma sdf (a b : ℝ) (k : ℤ) (hk : 0 ≤ k) (ha : 0 ≤ a) (hab : a ≤ b) : a^k ≤ b^k := by
-  simp
   lift k to ℕ using hk
-  exact pow_le_pow_of_le_left ha hab k
+  exact pow_le_pow_left ha hab k
 
 theorem baux (a : ℝ) (k : ℤ) (hk : 0 ≤ k) (b : ℂ) (h : 0 ≤ a) (h2 : a ≤ Complex.abs b) :
     a ^ k ≤ Complex.abs (b ^ k) := by
   lift k to ℕ using hk
   norm_cast at *
   simp only [Complex.cpow_int_cast, map_pow]
-  simp
   norm_cast at *
-  apply pow_le_pow_of_le_left h h2
+  apply pow_le_pow_left h h2
 
 theorem baux2 (z : ℍ) (k : ℤ) : Complex.abs (rfunct z ^ k) = rfunct z ^ k := by
   have ha := (rfunct_pos z).le
@@ -230,10 +223,10 @@ theorem auxlem2 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
   simp only [Complex.cpow_int_cast, map_pow]
   simp
   norm_cast at *
-  apply pow_le_pow_of_le_left (rfunct_pos _).le
+  apply pow_le_pow_left (rfunct_pos _).le
   simp at *
   convert t2
-  norm_cast
+
 
 
 
@@ -252,7 +245,6 @@ theorem auxlem3 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
   simp only [Complex.cpow_int_cast, map_pow]
   simp
   norm_cast at *
-  apply pow_le_pow_of_le_left (rfunct_pos _).le
+  apply pow_le_pow_left (rfunct_pos _).le
   simp at *
   convert t2
-  norm_cast

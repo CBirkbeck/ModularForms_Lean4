@@ -53,11 +53,9 @@ theorem aux4 (a b : ℝ) (h : 0 < b) :
     (b ^ 4 + (a * b) ^ 2) / (a ^ 2 + b ^ 2) ^ 2 = 1 / ((a / b) ^ 2 + 1) :=
   by
   have h1 : (a ^ 2 + b ^ 2) ^ 2 = (a ^ 2 + b ^ 2) * (a ^ 2 + b ^ 2) := by
-    simp
     ring
   rw [h1]
   have h2 : b ^ 4 + (a * b) ^ 2 = b ^ 2 * (a ^ 2 + b ^ 2) := by
-    simp
     norm_cast
     ring
   rw [h2]
@@ -144,7 +142,7 @@ theorem closedBall_in_slice (z : ℍ') :
   let b := Complex.abs z.1.2 - e
   refine ⟨a, b, e, ?_⟩
   constructor
-  simp only [abs_ofReal, gt_iff_lt, inv_pos, zero_lt_three, zero_lt_mul_left, abs_pos, ne_eq]
+  simp only [abs_ofReal, gt_iff_lt, inv_pos, zero_lt_three,mul_pos_iff_of_pos_left, abs_pos, ne_eq]
   apply UpperHalfPlane.im_ne_zero z
   constructor
   ring_nf
@@ -287,7 +285,7 @@ theorem rfunct_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfSpaceS
   rw [Real.sqrt_le_sqrt_iff]
   left
   norm_cast
-  have := pow_le_pow_of_le_left h.le hz.2 2
+  have := pow_le_pow_left h.le hz.2 2
   simp at *
   norm_cast at *
   apply pow_two_nonneg
@@ -308,13 +306,15 @@ theorem rfunct_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfSpaceS
   simp only [TopologicalSpace.Opens.coe_mk, Nat.cast_ofNat, Real.rpow_two, forall_true_left, uhc] at t2
   norm_cast at t2
   rw [←t2]
-  apply pow_le_pow_of_le_left (abs_nonneg _) hz.1 2
+  apply pow_le_pow_left (abs_nonneg _) hz.1 2
+  simp
   rw [inv_le_inv]
   have t2 := abs_even_pow_eq_self (z : ℂ).im 2
   simp only [TopologicalSpace.Opens.coe_mk, Nat.cast_ofNat, Real.rpow_two, forall_true_left, uhc] at t2
   norm_cast at t2
   rw [←t2]
-  apply pow_le_pow_of_le_left h.le hz.2 2
+  apply pow_le_pow_left h.le hz.2 2
+  simp
   apply pow_pos
   norm_cast at *
   nlinarith
@@ -325,7 +325,6 @@ theorem rfunct_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfSpaceS
   nlinarith
   apply div_nonneg
   apply add_nonneg
-  simp
   norm_cast
   apply pow_nonneg ?_ 4
   apply zpos.le
@@ -340,13 +339,14 @@ theorem rfunctbound (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice 
   have h1 := rfunct_lower_bound_on_slice A B hb z
   simp only at h1
   have v2 : 0 ≤ rfunct (lbpoint A B hb) := by have := rfunct_pos (lbpoint A B hb); linarith
-  have h2 := pow_le_pow_of_le_left v2 h1 k
+  have h2 := pow_le_pow_left v2 h1 k
   ring_nf
   rw [← inv_le_inv] at h2
   have h3 : 0 ≤ Complex.abs (riemannZeta (k - 1)) := by
     apply Complex.abs.nonneg
   norm_cast
-  simp only [Int.negSucc_add_ofNat, Int.cast_subNatNat, Nat.cast_one, gt_iff_lt, ge_iff_le]
+  simp only [inv_pow, Int.negSucc_add_ofNat, Int.cast_subNatNat, Nat.cast_one, ge_iff_le]
+
   nlinarith
   apply pow_pos
   apply rfunct_pos
@@ -360,10 +360,10 @@ theorem rfunctbound' (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice
   have h1 := rfunct_lower_bound_on_slice A B hb z
   simp
   have v2 : 0 ≤ rfunct (lbpoint A B hb) := by have := rfunct_pos (lbpoint A B hb); linarith
-  have h2 := pow_le_pow_of_le_left v2 h1 k
+  have h2 := pow_le_pow_left v2 h1 k
   have h3 : 0 ≤ ((n : ℝ) ^ ((k : ℤ) - 1))⁻¹ := by
     simp only [one_div, inv_nonneg]
-    apply Real.rpow_nonneg_of_nonneg
+    apply zpow_nonneg
     simp only [Nat.cast_nonneg]
   apply mul_le_mul_of_nonneg_right ?_ h3
   ring_nf
@@ -418,7 +418,6 @@ lemma Eisen_slice_bounded (k : ℤ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb
   (z : upperHalfSpaceSlice A B ) :
    Complex.abs (eisensteinSeriesRestrict k A B z) ≤
     ∑' n : ℕ,  8 / rfunct (lbpoint A B hb) ^ k * ((n : ℝ) ^ (k - 1))⁻¹ := by
-  simp
   have :=Eisenstein_series_is_sum_eisen_squares_slice k h A B  z
   rw [this]
   have hs := EisensteinSeries.summable_rfunct_twist k (lbpoint A B hb) h
@@ -429,7 +428,7 @@ lemma Eisen_slice_bounded (k : ℤ) (h : 3 ≤ k) (A B : ℝ) (ha : 0 ≤ A) (hb
   swap
   simpa using hs
   repeat {
-  apply summable_of_nonneg_of_le ?_
+  apply Summable.of_nonneg_of_le ?_
   intro b
   apply (eisenslice_bounded k b h A B ha hb z)
   simpa using hs
@@ -460,7 +459,7 @@ lemma AbsEisen_slice_bounded (k : ℤ) (h : 3 ≤ k) (A B : ℝ) (hb : 0 < B)
   simp at *
   apply le_trans _ rb
   apply smallerclaim n
-  apply summable_of_nonneg_of_le ?_ ?_ (summable_rfunct_twist k z h)
+  apply Summable.of_nonneg_of_le ?_ ?_ (summable_rfunct_twist k z h)
   intro b
   apply Finset.sum_nonneg
   intro x _
@@ -577,8 +576,7 @@ lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
     by_cases b0 : b = 0
     rw [b0]
     have hk : (0: ℝ)^((k : ℤ)-1) = 0:= by
-      rw [Real.zero_rpow]
-      have hk3 : (3 : ℝ) ≤ k := by norm_cast at *
+      rw [zero_zpow]
       linarith
     simp at *
     rw [hk]
@@ -586,7 +584,8 @@ lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
     right
     have hk0 : 0 ≤ k := by linarith
     lift k to ℕ using hk0
-    simp only [zpow_coe_nat, ne_eq, zero_pow_eq_zero, gt_iff_lt]
+    simp  [zpow_coe_nat, ne_eq, zero_pow_eq_zero, gt_iff_lt]
+    right
     linarith
     have hb: 1 ≤ b := by
       exact Iff.mpr Nat.one_le_iff_ne_zero b0
@@ -599,6 +598,7 @@ lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
       congr
       exact Real.rpow_neg_one ↑b
       norm_cast
+    norm_cast at *
     rw [hbb]
     ring_nf
     simp
@@ -675,7 +675,8 @@ theorem Eisen_partial_tends_to_uniformly (k : ℤ) (h : 3 ≤ k) (A B : ℝ) (ha
 
   --simp at riesum
 
-  apply riesum
+  convert riesum
+  norm_cast
   apply EisensteinSeries.nonemp A B ha hb
 
 
@@ -719,7 +720,8 @@ theorem Eisen_partial_tends_to_uniformly_on_ball (k : ℤ) (h : 3 ≤ k) (z : �
   apply ha2
   exact hxx
   apply hball
-  simp only [hxx, Metric.mem_closedBall]
+  simp only [hxx,hx, Metric.mem_closedBall]
+  apply hx
 
 theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℤ) (h : 3 ≤ k) (z : ℍ') :
     ∃ A B ε : ℝ,

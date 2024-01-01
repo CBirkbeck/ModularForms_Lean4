@@ -64,7 +64,8 @@ theorem pos_sum_eq (k : ℕ) (hk : 0 < k) :
   apply symm
   have := tsum_pNat fun n : ℕ => (2 * ↑π * I * n) ^ (k : ℕ) * Complex.exp (2 * ↑π * I * n * x)
   simp at this
-  apply this hk
+  apply this
+  linarith
 
 theorem series_eql' (z : ℍ) :
     ↑π * I - 2 * ↑π * I * ∑' n : ℕ, Complex.exp (2 * ↑π * I * z * n) =
@@ -193,9 +194,7 @@ theorem q_exp_iden (k : ℕ) (hk : 3 ≤ k) (z : ℍ) :
       apply symm; apply Nat.add_sub_of_le
       linarith
     nth_rw 2 [hke]
-    simp
     norm_cast
     rw [pow_add]
     simp
   rw [he2]
-  norm_cast

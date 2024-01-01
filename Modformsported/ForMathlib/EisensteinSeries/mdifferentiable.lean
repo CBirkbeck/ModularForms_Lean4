@@ -50,13 +50,13 @@ theorem dd2 (a b k : ℤ) (x : ℂ) (h : (a : ℂ) * x + b ≠ 0) :
   by
   rw [com]
   apply HasDerivAt.comp
-  simp_rw [powfun]
+
   simp_rw [trans]
-  simp
+
   have := hasDerivAt_zpow k ((a : ℂ) * x + b ) ?_
   norm_cast at *
   simp [h]
-  simp_rw [trans]
+
   apply HasDerivAt.add_const
   have := HasDerivAt.const_mul (a : ℂ) (hasDerivAt_id x)
   simp at *
@@ -79,7 +79,7 @@ theorem ext_chart (z : ℍ') : (extendByZero f) z = (f ∘ ⇑(chartAt ℂ z).sy
   rw [dif_pos hh]
   apply symm
   congr
-  apply LocalHomeomorph.left_inv
+  apply PartialHomeomorph.left_inv
   simp  [TopologicalSpace.Opens.localHomeomorphSubtypeCoe_source]
 
 theorem holo_to_mdiff (f : ℍ' → ℂ) (hf : IsHolomorphicOn f) : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f :=
@@ -94,9 +94,8 @@ theorem holo_to_mdiff (f : ℍ' → ℂ) (hf : IsHolomorphicOn f) : MDifferentia
   rw [continuousOn_iff_continuous_restrict] at hc
   convert hc.continuousAt
   funext y
-  simp_rw [extendByZero]
-  simp_rw [Set.restrict]
-  simp only [Subtype.coe_prop, Subtype.coe_eta, dite_eq_ite, ite_true]
+  simp [extendByZero]
+
   rw [←dite_eq_ite]
   have hh : y.1 ∈ UpperHalfPlane.upperHalfSpace := by apply y.2
   rw [dif_pos hh]
@@ -159,11 +158,12 @@ theorem Eise'_has_deriv_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
 
   have nz : (y.1 : ℂ) * z.1 + y.2 ≠ 0 := by apply hy
   have hdd := dd2 y.1 y.2 (-k) z nz
-  simp_rw [ein] at hdd
+
   have H :
     HasDerivWithinAt (fun x : ℂ => (↑y.fst * x + ↑y.snd) ^ (-k))
       (↑(-k) * (↑y.fst * ↑z + ↑y.snd) ^ (-k - 1) * ↑y.fst) UpperHalfPlane.upperHalfSpace ↑z := by
-      simpa using (HasDerivAt.hasDerivWithinAt hdd)
+      apply HasDerivAt.hasDerivWithinAt
+      convert hdd
   simp at H
   let fx := (-k * ((y.1 : ℂ) * z.1 + y.2) ^ (-k - 1) * y.1 : ℂ)
   refine' ⟨fx, _⟩
@@ -181,9 +181,8 @@ theorem Eise'_has_deriv_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
   have H3 := hh hx hd
   simp at H3
   norm_cast at *
-  convert H3
-  ring_nf
-  simp
+
+  simp only [TopologicalSpace.Opens.carrier_eq_coe, TopologicalSpace.Opens.coe_mk]
   have hz : y.1 = 0 ∧ y.2 = 0 := by
     simp at hy
     apply (linear_eq_zero_iff y.1 y.2 z).1 hy
@@ -234,8 +233,9 @@ theorem eisenSquare'_diff_on (k : ℤ) (hkn : k ≠ 0) (n : ℕ) : IsHolomorphic
     extendByZero (eisenSquare' k n) = fun x : ℂ =>
       ∑ y in Finset.range n, (extendByZero fun z : ℍ' => eisenSquare k y z) x :=
     by
-    simp_rw [eisenSquare']
-    simp only [extendByZero, Finset.sum_dite_irrel, Finset.sum_const_zero]
+    ext1
+    simp  [eisenSquare', extendByZero, Finset.sum_dite_irrel, Finset.sum_const_zero]
+
   rw [h1]
   apply DifferentiableOn.sum
   exact fun i _ => (isHolomorphicOn_iff_differentiableOn _ _).mpr (eisenSquare_diff_on k hkn i)
