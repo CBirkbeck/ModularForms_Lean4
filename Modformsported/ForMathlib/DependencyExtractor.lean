@@ -3,6 +3,8 @@ import Lean.Data.Json.FromToJson
 import Lean.Elab.BuiltinCommand
 import Lean.Meta.Basic
 import Lean.Message
+import Modformsported.ForMathlib.EisensteinSeries.ModularForm
+
 open Lean Elab Term Meta
 
 def getExpr (x : TermElabM Syntax) : TermElabM Expr := do
@@ -151,4 +153,4 @@ def serializeAndWriteToFile (source : Source) (depth : Nat) : TermElabM Unit := 
 -- Edit and uncomment one of the lines below to get your .json file created in the current workspace folder
 
 -- #eval serializeAndWriteToFile (Source.Constant `(@Nat.add_zero)) 7
--- #eval serializeAndWriteToFile (Source.Namespace "Nat") 2
+#eval serializeAndWriteToFile (Source.Namespace "EisensteinSeries") 2

@@ -119,12 +119,32 @@ def vec_equiv_2 : (⋃ n : ℕ, int_vec_gcd_n n)  ≃  (⋃ n : ℕ, ({n} : Set 
 def top_equiv : ((Fin 2) → ℤ) ≃ (⋃ n : ℕ, ({n} : Set ℕ)  • (lvl_N_congr' 1 0 0)) := by
   apply Equiv.trans vec_gcd_vec_equiv vec_equiv_2
 
-
+example (f g : ℤ  → ℤ  ) (h : f = g) : f 1 = g 1 := by
+  exact congrFun h 1
 
 lemma smul_disjoint ( i j : ℕ) (hij : i ≠ j) : Disjoint (({i} : Set ℕ)  • (lvl_N_congr' 1 0 0))
   (({j} : Set ℕ)  • (lvl_N_congr' 1 0 0)) := by
-  simp only [singleton_smul]
-  sorry
+  rw [Set.disjoint_left ]
+  intro v hv
+  rw [Set.mem_smul] at *
+  simp [eq_iff_true_of_subsingleton] at *
+  obtain ⟨y, hy, hy2⟩:= hv
+  intro x hx
+  rw [←hy2]
+  intro H
+  have r1 : j * x 0 = i * y 0 := by
+    exact congrFun H 0
+  have r2 : j * x 1 = i * y 1 := by
+    exact congrFun H 1
+  have r11 := Int.gcd_mul_left j (x 0) (x 1)
+  have r22 := Int.gcd_mul_left i (y 0) (y 1)
+  simp at *
+  rw [r1, r2, hx] at r11
+  rw [hy] at r22
+  rw [r22] at r11
+  simp at r11
+  exact hij r11
+
 
 
 section
