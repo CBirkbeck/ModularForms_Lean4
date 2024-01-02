@@ -533,11 +533,19 @@ lemma feise_smul (k a b : ℤ) (n N: ℕ) (z : ℍ) (v : smullset (n+1) N a b):
     field_simp
     congr
     rw [← mul_zpow]
-    ring_nf
     have := nsmul_div_n (n+1) N a b v 1
     have t0 := nsmul_div_n (n+1) N a b v 0
+    conv =>
+      enter [2,1]
+      rw [mul_add]
+      norm_cast
+      rw [this]
+      conv =>
+        enter [1]
+        rw [←mul_assoc]
+        norm_cast
+        rw [t0]
 
-    sorry
 
 def nsmul_equiv (n : ℕ) :  smullset (n+1) 1 0 0 ≃ (lvl_N_congr' 1 0 0) where
   toFun := fun v => lvl_n_smul_dvd n _ _ _ v
