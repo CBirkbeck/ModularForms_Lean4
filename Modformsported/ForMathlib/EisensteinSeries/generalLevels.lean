@@ -127,7 +127,7 @@ lemma smul_disjoint ( i j : ℕ) (hij : i ≠ j) : Disjoint (({i} : Set ℕ)  �
   sorry
 
 
-
+section
 
 variable {n : Type u} [DecidableEq n] [Fintype n] {R : Type v} [CommRing R]
 
@@ -398,6 +398,7 @@ def vector_eise (k : ℤ) (z : ℍ) (v : (Fin 2) → ℤ) : ℂ := (eise k z ((p
 def feise (k : ℤ) (z : ℍ) (v : (lvl_N_congr'  N a b)) : ℂ := (eise k z ((piFinTwoEquiv fun _ => ℤ) v.1))
 
 
+section smulsec
 
 open Pointwise
 
@@ -545,10 +546,32 @@ def nsmul_equiv (n : ℕ) :  smullset (n+1) 1 0 0 ≃ (lvl_N_congr' 1 0 0) where
     use n+1
     simp
     use v
+    have hv := v.2
+    rw [lvl_N_congr'_mem] at hv
+    simp [hv]⟩
+  left_inv := by
+    intro v
     simp
-    sorry⟩
-  left_inv := sorry
-  right_inv := sorry
+    ext1
+    simp [lvl_n_smul_dvd]
+    ext1 i
+    fin_cases i
+    simp
+    apply nsmul_div_n
+    simp
+    apply nsmul_div_n
+  right_inv := by
+    intro v
+    ext1
+    simp [lvl_n_smul_dvd]
+    ext1 i
+    fin_cases i
+    simp
+    rw [Int.mul_ediv_cancel_left ]
+    linarith
+    simp
+    rw [Int.mul_ediv_cancel_left ]
+    linarith
 
 lemma mul_gcd_div_gcd_cancel_a (a b : ℤ) : (a.gcd b) * (a / (a.gcd b)) = a := by
   refine Int.mul_ediv_cancel' ?H
@@ -586,6 +609,14 @@ def Eisenstein_1_tsum (k : ℤ) : ℍ → ℂ := fun z =>  ∑' x : Fin 2 → �
 def Eisenstein_N_tsum (k : ℤ) (N : ℕ) (a b : ℤ) : ℍ → ℂ := fun z => ∑' x : (lvl_N_congr'  N a b),
   (feise k z  x)
 
+
+lemma summable_vector_eise (k : ℤ) (hk : 3 ≤ k): Summable (fun x => (vector_eise k z x)) := by
+  let e := (piFinTwoEquiv fun _ => ℤ)
+  have : (fun x => (vector_eise k z x)) = (fun x : ℤ × ℤ => eise k z x) ∘ e := by
+    simp [vector_eise]
+    rfl
+  rw [this, Equiv.summable_iff]
+  exact (Eisenstein_tsum_summable k z hk)
 
 
 lemma summable_Eisenstein_N_tsum' (k : ℤ) (hk : 3 ≤ k) (N : ℕ) (a b : ℤ) (z : ℍ):
@@ -1167,104 +1198,165 @@ lemma Aux4 (z : ℍ) (k : ℕ) (hk : 3 ≤ k):
   rw [h0]
   simp only [inv_zero, zero_mul, tsum_zero]
 
-lemma Aux5 (z : ℍ) (k : ℕ)  : ∑' (c : (smullset 0 1 0 0)), vector_eise (k) z c = 0  := by
+lemma aa (v : (0 : Set ((Fin 2) → ℤ))) : v.1 = 0 := by
+  refine Set.mem_zero.mp ?_
+  use v.2
+
+
+lemma Aux5 (z : ℍ) (k : ℕ) (hk : 3 ≤ k) : ∑' (c : (smullset 0 1 0 0)), vector_eise (k) z c = 0  := by
   have h0 :  (({0} : Set ℕ) • lvl_N_congr' 1 0 0) = 0 := by
     simp
     rw [Set.zero_smul_set]
     use ![1,1]
     simp [eq_iff_true_of_subsingleton]
-  rw [smullset,h0]
-  convert  tsum_zero
+
+  have := tsum_zero (α := ℂ) (β :=  (smullset 0 1 0 0))
+  rw [← this,smullset,h0]
+  apply tsum_congr
+  intro b
   rw [vector_eise, eise]
   simp
+  constructor
+  rw [aa]
+  simp
+  linarith
 
 
 
+lemma Aux6 (z : ℍ) (k : ℕ) (hk : 1 < k) :
+  Summable fun (b : ℕ) => ((b : ℂ) ^ k)⁻¹ * ∑' (c : (lvl_N_congr' 1 0 0)),  feise (↑k) z c := by
+    apply Summable.mul_right
+    have hkr : (1 : ℝ) < k := by norm_cast at *
+    have riesum := Real.summable_nat_rpow_inv.2 hkr
+    rw [←coe_summable] at riesum
+    apply Summable.congr riesum
+    intro v
+    simp
 
-  sorry
 
-lemma Eis_1_eq_Eis (a b : ℤ) (k : ℕ ) (hk : 3 ≤ k) :
+lemma Aux7 (z : ℍ) (k : ℕ) (hk : 3 ≤ k) :
+  Summable fun (b : ℕ) => ∑' (c : ↑(smullset b 1 0 0)), vector_eise (↑k) z ↑c := by
+  have hk1 : 1 < k := by linarith
+  apply Summable.congr (Aux6 z k hk1)
+  intro b
+  by_cases hb : b = 0
+  rw [hb]
+  simp
+  have h0 : (0 : ℂ)^k = 0 := by
+    simp
+    linarith
+  rw [h0]
+  simp
+  rw [Aux5]
+  exact hk
+  have := feise_smul2 k z
+  have hbb : (b-1)+1=b := by
+    exact Nat.succ_pred hb
+  rw [←Summable.tsum_mul_left]
+  rw [←hbb]
+  have := Equiv.tsum_eq (j := (nsmul_equiv (b-1)).symm) (f := fun (v : smullset (b-1+1) 1 0 0)=> vector_eise k z v)
+  rw [←this]
+  apply tsum_congr
+  intro v
+  have ew := feise_smul k 0 0 (b-1) 1 z ((nsmul_equiv (b-1)).symm v)
+  rw [ew]
+  congr
+  simp [lvl_n_smul_dvd, nsmul_equiv]
+  rw [lvl_n_smul_dvd, nsmul_equiv]
+  simp
+  ext1
+  ext1 i
+  fin_cases i
+  simp
+  rw [Int.mul_ediv_cancel_left ]
+  linarith
+  simp
+  rw [Int.mul_ediv_cancel_left ]
+  linarith
+  apply summable_Eisenstein_N_tsum'
+  norm_cast
+
+def equivvv : (Σn : ℕ, smullset (n) 1 0 0) ≃ (Fin 2 → ℤ) := by
+  have e1 := Equiv.trans   vec_gcd_vec_equiv vec_equiv_2
+  have := smul_disjoint
+  let h0 := (Set.unionEqSigmaOfDisjoint this)
+  have := (Equiv.trans e1 h0).symm
+  convert this
+
+
+
+lemma Aux8 (z : ℍ) (k : ℕ) (hk : 3 ≤ k) :
+    Summable (fun x : (Σn : ℕ, smullset (n) 1 0 0)  => vector_eise k z x.2) := by
+    have : (fun x : (Σn : ℕ, smullset (n) 1 0 0)  => vector_eise k z x.2) =
+      vector_eise k z ∘ equivvv := by
+      simp_rw [equivvv,  vec_gcd_vec_equiv, vec_equiv_2]
+      simp
+      ext1
+      simp
+      congr
+    rw [this]
+    rw [Equiv.summable_iff]
+    apply summable_vector_eise
+    norm_cast
+
+
+lemma Eis_1_eq_Eis (k : ℕ ) (hk : 3 ≤ k) :
   (fun z : ℍ => (riemannZeta (k))*(Eisenstein_N_tsum k 1 0 0 z)) = Eisenstein_1_tsum k := by
-
   ext1 z
   have : ∑' (x : (⋃ n : ℕ, ({n} : Set ℕ)  • (lvl_N_congr' 1 0 0))),
     vector_eise k z (top_equiv.symm x) = Eisenstein_1_tsum k z := by
     rw [Eisenstein_1_tsum]
     apply top_equiv.symm.tsum_eq
   rw [←this]
-
   rw [Eisenstein_N_tsum]
   have H := Aux1 z k
   rw [H]
   rw [tsum_sigma]
-
   rw [tsum_eq_zero_add]
-
   have hk1 : 1 < k := by linarith
-
   have hr := zeta_nat_eq_tsum_of_gt_one hk1
   rw [hr]
   rw [tsum_mul_tsum_of_summable_norm]
   rw [tsum_prod]
   rw [tsum_eq_zero_add]
-  /-have H2 : ∑' (n : ℕ) (v : ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0) ), vector_eise k z v =
-  ∑' (n : ℕ) (v : ({n+1} : Set ℕ)  • (lvl_N_congr' 1 0 0) ),
-    (1/((n +1)^k)) * feise k z (lvl_n_smul_dvd n v) := by
-    apply tsum_congr
-    intro b
-    apply tsum_congr
-    intro v
-    apply feise_smul k 0 0 (b) 1 z v
-  rw [H2]
-  -/
-  /-
-  simp
-  rw [Eisenstein_1_tsum]
-  conv =>
-    enter [2,1]
-    intro v
-    rw [feise_smul2 k z v]
-
-  --have H : ∑' (x : Fin 2 → ℤ), vector_eise (k) z x =
-  rw [tsum_sigma]
-  simp
-  rw [tsum_eq_zero_add]
-
-  -/
-
   have H2 := Aux2 z k
   rw [H2]
   have H3 := Aux3 z k hk
-
   rw [H3]
   simp only [CharP.cast_eq_zero, ne_eq, one_div, Nat.cast_add, Nat.cast_one, cpow_nat_cast,
     add_left_inj]
   have H4 := Aux4 z k hk
   simp at H4
   rw [H4]
-
-
-
-
-  --rw [← tsum_mul_tsum]
-
-  sorry
-
-  stop
-/-
-lemma level_1_can (a b : ℤ) : HEq (EisensteinSeries_lvl_N_ModularForm a b 1 k hk one_pos)
-  (EisensteinSeriesModularForm k hk) := by
-
-  apply heq_of_cast_eq level_one
-  rw [cast_eq_mcast_level Gamma_one_top, mcastlevel]
-  simp_rw [EisensteinSeriesModularForm,EisensteinSeries_lvl_N_ModularForm]
-  congr
-
-  ext1 z
+  symm
+  apply Aux5 (hk := hk)
+  simp only [one_div]
+  apply Summable.congr (Aux6 z k hk1)
+  intro b
+  symm
+  apply Summable.tsum_mul_left
+  apply summable_Eisenstein_N_tsum'
+  norm_cast
+  simp only [one_div]
+  have := summable_mul_of_summable_norm (f:= fun (n : ℕ)=> ((n : ℂ)^k)⁻¹ )
+    (g := fun (v : (lvl_N_congr' 1 0 0) ) => feise k z v)
+  apply this
   simp
-  rw [Eisenstein_SIF]
+  have hkr : (1 : ℝ)< k := by norm_cast
+  convert Real.summable_nat_rpow_inv.2 hkr
+  simp only [Real.rpow_nat_cast]
+  rw [summable_norm_iff]
+  apply summable_Eisenstein_N_tsum'
+  norm_cast
+  simp only [one_div, norm_inv, norm_pow, norm_nat]
+  have hkr : (1 : ℝ)< k := by norm_cast
+  convert Real.summable_nat_rpow_inv.2 hkr
+  simp only [Real.rpow_nat_cast]
+  rw [summable_norm_iff]
+  apply summable_Eisenstein_N_tsum'
+  norm_cast
   simp
-  simp_rw [Eisenstein_tsum, Eisenstein_SIF_lvl_N, Eisenstein_N_tsum]
-  simp
-  simp_rw [Eisenstein_N_tsum]
--/
+  apply Aux7
+  exact hk
+  apply Aux8
+  exact hk
