@@ -631,8 +631,6 @@ lemma feise_smul2 (k : ℤ)  (z : ℍ) (v : (Fin 2) → ℤ):
 
 def Eisenstein_1_tsum (k : ℤ) : ℍ → ℂ := fun z =>  ∑' x : Fin 2 → ℤ, (vector_eise k z x)
 
-
-
 /-- The Eisenstein series of weight `k : ℤ` -/
 def Eisenstein_N_tsum (k : ℤ) (N : ℕ) (a b : ℤ) : ℍ → ℂ := fun z => ∑' x : (lvl_N_congr'  N a b),
   (feise k z  x)
