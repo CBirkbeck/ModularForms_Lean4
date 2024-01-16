@@ -4,6 +4,7 @@ import Mathlib.Data.Int.Interval
 import Mathlib.Analysis.SpecialFunctions.Pow.Complex
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
+
 noncomputable section
 
 open Complex
@@ -18,21 +19,14 @@ namespace EisensteinSeries
 
 /-- Auxilary function used for bounding Eisentein series-/
 def lowerBound1 (z : ℍ) : ℝ :=
-  ((z.1.2 ^ (4 : ℕ) + (z.1.1 * z.1.2) ^ (2 : ℕ)) / (z.1.1 ^ (2 : ℕ) + z.1.2 ^ (2 : ℕ)) ^ (2 : ℕ))
+  ((z.1.2 ^ (2 : ℕ)) / (z.1.1 ^ (2 : ℕ) + z.1.2 ^ (2 : ℕ)))
 
 theorem lowerBound1_pos (z : ℍ) : 0 < lowerBound1 z := by
   rw [lowerBound1]
-  have H1 : 0 < z.1.2 ^ (4 : ℕ) + (z.1.1 * z.1.2) ^ (2 : ℕ) :=
-    by
-    rw [add_comm]
-    apply add_pos_of_nonneg_of_pos
-    have := pow_two_nonneg (z.1.1*z.1.2)
-    simpa using this
-    exact upper_half_im_pow_pos z 4
-  have H2 : 0 < (z.1.1 ^ (2 : ℕ) + z.1.2 ^ (2 : ℕ)) ^ (2 : ℕ) := by
+  have H1 := upper_half_im_pow_pos z 2
+  have H2 : 0 < (z.1.1 ^ (2 : ℕ) + z.1.2 ^ (2 : ℕ))  := by
     norm_cast
     apply_rules [pow_pos, add_pos_of_nonneg_of_pos, pow_two_nonneg]
-    exact z.2
   have := div_pos H1 H2
   norm_cast at *
 
@@ -63,60 +57,35 @@ lemma r_mul_n_pos (k : ℕ) (z : ℍ) (n : ℕ)  (hn : 1 ≤ n) :
   apply pow_ne_zero
   linarith
 
-theorem ineq1 (x y d : ℝ) :
-  0 ≤ d ^ 2 * (x ^ 2 + y ^ 2) ^ 2 + 2 * d * x * (x ^ 2 + y ^ 2) + x ^ 2 := by
-  have h1 :
-    d ^ 2 * (x ^ 2 + y ^ 2) ^ 2 + 2 * d * x * (x ^ 2 + y ^ 2) + x ^ 2 =
-      (d * (x ^ 2 + y ^ 2) + x) ^ 2 := by
-        norm_cast
-        ring
-  rw [h1]
-  apply pow_two_nonneg  (d * (x ^ 2 + y ^ 2) + x)
+lemma pow_two_of_nonzero_ge_one (a : ℤ) (ha : a  ≠ 0) : 0 ≤ a^2 - 1  := by
+  simp only [sub_nonneg, one_le_sq_iff_one_le_abs, ge_iff_le]
+  exact Int.one_le_abs ha
 
-theorem lowbound (z : ℍ) (δ : ℝ) :
-    (z.1.2 ^ 4 + (z.1.1 * z.1.2) ^ 2) / (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 ≤
-      (δ * z.1.1 + 1) ^ 2 + (δ * z.1.2) ^ 2 := by
-  have H1 : (δ * z.1.1 + 1) ^ 2 + (δ * z.1.2) ^ 2 =
-        δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) + 2 * δ * z.1.1 + 1 := by
+theorem lowbound (z : ℍ) (δ : ℝ) (n : ℤ) (hn : n ≠ 0) :
+    (z.1.2 ^ 2 ) / (z.1.1 ^ 2 + z.1.2 ^ 2) ≤
+      (δ * z.1.1 + n) ^ 2 + (δ * z.1.2) ^ 2 := by
+  have H1 : (δ * z.1.1 + n) ^ 2 + (δ * z.1.2) ^ 2 =
+        δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) + n * 2 * δ * z.1.1 + n^2 := by
     ring
   have H4 :
-    δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 3 +
-      2 * δ * z.1.1 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 +
-        (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 -
-    (z.1.2 ^ 4 + (z.1.1 * z.1.2) ^ 2) =
-      (z.1.1 ^ 2 + z.1.2 ^ 2) *
-        (δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 +
-            2 * δ * z.1.1 * (z.1.1 ^ 2 + z.1.2 ^ 2) + z.1.1 ^ 2) := by
+    (δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) +
+      n * 2 * δ * z.1.1   +
+        n^2) * (z.1.1 ^ 2 + z.1.2 ^ 2) -
+    (z.1.2 ^ 2) =
+      (δ * (z.1.1 ^ 2 + z.1.2 ^ 2)+ n * z.1.1)^2 + (n^2-1)* (z.1.2)^2 := by
+     norm_num
      ring
-  have H2 :
-  (δ ^ 2 * ((z.1.1) ^ 2 + z.1.2 ^ 2) + 2 * δ * z.1.1 + 1) *
-      (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 =
-    δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 3 +
-        2 * δ * z.1.1 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 +
-          (z.1.1^ 2 + z.1.2 ^ 2) ^ 2 := by
-        ring
-  rw [H1, div_le_iff, H2, ← sub_nonneg, H4]
-  have H5 :
-    0 ≤
-      δ ^ 2 * (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 +
-          2 * δ * z.1.1 * (z.1.1 ^ 2 + z.1.2 ^ 2) +
-      z.1.1 ^ 2 := by apply ineq1
-  have H6 : 0 ≤ z.1.1 ^ 2 + z.1.2 ^ 2 := by
-    nlinarith
-  apply mul_nonneg H6 H5
-  have H8 : 0 < z.1.2 ^ 2 := by
-    exact upper_half_im_pow_pos z 2
-  have H9 : 0 < z.1.2 ^ 2 + z.1.1 ^ 2 := by
-    rw [add_comm]
-    apply_rules [add_pos_of_nonneg_of_pos, pow_two_nonneg,  H8]
-  apply sq_pos_of_ne_zero
-  simp at H9
-  linarith
+  rw [H1, div_le_iff, ← sub_nonneg, H4]
+  apply add_nonneg
+  apply pow_two_nonneg
+  apply mul_nonneg
+  norm_cast
+  apply pow_two_of_nonzero_ge_one n hn
+  apply pow_two_nonneg
+  apply_rules [add_pos_of_nonneg_of_pos, pow_two_nonneg, upper_half_im_pow_pos z 2]
 
-theorem auxlem (z : ℍ) (δ : ℝ) :
-    r z ≤ Complex.abs ((z : ℂ) + δ) ∧ r z ≤ Complex.abs (δ * (z : ℂ) + 1) := by
-  constructor
-  · rw [r]
+theorem auxlem1 (z : ℍ) (δ : ℝ) : r z ≤ Complex.abs ((z : ℂ) + δ)  := by
+    rw [r]
     rw [Complex.abs]
     simp
     have H1 :
@@ -132,27 +101,29 @@ theorem auxlem (z : ℍ) (δ : ℝ) :
     rw [normSq_apply]
     simp
     norm_cast at *
-  · rw [r]
-    rw [Complex.abs]
-    simp
-    have H1 :
-      Real.sqrt (lowerBound1 z) ≤
-        Real.sqrt
-          ((δ * (z : ℂ).re + 1) * (δ * (z : ℂ).re + 1) + δ * (z : ℂ).im * (δ * (z : ℂ).im)) :=
-      by
-      rw [lowerBound1]
-      rw [Real.sqrt_le_sqrt_iff]
-      have := lowbound z δ
-      rw [← pow_two]
-      rw [← pow_two]
-      simp only [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at *
-      norm_cast at *
-      nlinarith
-    simp only [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at H1
-    rw [normSq_apply]
-    right
-    simp at *
-    norm_cast
+
+theorem auxlem2 (z : ℍ) (δ : ℝ) (n : ℤ) (h : n ≠ 0) : r z ≤ Complex.abs (δ * (z : ℂ) + n) := by
+  rw [r]
+  rw [Complex.abs]
+  simp
+  have H1 :
+    Real.sqrt (lowerBound1 z) ≤
+      Real.sqrt
+        ((δ * (z : ℂ).re + n) * (δ * (z : ℂ).re + n) + δ * (z : ℂ).im * (δ * (z : ℂ).im)) :=
+    by
+    rw [lowerBound1]
+    rw [Real.sqrt_le_sqrt_iff]
+    have := lowbound z δ n h
+    rw [← pow_two]
+    rw [← pow_two]
+    simp only [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at *
+    norm_cast at *
+    nlinarith
+  simp only [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at H1
+  rw [normSq_apply]
+  right
+  simp at *
+  norm_cast
 
 theorem baux (a : ℝ) (k : ℤ) (hk : 0 ≤ k) (b : ℂ) (h : 0 ≤ a) (h2 : a ≤ Complex.abs b) :
     a ^ k ≤ Complex.abs (b ^ k) := by
@@ -168,16 +139,15 @@ theorem baux2 (z : ℍ) (k : ℤ) : Complex.abs (r z ^ k) = r z ^ k := by
   rw [←this]
   simp  [abs_ofReal, cpow_nat_cast, map_pow, _root_.abs_abs, Real.rpow_nat_cast]
 
-theorem auxlem2 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
+theorem auxlem3 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
     Complex.abs ((r z : ℂ) ^ k) ≤ Complex.abs (((z : ℂ) + (x.2 : ℂ) / (x.1 : ℂ)) ^ k) :=
   by
   norm_cast
   have H1 : Complex.abs (r z ^ k) = r z ^ k := by apply baux2
   norm_cast at H1
   rw [H1]
-  have := auxlem z (x.2 / x.1 : ℝ)
+  have := auxlem1 z (x.2 / x.1 : ℝ)
   norm_cast at this
-  have t2 := this.1
   lift k to ℕ using hk
   norm_cast at *
   simp only [Complex.cpow_int_cast, map_pow]
@@ -185,21 +155,20 @@ theorem auxlem2 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
   norm_cast at *
   apply pow_le_pow_left (r_pos _).le
   simp at *
-  convert t2
+  convert this
 
 
 
 
-theorem auxlem3 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
+theorem auxlem4 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
     Complex.abs ((r z : ℂ) ^ k) ≤ Complex.abs (((x.1 : ℂ) / (x.2 : ℂ) * (z : ℂ) + 1) ^ k) :=
   by
   norm_cast
   have H1 : Complex.abs (r z ^ k) = r z ^ k := by apply baux2
   norm_cast at H1
   rw [H1]
-  have := auxlem z (x.1 / x.2 : ℝ)
+  have := auxlem2 z (x.1 / x.2 : ℝ) 1 one_ne_zero
   norm_cast at this
-  have t2 := this.2
   lift k to ℕ using hk
   norm_cast at *
   simp only [Complex.cpow_int_cast, map_pow]
@@ -207,4 +176,4 @@ theorem auxlem3 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
   norm_cast at *
   apply pow_le_pow_left (r_pos _).le
   simp at *
-  convert t2
+  convert this
