@@ -493,16 +493,16 @@ theorem iter_der_within_add (k : ℕ+) (x : ℍ') :
     iter_der_within_neg' k x fun z => (2 * ↑π * I) • ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z)
   simp at this
   rw [this]
-  rw [neg_eq_neg_one_mul]
-  have t2 :=
-    iter_der_within_const_mul' k x (2 * ↑π * I) fun z => ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z)
-  simp at t2
-  rw [t2]
-  simp
-  have h3 := exp_series_ite_deriv_uexp'' k x
-  simp at h3
-  left
-  apply h3
-  apply tsum_uexp_contDiffOn k
-  have := ContDiffOn.const_smul (2 * ↑π * I) (tsum_uexp_contDiffOn k)
-  simpa using this
+  · rw [neg_eq_neg_one_mul]
+    have t2 :=
+      iter_der_within_const_mul' k x (2 * ↑π * I) fun z => ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z)
+    simp at t2
+    rw [t2]
+    · simp
+      have h3 := exp_series_ite_deriv_uexp'' k x
+      simp at h3
+      left
+      apply h3
+    · apply tsum_uexp_contDiffOn k
+  · have := ContDiffOn.const_smul (2 * ↑π * I) (tsum_uexp_contDiffOn k)
+    simpa using this
