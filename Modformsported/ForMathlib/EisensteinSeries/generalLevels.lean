@@ -104,18 +104,18 @@ def vec_equiv_2 : (⋃ n : ℕ, int_vec_gcd_n n)  ≃  (⋃ n : ℕ, ({n} : Set 
     simp
     simp
     apply Int.mul_ediv_cancel'
-    exact Int.gcd_dvd_left (v.1 0) (v.1 1)
+    exact Int.gcd_dvd_left
     apply Int.mul_ediv_cancel'
-    exact Int.gcd_dvd_right (v.1 0) (v.1 1)
+    exact Int.gcd_dvd_right
   right_inv := by
     intro v
     ext i
     fin_cases i
     simp
     apply Int.mul_ediv_cancel'
-    exact Int.gcd_dvd_left (v.1 0) (v.1 1)
+    exact Int.gcd_dvd_left
     apply Int.mul_ediv_cancel'
-    exact Int.gcd_dvd_right (v.1 0) (v.1 1)
+    exact Int.gcd_dvd_right
 
 def top_equiv : ((Fin 2) → ℤ) ≃ (⋃ n : ℕ, ({n} : Set ℕ)  • (lvl_N_congr' 1 0 0)) := by
   apply Equiv.trans vec_gcd_vec_equiv vec_equiv_2
@@ -313,7 +313,7 @@ lemma GammaSLleftinv (N : ℕ)  (a b : ℤ ) (A  : SL(2,ℤ))(v : lvl_N_congr' N
 lemma Gammaleftinv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (v : lvl_N_congr' N a b) :
   Gammainv N a b γ⁻¹ (Gammainv N a b γ v) = v := by
   simp_rw [Gammainv]
-  simp only [SubgroupClass.coe_inv,  Matrix.vecMul_vecMul]
+  simp only [InvMemClass.coe_inv,  Matrix.vecMul_vecMul]
   apply Subtype.ext
   simp
   rw [Matrix.mul_adjugate]
@@ -323,7 +323,7 @@ lemma Gammaleftinv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (v : lvl_N_congr' N 
 lemma Gammarightinv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (v : lvl_N_congr' N a b) :
   Gammainv N a b γ (Gammainv N a b γ⁻¹ v) = v := by
   simp_rw [Gammainv]
-  simp only [SubgroupClass.coe_inv,  Matrix.vecMul_vecMul]
+  simp only [InvMemClass.coe_inv,  Matrix.vecMul_vecMul]
   apply Subtype.ext
   simp
   rw [Matrix.adjugate_mul]
@@ -555,12 +555,12 @@ def nsmul_equiv (n : ℕ) :  smullset (n+1) 1 0 0 ≃ (lvl_N_congr' 1 0 0) where
 
 lemma mul_gcd_div_gcd_cancel_a (a b : ℤ) : (a.gcd b) * (a / (a.gcd b)) = a := by
   refine Int.mul_ediv_cancel' ?H
-  exact Int.gcd_dvd_left a b
+  exact Int.gcd_dvd_left
 
 
 lemma mul_gcd_div_gcd_cancel_b (a b : ℤ) : (a.gcd b) * (b / (a.gcd b)) = b := by
   refine Int.mul_ediv_cancel' ?H
-  exact Int.gcd_dvd_right a b
+  exact Int.gcd_dvd_right
 
 lemma feise_smul2 (k : ℤ)  (z : ℍ) (v : (Fin 2) → ℤ):
   vector_eise k z v =

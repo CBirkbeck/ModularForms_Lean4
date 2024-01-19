@@ -69,9 +69,9 @@ theorem abs_q_eq (z : ℂ) : abs (Q h z) = Real.exp (-2 * π * im z / h) :=
   rw [div_eq_mul_inv, mul_comm]
   have : (↑h)⁻¹ = (↑(h : ℝ)⁻¹ : ℂ) := by simp;
   rw [this]
-  rw [ofReal_mul_re]
+  rw [re_ofReal_mul]
   have : 2 * ↑π * I * z = ↑(2 * π) * z * I := by simp; ring
-  rw [this, mul_I_re, ofReal_mul_im]; field_simp [h.2.ne']
+  rw [this, mul_I_re, im_ofReal_mul]; field_simp [h.2.ne']
 
 theorem im_z_eq (q : ℂ) : im (Z h q) = -h / (2 * π) * Real.log (abs q) :=
   by
@@ -80,7 +80,7 @@ theorem im_z_eq (q : ℂ) : im (Z h q) = -h / (2 * π) * Real.log (abs q) :=
     field_simp [ofReal_ne_zero.mpr Real.pi_pos.ne', two_pi_I_ne_zero]; ring_nf; simp
   rw [this, mul_I_im]
   have : -↑h / (2 * ↑π) * log q = ↑(-↑h / (2 * π)) * log q := by simp
-  rw [this, ofReal_mul_re, log_re]
+  rw [this, re_ofReal_mul, log_re]
 
 theorem ZQ_eq_mod_period (s : ℂ) : ∃ m : ℤ, Z h (Q h s) = s + m * h :=
   by
@@ -602,7 +602,7 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
     simp at *
     have h2 : 0 ≤ (z.1).im ^ ((k : ℝ) / 2) := by
       norm_cast
-      apply Real.rpow_nonneg_of_nonneg
+      apply Real.rpow_nonneg
       exact z.2.le
     have h1'' := mul_le_mul_of_nonneg_right h1' h2
     refine' le_trans h1'' _

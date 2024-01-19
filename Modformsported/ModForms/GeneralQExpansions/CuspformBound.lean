@@ -102,7 +102,7 @@ theorem compact_trunc_fd (A : ℝ) : IsCompact {x : ℍ | x ∈ ModularGroup.fd 
       · exact le_trans (by linarith) (le_trans hx.1 hx.2.2.2)
     · rw [← pow_two]; rw [← inv_pow]; rw [sq_le_sq]; rw [inv_eq_one_div]; apply abs_le_abs
       · exact le_trans (le_abs_self (re x)) hx.2.1
-      · exact le_trans (neg_le_abs_self (re x)) hx.2.1
+      · exact le_trans (neg_le_abs (re x)) hx.2.1
 
 /-- The Petersson function is bounded on the standard fundamental domain. -/
 theorem pet_bound_on_fd {k : ℤ} (f : CuspForm ⊤ k) :

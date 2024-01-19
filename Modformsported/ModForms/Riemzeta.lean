@@ -43,6 +43,6 @@ theorem rZ_pos (k : ℝ) (h : 1 < k) : 0 < rZ k :=
   intro b
   simp_rw [rie]
   simp
-  apply Real.rpow_nonneg_of_nonneg
+  apply Real.rpow_nonneg
   norm_cast
   linarith

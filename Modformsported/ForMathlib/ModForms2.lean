@@ -155,7 +155,7 @@ theorem petSelf_eq (f : ℍ → ℂ) (k : ℤ) (z : ℍ) : petSelf f k z = re (p
       lhs
       congr
       rw [mul_comm]
-    rw [← ofReal_zpow, ofReal_mul_re, mul_comm]
+    rw [← ofReal_zpow, re_ofReal_mul, mul_comm]
   rw [this]; congr
   rw [mul_comm, ← normSq_eq_abs, normSq]
   simp only [MonoidWithZeroHom.coe_mk, IsROrC.star_def, mul_re, conj_re, conj_im, mul_neg,

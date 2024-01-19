@@ -2,7 +2,7 @@ import Modformsported.ForMathlib.EisensteinSeries.ModularForm
 import Mathlib.Data.Complex.Exponential
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Modformsported.ModForms.Riemzeta
-import Mathlib.Analysis.Calculus.IteratedDeriv
+import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import Mathlib.Analysis.Calculus.Series
 
 
@@ -71,4 +71,3 @@ theorem eqvs_of_defs : DirectSum.of _ 12 discriminantForm = delta :=
   simp_rw [DirectSum.of_mul_of]
   simp_rw [gmul_eq_mul]
   congr
-

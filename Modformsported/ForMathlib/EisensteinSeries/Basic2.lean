@@ -9,7 +9,6 @@ import Mathlib.Data.Set.Pointwise.SMul
 import Mathlib.Analysis.Normed.Field.InfiniteSum
 import Modformsported.ForMathlib.EisensteinSeries.SL2lemmas
 
-
 noncomputable section
 
 open ModularForm UpperHalfPlane TopologicalSpace Set
@@ -97,7 +96,7 @@ lemma gammaMoebiusFun_eq_Moebequiv (N : ℕ) (a b : ℤ ) (γ : Gamma N) (f : ga
 
 lemma gamma_left_inv (N : ℕ) (a b : ℤ ) (γ : Gamma N) (v : gammaSet N a b) :
   gammaMoebiusFun N a b γ⁻¹ (gammaMoebiusFun N a b γ v) = v := by
-  simp_rw [gammaMoebiusFun, SubgroupClass.coe_inv, Matrix.vecMul_vecMul]
+  simp_rw [gammaMoebiusFun, InvMemClass.coe_inv, Matrix.vecMul_vecMul]
   apply Subtype.ext
   simp only [Matrix.SpecialLinearGroup.coe_inv]
   rw [Matrix.mul_adjugate, γ.1.2]
@@ -106,7 +105,7 @@ lemma gamma_left_inv (N : ℕ) (a b : ℤ ) (γ : Gamma N) (v : gammaSet N a b) 
 lemma gamma_right_inv (N : ℕ) (a b : ℤ ) (γ : Gamma N) (v : gammaSet N a b) :
   gammaMoebiusFun N a b γ (gammaMoebiusFun N a b γ⁻¹ v) = v := by
   simp_rw [gammaMoebiusFun]
-  simp only [SubgroupClass.coe_inv, Matrix.vecMul_vecMul]
+  simp only [InvMemClass.coe_inv, Matrix.vecMul_vecMul]
   apply Subtype.ext
   simp only [Matrix.SpecialLinearGroup.coe_inv]
   rw [Matrix.adjugate_mul, γ.1.2]
