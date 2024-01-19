@@ -6,9 +6,6 @@ import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.NumberTheory.Modular
 import Mathlib.GroupTheory.Index
 import Modformsported.ForMathlib.EisensteinSeries.ModularForm
-import Mathlib.Analysis.Calculus.Inverse
-
-
 
 /-!
 # q-expansions of periodic functions
@@ -123,12 +120,12 @@ theorem z_tendsto : Tendsto (Z h) (𝓝[{0}ᶜ] 0) atIInf' :=
   intro S h; simp_rw [atIInf'_mem] at h ; obtain ⟨T, ⟨A, hA⟩, hT⟩ := h
   simp_rw [Metric.mem_nhdsWithin_iff, Metric.ball, dist_eq, sub_zero]
   use Real.exp (-2 * π * A / h); constructor; apply Real.exp_pos
-  intro q; dsimp; rintro ⟨u1, u2⟩
+  intro q
+  simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_compl_iff, Set.mem_singleton_iff]
+  rintro ⟨u1, u2⟩
   rw [← QZ_eq_id h _ u2] at u1 ;
   have := abs_q_lt_iff h A (Z h q)
-  simp at *
   rw [this] at u1
-  simp at u1
   specialize hA (Z h q) u1
   apply hT; exact hA
 
@@ -422,14 +419,13 @@ theorem modform_periodic (f : ModularForm ⊤ k) (w : ℂ) :
     rw [extendByZero_eq_of_mem f _ this]
     have t := EisensteinSeries.mod_form_periodic k f ⟨w, hw⟩ 1
     rw [UpperHalfPlane.modular_T_zpow_smul] at t
-    convert t; simp
+    convert t
     simp
     rw [←UpperHalfPlane.ext_iff, UpperHalfPlane.coe_vadd]
     simp
     apply add_comm
   · have : extendByZero f w = 0 := by
       rw [extendByZero];
-      simp;
       split_ifs with h
       exfalso;
       swap
@@ -437,9 +433,8 @@ theorem modform_periodic (f : ModularForm ⊤ k) (w : ℂ) :
       exact  hw h
     rw [this]
     have : extendByZero f (w + 1) = 0 := by
-      rw [extendByZero]; simp;
+      rw [extendByZero]
       split_ifs with h
-      simp
       exfalso
       have : 0 < im (w + 1) := by tauto
       rw [add_im, one_im, add_zero] at this
@@ -597,16 +592,14 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
   obtain ⟨C1, h1'⟩ := (h1.trans this).bound
   rw [eventually_iff, UpperHalfPlane.atImInfty_mem] at h1' ; cases' h1' with A h1'
   dsimp at h1' ; refine' ⟨A, C1 ^ 2, _⟩
-  intro z hz; specialize h1' z hz; rw [petSelf]; dsimp
+  intro z hz; specialize h1' z hz; rw [petSelf]
   have : im z ^ k = (im z ^ ((k : ℝ) / 2)) ^ 2 :=
     by
     norm_cast
     rw [← Real.rpow_int_cast, ← Real.rpow_nat_cast, ← Real.rpow_mul]
-    swap; exact z.2.le; congr 1; norm_cast; simp
+    swap; exact z.2.le; congr 1; norm_cast
     rw [Rat.divInt_eq_div]
     field_simp
-    left
-    norm_num
   norm_cast at *
   rw [← UpperHalfPlane.coe_im, this, ← mul_pow]
   rw [sq_le_sq]
@@ -618,12 +611,10 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
     norm_cast at h1'
     have h2 : 0 ≤ (z.1).im ^ ((k : ℝ) / 2) := by
       norm_cast
-      simp
       apply Real.rpow_nonneg_of_nonneg
       exact z.2.le
     have h1'' := mul_le_mul_of_nonneg_right h1' h2
     refine' le_trans h1'' _
-    simp
     · rw [_root_.abs_of_nonneg]
       swap;
       norm_cast at *
@@ -649,4 +640,3 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
 
 
 end Petersson
-
