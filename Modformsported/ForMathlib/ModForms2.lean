@@ -62,6 +62,9 @@ def UpperHalfPlane.upperHalfSpace :=
 theorem upper_half_plane_isOpen : IsOpen UpperHalfPlane.upperHalfSpace :=
   IsOpen.preimage Complex.continuous_im isOpen_Ioi
 
+theorem UpperHalfPlane.upperHalfSpace.uniqueDiffOn : UniqueDiffOn ℂ UpperHalfPlane.upperHalfSpace :=
+  upper_half_plane_isOpen.uniqueDiffOn
+
 local notation "ℍ'" =>
   (TopologicalSpace.Opens.mk UpperHalfPlane.upperHalfSpace upper_half_plane_isOpen)
 
