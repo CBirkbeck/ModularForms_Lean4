@@ -406,10 +406,6 @@ theorem cuspform_vanish_infty (f : CuspForm ⊤ k) : IsLittleO atIInf' (extendBy
     simpa using bd
   rw [IsLittleO] at *; exact fun c hc => modform_bound_aux c 1 hc.le (this hc)
 
-@[simp]
-lemma uhc2 (z : ℍ) : (z : ℂ) = z.1 := by rfl
-
-
 theorem modform_periodic (f : ModularForm ⊤ k) (w : ℂ) :
     (extendByZero f) (w + 1) = (extendByZero f) w :=
   by
@@ -556,9 +552,6 @@ section Petersson
 
 open scoped ModularForm
 
-@[simp]
-lemma uhc (z : ℍ) : (z : ℂ) = z.1 := by rfl
-
 -- Bound on abs(f z) for large values of z
 theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
     ∃ A C : ℝ, ∀ z : ℍ, A ≤ im z → (petSelf f k) z ≤ C :=
@@ -600,7 +593,6 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
     swap; exact z.2.le; congr 1; norm_cast
     rw [Rat.divInt_eq_div]
     field_simp
-  norm_cast at *
   rw [← UpperHalfPlane.coe_im, this, ← mul_pow]
   rw [sq_le_sq]
   have e : 0 < z.im ^ ((k : ℝ) / 2) := by apply Real.rpow_pos_of_pos; exact z.2
@@ -608,7 +600,6 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
     by
     rw [div_eq_inv_mul, mul_one, _root_.abs_inv, mul_comm] at h1'
     simp at *
-    norm_cast at h1'
     have h2 : 0 ≤ (z.1).im ^ ((k : ℝ) / 2) := by
       norm_cast
       apply Real.rpow_nonneg_of_nonneg
@@ -617,7 +608,7 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
     refine' le_trans h1'' _
     · rw [_root_.abs_of_nonneg]
       swap;
-      norm_cast at *
+      · norm_cast at *
       conv =>
         lhs
         congr
@@ -625,9 +616,7 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
       rw [mul_assoc]
       suffices th : (z.im ^ ((k : ℝ) / 2))⁻¹ * z.im ^ ((k : ℝ) / 2) = 1 by
         simp_rw [← UpperHalfPlane.coe_im] at *
-        norm_cast at *
-        simp only [uhc2] at *
-        rw [th];
+        erw [th]; -- TODO why erw
         simp
       apply inv_mul_cancel; exact e.ne'
   apply abs_le_abs;

@@ -2,7 +2,7 @@ import Mathlib.LinearAlgebra.Matrix.SpecialLinearGroup
 import Mathlib.LinearAlgebra.Determinant
 import Mathlib.Data.Matrix.Notation
 import Mathlib.GroupTheory.GroupAction.Basic
-import Mathlib.Algebra.Hom.GroupAction
+import Mathlib.GroupTheory.GroupAction.Hom
 import Mathlib.LinearAlgebra.Matrix.GeneralLinearGroup
 import Mathlib.Data.Complex.Basic
 import Modformsported.ModForms.ModularGroup.MatM
@@ -58,7 +58,6 @@ theorem mat_mul_expl (A B : Matrix (Fin 2) (Fin 2) R) :
   by
   constructor; on_goal 2 => constructor; on_goal 2 => constructor
   all_goals
-    simp only [mul_eq_mul]
     rw [Matrix.mul_apply]
     rw [Finset.sum_fin_eq_sum_range]
     rw [Finset.sum_range_succ]
@@ -151,4 +150,3 @@ theorem det_coe_sl (A : SpecialLinearGroup (Fin 2) ℤ) :
 end ModularGroup
 
 end
-

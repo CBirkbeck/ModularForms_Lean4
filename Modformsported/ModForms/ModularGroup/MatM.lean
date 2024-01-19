@@ -55,7 +55,7 @@ theorem mat_m_vals (A : IntegralMatricesWithDeterminant n m) : ∀ i j, A i j = 
 def sLnZM (m : ℤ) :
     SpecialLinearGroup n ℤ →
       IntegralMatricesWithDeterminant n m → IntegralMatricesWithDeterminant n m :=
-  fun A B => ⟨A.1 ⬝ B.1, by erw [det_mul, A.2, B.2, one_mul]⟩
+  fun A B => ⟨A.1 * B.1, by erw [det_mul, A.2, B.2, one_mul]⟩
 
 theorem one_smul' :
     ∀ M : IntegralMatricesWithDeterminant n m, sLnZM n m (1 : SpecialLinearGroup n ℤ) M = M :=
@@ -122,4 +122,3 @@ end Neg
 end IntegralMatricesWithDeterminante
 
 end
-

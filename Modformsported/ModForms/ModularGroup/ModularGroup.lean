@@ -2,7 +2,7 @@ import Mathlib.LinearAlgebra.Matrix.SpecialLinearGroup
 import Mathlib.LinearAlgebra.Determinant
 import Mathlib.Data.Matrix.Notation
 import Mathlib.GroupTheory.GroupAction.Basic
-import Mathlib.Algebra.Hom.GroupAction
+import Mathlib.GroupTheory.GroupAction.Hom
 import Mathlib.LinearAlgebra.Matrix.GeneralLinearGroup
 import Mathlib.Data.Complex.Basic
 import Modformsported.ModForms.ModularGroup.MatM
@@ -70,14 +70,14 @@ theorem mat_mul_expl (A B : Matrix (Fin 2) (Fin 2) R) :
       (A * B) 0 1 = A 0 0 * B 0 1 + A 0 1 * B 1 1 ∧
         (A * B) 1 0 = A 1 0 * B 0 0 + A 1 1 * B 1 0 ∧ (A * B) 1 1 = A 1 0 * B 0 1 + A 1 1 * B 1 1 :=
   by
-  constructor; simp
+  constructor
   rw [Matrix.mul_apply]
   rw [Finset.sum_fin_eq_sum_range]
   rw [Finset.sum_range_succ]
   rw [Finset.sum_range_succ]
   simp only [Nat.succ_pos', dite_eq_ite, Fin.mk_zero, if_true, Finset.sum_empty, Finset.range_zero,
     zero_add, Fin.mk_one, le_refl]
-  constructor; simp
+  constructor
   rw [Matrix.mul_apply]
   rw [Finset.sum_fin_eq_sum_range]
   rw [Finset.sum_range_succ]
@@ -98,6 +98,7 @@ theorem mat_mul_expl (A B : Matrix (Fin 2) (Fin 2) R) :
   rw [Finset.sum_range_succ]
   simp only [Nat.succ_pos', dite_eq_ite, Fin.mk_zero, if_true, Finset.sum_empty, Finset.range_zero,
      zero_add, Fin.mk_one, le_refl]
+  simp
 
 theorem valorsl (A : SL2Z) :
     A 0 0 = A.1 0 0 ∧ A 0 1 = A.1 0 1 ∧ A 1 0 = A.1 1 0 ∧ A 1 1 = A.1 1 1 := by
@@ -169,63 +170,58 @@ theorem sL2Z_mul_a (A B : SL2Z) : (A * B) 0 0 = A 0 0 * B 0 0 + A 0 1 * B 1 0 :=
   by
   have : (A * B).1 = A.1 * B.1 := by exact rfl
   rw [this]
-  rw [mul_eq_mul]
   rw [Matrix.mul_apply]
   rw [Finset.sum_fin_eq_sum_range]
   rw [sum_range_succ]
   simp only [Nat.succ_pos', Fin.mk_zero, dif_pos, sum_singleton, Fin.mk_one,
     range_one]
+  simp
 
 @[simp]
 theorem sL2Z_mul_b (A B : SL2Z) : (A * B) 0 1 = A 0 0 * B 0 1 + A 0 1 * B 1 1 :=
   by
   have : (A * B).1 = A.1 * B.1 := by exact rfl
   rw [this]
-  rw [mul_eq_mul]
   rw [Matrix.mul_apply]
   rw [Finset.sum_fin_eq_sum_range]
   rw [sum_range_succ]
   simp only [Nat.succ_pos', Fin.mk_zero, dif_pos, sum_singleton, Fin.mk_one,
     range_one]
+  simp
 
 @[simp]
 theorem sL2Z_mul_c (A B : SL2Z) : (A * B) 1 0 = A 1 0 * B 0 0 + A 1 1 * B 1 0 :=
   by
   have : (A * B).1 = A.1 * B.1 := by exact rfl
   rw [this]
-  rw [mul_eq_mul]
   rw [Matrix.mul_apply]
   rw [Finset.sum_fin_eq_sum_range]
   rw [sum_range_succ]
   simp only [Nat.succ_pos', Fin.mk_zero, dif_pos, sum_singleton, Fin.mk_one,
     range_one]
+  simp
 
 @[simp]
 theorem sL2Z_mul_d (A B : SL2Z) : (A * B) 1 1 = A 1 0 * B 0 1 + A 1 1 * B 1 1 :=
   by
   have : (A * B).1 = A.1 * B.1 := by exact rfl
   rw [this]
-  rw [mul_eq_mul]
   rw [Matrix.mul_apply]
   rw [Finset.sum_fin_eq_sum_range]
   rw [sum_range_succ]
   simp only [Nat.succ_pos', Fin.mk_zero, dif_pos, sum_singleton, Fin.mk_one,
     range_one]
+  simp
 
 theorem mre : n * n = (1 : SL2Z) := by
   ext i j
-  fin_cases i <;> fin_cases j
-  simp;
-  simp
-  simp
-  simp
+  fin_cases i <;> fin_cases j <;> simp <;> decide
 
 theorem ng : ni = (1 : SpecialLinearGroup (Fin 2) ℤ) := by
   rw [ni];
   simp_rw [sr];
   ext i j;
-  fin_cases i <;> fin_cases j;
-  simp [valorsl]; simp [valorsl]; simp [valorsl]; simp [valorsl]
+  fin_cases i <;> fin_cases j <;> simp [valorsl] <;> decide
 
 theorem vale (A : IntegralMatricesWithDeterminant (Fin 2) m) :
     A 0 0 = A.1 0 0 ∧ A 0 1 = A.1 0 1 ∧ A 1 0 = A.1 1 0 ∧ A 1 1 = A.1 1 1 := by
@@ -255,31 +251,38 @@ theorem sl2_inv (A : SL2Z) (B : SL2Z) (h1 : B.1 0 0 = A.1 1 1) (h2 : B.1 0 1 = -
   have := mat_mul_expl A.1 B.1
   ext i j
   fin_cases i <;> fin_cases j
-  have e1 := this.1;
-  simp only [Fin.mk_zero, mat_mul_expl, IntegralMatricesWithDeterminante.mat_m_vals]
-  simp_rw [e1];
-  rw [h1]; rw [h3]; simp
-  have Adet := Matrix.det_fin_two A.1;
-  simp only [SpecialLinearGroup.det_coe, IntegralMatricesWithDeterminante.mat_m_vals] at Adet
-  apply Adet.symm;
-  simp only [Fin.mk_zero, Fin.mk_one, mat_mul_expl, IntegralMatricesWithDeterminante.mat_m_vals]
-  simp_rw [h2, h4];
-  ring_nf
-  simp
-  rw [h1, h3];
-  ring_nf
-  simp only [Fin.mk_one, mat_mul_expl, IntegralMatricesWithDeterminante.mat_m_vals]
-  rw [h2, h4];
-  simp only [IntegralMatricesWithDeterminante.mat_m_vals, mul_neg]
-  have Adet := Matrix.det_fin_two A.1;
-  simp only [SpecialLinearGroup.det_coe, IntegralMatricesWithDeterminante.mat_m_vals] at Adet
-  rw [add_comm]
-  rw [mul_comm]
-  have cg : A.1 1 0 * A.1 0 1 = A.1 0 1 * A.1 1 0 := by ring;
-  rw [cg]
-  ring_nf
-  rw [Adet.symm]
-  simp
+  · have e1 := this.1;
+    simp only [Fin.mk_zero, IntegralMatricesWithDeterminante.mat_m_vals]
+    simp_rw [e1];
+    rw [h1]; rw [h3]; simp
+    have Adet := Matrix.det_fin_two A.1;
+    simp only [SpecialLinearGroup.det_coe, IntegralMatricesWithDeterminante.mat_m_vals] at Adet
+    apply Adet.symm;
+  · have e2 := this.2.1
+    simp only [Fin.mk_zero, Fin.mk_one, IntegralMatricesWithDeterminante.mat_m_vals]
+    rw [e2]
+    simp_rw [h2, h4];
+    ring_nf
+    decide
+  · have e3 := this.2.2.1
+    simp only [Fin.mk_one, Fin.zero_eta, IntegralMatricesWithDeterminante.mat_m_vals]
+    rw [e3]
+    rw [h1, h3];
+    ring_nf
+    decide
+  · simp only [Fin.mk_one, mat_mul_expl, IntegralMatricesWithDeterminante.mat_m_vals]
+    rw [h2, h4];
+    simp only [IntegralMatricesWithDeterminante.mat_m_vals, mul_neg]
+    have Adet := Matrix.det_fin_two A.1;
+    simp only [SpecialLinearGroup.det_coe, IntegralMatricesWithDeterminante.mat_m_vals] at Adet
+    rw [add_comm]
+    rw [mul_comm]
+    have cg : A.1 1 0 * A.1 0 1 = A.1 0 1 * A.1 1 0 := by ring;
+    rw [cg]
+    ring_nf
+    rw [Adet.symm]
+    simp
+    decide
 
 
 /-

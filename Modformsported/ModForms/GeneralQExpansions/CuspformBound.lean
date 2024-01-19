@@ -30,7 +30,6 @@ theorem pet_cts {k : ℤ} (f : CuspForm ⊤ k) : Continuous (petSelf f k) :=
   by
   apply Continuous.mul
   norm_cast
-  simp
   · apply Continuous.pow
     apply Complex.continuous_abs.comp (f.holo'.continuous)
   · apply Continuous.zpow₀ UpperHalfPlane.continuous_im k
@@ -84,15 +83,15 @@ theorem image_fd (A : ℝ) :
 /-- The standard fundamental domain, truncated at some finite height, is compact. -/
 theorem compact_trunc_fd (A : ℝ) : IsCompact {x : ℍ | x ∈ ModularGroup.fd ∧ x.im ≤ A} :=
   by
-  rw [UpperHalfPlane.embedding_coe.isCompact_iff_isCompact_image, image_fd  A]
-  apply Metric.isCompact_of_isClosed_bounded
+  rw [UpperHalfPlane.embedding_coe.isCompact_iff, image_fd  A]
+  apply Metric.isCompact_of_isClosed_isBounded
   · apply_rules [IsClosed.inter]
     · apply isClosed_Ici.preimage continuous_im
     · have : Continuous (fun u => |re u| : ℂ → ℝ) := by continuity
       refine' IsClosed.preimage this (@isClosed_Iic _ _ _ _ (1 / 2))
     · apply isClosed_Ici.preimage Complex.continuous_abs
     · apply isClosed_Iic.preimage continuous_im
-  · rw [bounded_iff_forall_norm_le]; use Real.sqrt (A ^ 2 + (1 / 2) ^ 2)
+  · rw [isBounded_iff_forall_norm_le]; use Real.sqrt (A ^ 2 + (1 / 2) ^ 2)
     intro x hx; rw [Set.mem_setOf_eq] at hx
     rw [norm_eq_abs]; rw [Complex.abs]; apply Real.le_sqrt_of_sq_le
     simp
@@ -132,4 +131,3 @@ theorem pet_bound {k : ℤ} (f : CuspForm ⊤ k) : ∃ C : ℝ, ∀ z : ℍ, |pe
     apply petSelf_is_invariant f.toSlashInvariantForm
     simp [g.2]
   rwa [this] at HC
-
