@@ -3,7 +3,6 @@ import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import Mathlib.Analysis.Calculus.Series
 import Modformsported.ForMathlib.TsumLemmas
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
-import Modformsported.ForMathlib.IteratedDerivLemmas
 import Modformsported.ForMathlib.EisensteinSeries.bounds
 import Modformsported.ForMathlib.EisensteinSeries.summable
 import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
@@ -549,9 +548,8 @@ theorem iter_div_aut_add (d : ℤ) (k : ℕ) :
       (fun z : ℂ => 1 / (z - d)) + fun z : ℂ => 1 / (z + d) :=
     by rfl
   rw [h1]
-  have := iter_deriv_within_add k ⟨x, hx⟩ (fun z : ℂ => 1 / (z - d)) fun z : ℂ => 1 / (z + d)
   simp at *
-  rw [this]
+  rw [iteratedDerivWithin_add hx upperHalfSpace.uniqueDiffOn]
   · have h2 := aut_iter_deriv d k hx
     have h3 := aut_iter_deriv' d k hx
     simp at *
@@ -987,7 +985,7 @@ theorem aux_iter_der_tsum (k : ℕ) (hk : 2 ≤ k) (x : ℍ') :
         ((fun z : ℂ => 1 / z) + fun z : ℂ => ∑' n : ℕ+, (1 / (z - n) + 1 / (z + n))) ℍ' x =
       (-1) ^ (k : ℕ) * (k : ℕ)! * ∑' n : ℤ, 1 / ((x : ℂ) + n) ^ (k + 1 : ℕ) :=
   by
-  rw [iter_deriv_within_add]
+  rw [iteratedDerivWithin_add x.2 UpperHalfPlane.upperHalfSpace.uniqueDiffOn]
   · have h1 := aut_iter_deriv 0 k x.2
     simp  at *
     rw [h1]

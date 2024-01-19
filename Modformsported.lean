@@ -17,7 +17,6 @@ import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
 import Modformsported.ForMathlib.EisensteinSeries.q_expansions
 import Modformsported.ForMathlib.EisensteinSeries.summable
 import Modformsported.ForMathlib.ExpSummableLemmas
-import Modformsported.ForMathlib.IteratedDerivLemmas
 import Modformsported.ForMathlib.LogDeriv
 import Modformsported.ForMathlib.ModForms2
 import Modformsported.ForMathlib.QExpAux

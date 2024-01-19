@@ -2,9 +2,10 @@ import Mathlib.Data.Complex.Exponential
 import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import Mathlib.Analysis.Calculus.Series
 import Modformsported.ForMathlib.TsumLemmas
-import Modformsported.ForMathlib.IteratedDerivLemmas
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import Modformsported.ForMathlib.ModForms2
+import Modformsported.ModForms.HolomorphicFunctions
 
 noncomputable section
 
@@ -487,15 +488,19 @@ theorem iter_der_within_add (k : ℕ+) (x : ℍ') :
         (fun z => ↑π * I - (2 * ↑π * I) • ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z)) ℍ' x =
       -(2 * ↑π * I) * ∑' n : ℕ, (2 * ↑π * I * n) ^ (k : ℕ) * Complex.exp (2 * ↑π * I * n * x) :=
   by
-  rw [iter_der_within_const_neg k k.2 x]
+  have := iteratedDerivWithin_const_neg x.2 UpperHalfPlane.upperHalfSpace.uniqueDiffOn k.2 (↑π * I)
+    (f := fun z => (2 * ↑π * I) • ∑' (n : ℕ), cexp (2 * ↑π * I * ↑n * z))
+  erw [this]
   simp
   have :=
-    iter_der_within_neg' k x fun z => (2 * ↑π * I) • ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z)
+    iteratedDerivWithin_neg' x.2 UpperHalfPlane.upperHalfSpace.uniqueDiffOn (n := k)
+      (f := fun z => (2 * ↑π * I) • ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z))
   simp at this
-  rw [this]
+  erw [this]
   · rw [neg_eq_neg_one_mul]
     have t2 :=
-      iter_der_within_const_mul' k x (2 * ↑π * I) fun z => ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z)
+      iteratedDerivWithin_const_mul x.2 UpperHalfPlane.upperHalfSpace.uniqueDiffOn (n := k)
+        (2 * ↑π * I) (f := fun z => ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z))
     simp at t2
     rw [t2]
     · simp

@@ -10,7 +10,6 @@ import Modformsported.ModForms.Riemzeta
 import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import Mathlib.Analysis.Calculus.Series
 import Modformsported.ForMathlib.TsumLemmas
-import Modformsported.ForMathlib.IteratedDerivLemmas
 import Modformsported.ForMathlib.ExpSummableLemmas
 import Modformsported.ForMathlib.AuxpLemmas
 import Modformsported.ForMathlib.Cotangent.CotangentIdentity
