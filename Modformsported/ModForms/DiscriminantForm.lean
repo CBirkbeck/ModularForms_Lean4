@@ -1,8 +1,8 @@
-import Modformsported.ForMathlib.EisensteinSeries.ModularForm 
+import Modformsported.ForMathlib.EisensteinSeries.ModularForm
 import Mathlib.Data.Complex.Exponential
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Modformsported.ModForms.Riemzeta
-import Mathlib.Analysis.Calculus.IteratedDeriv
+import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import Mathlib.Analysis.Calculus.Series
 
 
@@ -29,7 +29,7 @@ local notation "E₄" => eisenstein4
 
 local notation "E₆" => eisenstein6
 
-def E_4_cubed : ModularForm ⊤ 12 := (E₄).mul ((E₄).mul E₄) 
+def E_4_cubed : ModularForm ⊤ 12 := (E₄).mul ((E₄).mul E₄)
 
 def E_6_sq : ModularForm ⊤ 12 := (E₆).mul E₆
 
@@ -71,4 +71,3 @@ theorem eqvs_of_defs : DirectSum.of _ 12 discriminantForm = delta :=
   simp_rw [DirectSum.of_mul_of]
   simp_rw [gmul_eq_mul]
   congr
-

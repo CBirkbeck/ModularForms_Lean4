@@ -1,4 +1,4 @@
-import Modformsported.ForMathlib.ModForms2  
+import Modformsported.ForMathlib.ModForms2
 import Modformsported.ModForms.HolomorphicFunctions
 import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
@@ -6,9 +6,6 @@ import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
 import Mathlib.NumberTheory.Modular
 import Mathlib.GroupTheory.Index
 import Modformsported.ForMathlib.EisensteinSeries.ModularForm
-import Mathlib.Analysis.Calculus.Inverse
-
-
 
 /-!
 # q-expansions of periodic functions
@@ -33,13 +30,13 @@ noncomputable section
 abbrev ℝPos :=
   { u : ℝ // 0 < u }
 
-instance : One ℝPos := by 
+instance : One ℝPos := by
   use 1
   linarith
 
 /-- Function-theoretic lemma, maybe move this elsewhere? -/
 theorem bound_holo_fcn (g : ℂ → ℂ) (hg : DifferentiableAt ℂ g 0) (hg' : g 0 = 0) :
-    IsBigO (𝓝 0) g id := by 
+    IsBigO (𝓝 0) g id := by
     replace hg := hg.hasDerivAt.isBigO_sub
     simp_rw [hg', sub_zero] at hg ;
     exact hg
@@ -70,11 +67,11 @@ theorem abs_q_eq (z : ℂ) : abs (Q h z) = Real.exp (-2 * π * im z / h) :=
   by
   dsimp only [Q]; rw [abs_exp]; congr
   rw [div_eq_mul_inv, mul_comm]
-  have : (↑h)⁻¹ = (↑(h : ℝ)⁻¹ : ℂ) := by simp; 
+  have : (↑h)⁻¹ = (↑(h : ℝ)⁻¹ : ℂ) := by simp;
   rw [this]
-  rw [ofReal_mul_re]
+  rw [re_ofReal_mul]
   have : 2 * ↑π * I * z = ↑(2 * π) * z * I := by simp; ring
-  rw [this, mul_I_re, ofReal_mul_im]; field_simp [h.2.ne']
+  rw [this, mul_I_re, im_ofReal_mul]; field_simp [h.2.ne']
 
 theorem im_z_eq (q : ℂ) : im (Z h q) = -h / (2 * π) * Real.log (abs q) :=
   by
@@ -83,7 +80,7 @@ theorem im_z_eq (q : ℂ) : im (Z h q) = -h / (2 * π) * Real.log (abs q) :=
     field_simp [ofReal_ne_zero.mpr Real.pi_pos.ne', two_pi_I_ne_zero]; ring_nf; simp
   rw [this, mul_I_im]
   have : -↑h / (2 * ↑π) * log q = ↑(-↑h / (2 * π)) * log q := by simp
-  rw [this, ofReal_mul_re, log_re]
+  rw [this, re_ofReal_mul, log_re]
 
 theorem ZQ_eq_mod_period (s : ℂ) : ∃ m : ℤ, Z h (Q h s) = s + m * h :=
   by
@@ -99,7 +96,7 @@ theorem abs_q_lt_iff (A : ℝ) (z : ℂ) : abs (Q h z) < Real.exp (-2 * π * A /
   constructor
   · intro hz; rw [div_lt_div_right] at hz ; swap; exact h.2
     have : -2 * π < 0 := by simpa using Real.pi_pos
-    rwa [mul_lt_mul_left_of_neg this] at hz 
+    rwa [mul_lt_mul_left_of_neg this] at hz
   · intro hz; rw [div_lt_div_right]; swap; exact h.2
     have : -2 * π < 0 := by simpa using Real.pi_pos
     rwa [mul_lt_mul_left_of_neg this]
@@ -123,12 +120,12 @@ theorem z_tendsto : Tendsto (Z h) (𝓝[{0}ᶜ] 0) atIInf' :=
   intro S h; simp_rw [atIInf'_mem] at h ; obtain ⟨T, ⟨A, hA⟩, hT⟩ := h
   simp_rw [Metric.mem_nhdsWithin_iff, Metric.ball, dist_eq, sub_zero]
   use Real.exp (-2 * π * A / h); constructor; apply Real.exp_pos
-  intro q; dsimp; rintro ⟨u1, u2⟩
-  rw [← QZ_eq_id h _ u2] at u1 ; 
+  intro q
+  simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_compl_iff, Set.mem_singleton_iff]
+  rintro ⟨u1, u2⟩
+  rw [← QZ_eq_id h _ u2] at u1 ;
   have := abs_q_lt_iff h A (Z h q)
-  simp at *
   rw [this] at u1
-  simp at u1
   specialize hA (Z h q) u1
   apply hT; exact hA
 
@@ -144,7 +141,7 @@ theorem q_tendsto : Tendsto (Q h) atIInf' (𝓝 0) :=
   have := (@tendsto_comap'_iff ℝ ℝ ℂ (fun y => Real.exp (-2 * π * y / ↑h)) atTop (𝓝 0) im this).mpr
   apply this; refine' Real.tendsto_exp_atBot.comp _
   apply Filter.Tendsto.atBot_div_const h.2
-  apply Filter.Tendsto.neg_const_mul_atTop; · simpa using Real.pi_pos; 
+  apply Filter.Tendsto.neg_const_mul_atTop; · simpa using Real.pi_pos;
   apply tendsto_id
 
 end QAndZ
@@ -160,7 +157,7 @@ def cuspFcn : ℂ → ℂ :=
 
 theorem cuspFcn_eq_of_nonzero (q : ℂ) (hq : q ≠ 0) : (cuspFcn h f) q = (cuspFcn0 h f) q :=
   by
-  rw [cuspFcn, Function.update]; split_ifs 
+  rw [cuspFcn, Function.update]; split_ifs
   · exfalso; norm_cast at *
   · rfl
 
@@ -173,7 +170,7 @@ theorem update_twice :
     simp
     congr 1
     apply Filter.map_congr; apply eventuallyEq_nhdsWithin_of_eqOn
-    intro r hr; simp at hr 
+    intro r hr; simp at hr
     rw [Function.update]; split_ifs; rfl
     norm_cast at *
   · rfl
@@ -241,9 +238,9 @@ theorem cuspFcn_diff_at (z : ℂ) (hol_z : DifferentiableAt ℂ f z) :
   --Since L is differentiable at q, and f is diffble at L(q) [ = z], we conclude
   --that F is differentiable at q.
   have hF := EventuallyEq.fun_comp hL (cuspFcn h f);
-  dsimp at hF 
+  dsimp at hF
   have : cuspFcn h f ∘ Q h ∘ L = f ∘ L := by ext1 z; exact (eq_cuspFcn h f hf (L z)).symm
-  rw [this] at hF 
+  rw [this] at hF
   have : z = L q :=
     by
     have hL2 : L ∘ Q h =ᶠ[𝓝 z] (id : ℂ → ℂ) :=
@@ -252,7 +249,7 @@ theorem cuspFcn_diff_at (z : ℂ) (hol_z : DifferentiableAt ℂ f z) :
     rw [ id_eq] at hL2
     rw [←hL2]
     simp
-  rw [this] at hol_z 
+  rw [this] at hol_z
   exact (DifferentiableAt.comp q hol_z diff_L).congr_of_eventuallyEq hF.symm
 
 theorem F_diff_near_zero (h_hol : ∀ᶠ z : ℂ in atIInf', DifferentiableAt ℂ f z) :
@@ -280,18 +277,18 @@ theorem F_diff_at_zero (h_bd : IsBigO atIInf' f (1 : ℂ → ℂ))
   by
   obtain ⟨c, t⟩ := (F_bound _ _  h_bd).bound
   have T:= (F_diff_near_zero h f hf h_hol)
-  replace t := T.and t 
-  simp only [norm_eq_abs, Pi.one_apply, AbsoluteValue.map_one, mul_one] at t 
+  replace t := T.and t
+  simp only [norm_eq_abs, Pi.one_apply, AbsoluteValue.map_one, mul_one] at t
   obtain ⟨S, hS1, hS2, hS3⟩ := eventually_nhds_iff.mp (eventually_nhdsWithin_iff.mp t)
   have h_diff : DifferentiableOn ℂ (cuspFcn h f) (S \ {0}) :=
     by
     intro x hx; apply DifferentiableAt.differentiableWithinAt
     exact (hS1 x ((Set.mem_diff _).mp hx).1 ((Set.mem_diff _).mp hx).2).1
-  have hF_bd : BddAbove (norm ∘ cuspFcn h f '' (S \ {0})) := by 
+  have hF_bd : BddAbove (norm ∘ cuspFcn h f '' (S \ {0})) := by
     use c; rw [mem_upperBounds]; simp;
     intro y q hq hq2 hy; rw [← hy]; exact (hS1 q hq hq2).2
   have := differentiableOn_update_limUnder_of_bddAbove (IsOpen.mem_nhds hS2 hS3) h_diff hF_bd
-  rw [← update_twice] at this 
+  rw [← update_twice] at this
   exact this.differentiableAt (IsOpen.mem_nhds hS2 hS3)
 
 /-- If `f` is periodic, and holomorphic and bounded near `I∞`, then it tends to a limit at `I∞`,
@@ -331,7 +328,7 @@ theorem exp_decay_of_zero_at_inf (h_bd : IsLittleO atIInf' f (1 : ℂ → ℂ))
     (h_hol : ∀ᶠ z : ℂ in atIInf', DifferentiableAt ℂ f z) :
     IsBigO atIInf' f fun z : ℂ => Real.exp (-2 * π * im z / h) :=
   by
-  have F0 := cuspFcn_zero_of_zero_at_inf ?_ _ h_bd 
+  have F0 := cuspFcn_zero_of_zero_at_inf ?_ _ h_bd
   have : f = fun z : ℂ => (cuspFcn h f) (Q h z) := by ext1 z; apply eq_cuspFcn _ _ hf
   --rw [this]
   --simp
@@ -374,8 +371,8 @@ theorem modform_bound_aux (C : ℝ) (g : ℂ → ℂ) (hc : 0 ≤ C)
   · rw [atIInf'_mem]
     rw [UpperHalfPlane.atImInfty, eventually_iff_exists_mem] at h_bd ; obtain ⟨v, hv, h_bd⟩ := h_bd
     rw [mem_comap', mem_atTop_sets] at hv ; cases' hv with a hv; use a
-    intro z hz; specialize hv (im z) hz.le; dsimp at hv 
-    simp_rw [extendByZero]; dsimp; split_ifs with h  
+    intro z hz; specialize hv (im z) hz.le; dsimp at hv
+    simp_rw [extendByZero]; dsimp; split_ifs with h
     swap; · rw [AbsoluteValue.map_zero]; refine' mul_nonneg hc _; apply AbsoluteValue.nonneg
     specialize h_bd ⟨z, h⟩
     specialize h_bd (hv _); rfl; exact h_bd
@@ -388,8 +385,8 @@ theorem modform_bounded (f : ModularForm ⊤ k) : IsBigO atIInf' (extendByZero f
   have bd := f.bdd_at_infty' (1 : SL(2, ℤ))
   have : f.toFun∣[k,(1 : SL(2, ℤ))] = f := by apply SlashAction.slash_one
   simp at bd
-  rw [ UpperHalfPlane.IsBoundedAtImInfty] at bd 
-  rw [BoundedAtFilter] at bd 
+  rw [ UpperHalfPlane.IsBoundedAtImInfty] at bd
+  rw [BoundedAtFilter] at bd
   obtain ⟨c, c_pos, bd⟩ := bd.exists_nonneg
   rw [atIInf']
   apply (modform_bound_aux c 1 c_pos _).isBigO
@@ -403,15 +400,11 @@ theorem cuspform_vanish_infty (f : CuspForm ⊤ k) : IsLittleO atIInf' (extendBy
   have bd := f.zero_at_infty' (1 : SL(2, ℤ))
   have : f.toFun∣[k,(1 : SL(2, ℤ))] = f := by apply SlashAction.slash_one
   simp at bd
-  rw [UpperHalfPlane.IsZeroAtImInfty] at bd 
-  have : IsLittleO UpperHalfPlane.atImInfty f (1 : ℍ → ℂ) := by 
+  rw [UpperHalfPlane.IsZeroAtImInfty] at bd
+  have : IsLittleO UpperHalfPlane.atImInfty f (1 : ℍ → ℂ) := by
     apply isLittleO_of_tendsto; simp;
     simpa using bd
   rw [IsLittleO] at *; exact fun c hc => modform_bound_aux c 1 hc.le (this hc)
-
-@[simp]
-lemma uhc2 (z : ℍ) : (z : ℂ) = z.1 := by rfl
-
 
 theorem modform_periodic (f : ModularForm ⊤ k) (w : ℂ) :
     (extendByZero f) (w + 1) = (extendByZero f) w :=
@@ -422,27 +415,25 @@ theorem modform_periodic (f : ModularForm ⊤ k) (w : ℂ) :
     rw [extendByZero_eq_of_mem f _ this]
     have t := EisensteinSeries.mod_form_periodic k f ⟨w, hw⟩ 1
     rw [UpperHalfPlane.modular_T_zpow_smul] at t
-    convert t; simp
+    convert t
     simp
     rw [←UpperHalfPlane.ext_iff, UpperHalfPlane.coe_vadd]
     simp
     apply add_comm
-  · have : extendByZero f w = 0 := by 
-      rw [extendByZero]; 
-      simp; 
+  · have : extendByZero f w = 0 := by
+      rw [extendByZero];
       split_ifs with h
-      exfalso; 
+      exfalso;
       swap
       rfl
-      exact  hw h 
+      exact  hw h
     rw [this]
     have : extendByZero f (w + 1) = 0 := by
-      rw [extendByZero]; simp;
+      rw [extendByZero]
       split_ifs with h
-      simp
       exfalso
       have : 0 < im (w + 1) := by tauto
-      rw [add_im, one_im, add_zero] at this 
+      rw [add_im, one_im, add_zero] at this
       exact hw this
       rfl
     exact this
@@ -451,7 +442,7 @@ theorem modform_hol (f : ModularForm ⊤ k) (z : ℂ) (hz : 0 < im z) :
     DifferentiableAt ℂ (extendByZero f) z :=
   by
   have hf_hol := EisensteinSeries.mdiff_to_holo (EisensteinSeries.holExtn f) f.holo'
-  rw [← isHolomorphicOn_iff_differentiableOn] at hf_hol 
+  rw [← isHolomorphicOn_iff_differentiableOn] at hf_hol
   simp at hf_hol
   exact (hf_hol z hz).differentiableAt ((isOpen_iff_mem_nhds.mp upper_half_plane_isOpen) z hz)
 
@@ -492,7 +483,7 @@ theorem eq_cuspFcnH (z : ℍ) (f : ModularForm ⊤ k) : f z = (cuspFcnH f) (Q 1 
   by
   have t := eq_cuspFcn 1 (extendByZero f) (modform_periodic f) z
   rw [cuspFcnH]; convert t
-  rw [extendByZero_eq_of_mem f _ _]; · simp; 
+  rw [extendByZero_eq_of_mem f _ _]; · simp;
   · cases z; tauto
 
 theorem cusp_fcn_diff (f : ModularForm ⊤ k) (q : 𝔻) : DifferentiableAt ℂ (cuspFcnH f) q :=
@@ -512,12 +503,12 @@ def cuspFormToModForm (f : CuspForm ⊤ k) : ModularForm ⊤ k
   toFun := f.toFun
   slash_action_eq' := f.slash_action_eq'
   holo' := f.holo'
-  bdd_at_infty' := by 
-    intro A; 
+  bdd_at_infty' := by
+    intro A;
     simp
     have := (f.zero_at_infty' A).BoundedAtFilter; convert this
 
-  instance : Coe (CuspForm ⊤ k) (ModularForm ⊤ k) :=   
+  instance : Coe (CuspForm ⊤ k) (ModularForm ⊤ k) :=
 -/
 
 
@@ -540,17 +531,17 @@ theorem exp_decay_of_cuspform (f : CuspForm ⊤ k) :
   rw [isBigOWith_iff, eventually_iff] at hC ⊢
   rw [atIInf'_mem] at hC ; rw [UpperHalfPlane.atImInfty_mem]
   obtain ⟨A, hC⟩ := hC; use A + 1; intro z hz; specialize hC z
-  have h : A < im z := by 
+  have h : A < im z := by
     simp at *
     rw [UpperHalfPlane.im] at hz
     norm_cast at *
     simp at *
-    linarith; 
+    linarith;
   simp at hC
-  rw [extendByZero_eq_of_mem] at hC ; 
+  rw [extendByZero_eq_of_mem] at hC ;
   swap; exact z.2
   have : ((1 : ℝPos) : ℝ) = (1 : ℝ) := by rfl
-  simp  [Subtype.coe_eta, div_one] at hC ; 
+  simp  [Subtype.coe_eta, div_one] at hC ;
   have HC := hC h
   simp
   exact HC
@@ -560,9 +551,6 @@ end Modforms
 section Petersson
 
 open scoped ModularForm
-
-@[simp]
-lemma uhc (z : ℍ) : (z : ℂ) = z.1 := by rfl
 
 -- Bound on abs(f z) for large values of z
 theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
@@ -574,7 +562,7 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
     IsBigO UpperHalfPlane.atImInfty (fun z : ℍ => Real.exp (-2 * π * z.im)) fun z : ℍ =>
       1 / z.im ^ ((k : ℝ) / 2) :=
     by
-    apply IsLittleO.isBigO; 
+    apply IsLittleO.isBigO;
     apply isLittleO_of_tendsto
     · intro x hx; exfalso
       contrapose! hx; apply one_div_ne_zero
@@ -584,10 +572,10 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
     apply (@tendsto_comap'_iff _ _ _ F _ _ _ _).mpr
     · have := tendsto_rpow_mul_exp_neg_mul_atTop_nhds_0 ((k : ℝ) / 2) (2 * π) Real.two_pi_pos
       refine' Tendsto.congr' _ this; apply eventually_of_mem (Ioi_mem_atTop (0 : ℝ))
-      intro y _;  simp; apply mul_comm; 
+      intro y _;  simp; apply mul_comm;
     · convert Ioi_mem_atTop (0 : ℝ); ext1 x; rw [Set.mem_range]
       constructor; · rintro ⟨y, hy⟩; rw [← hy]; exact y.2
-      · intro h; 
+      · intro h;
         use ⟨x * I, ?_⟩
         swap
         · rw [mul_I_im]; exact h
@@ -597,56 +585,47 @@ theorem pet_bounded_large {k : ℤ} (f : CuspForm ⊤ k) :
   obtain ⟨C1, h1'⟩ := (h1.trans this).bound
   rw [eventually_iff, UpperHalfPlane.atImInfty_mem] at h1' ; cases' h1' with A h1'
   dsimp at h1' ; refine' ⟨A, C1 ^ 2, _⟩
-  intro z hz; specialize h1' z hz; rw [petSelf]; dsimp
+  intro z hz; specialize h1' z hz; rw [petSelf]
   have : im z ^ k = (im z ^ ((k : ℝ) / 2)) ^ 2 :=
     by
     norm_cast
     rw [← Real.rpow_int_cast, ← Real.rpow_nat_cast, ← Real.rpow_mul]
-    swap; exact z.2.le; congr 1; norm_cast; simp
+    swap; exact z.2.le; congr 1; norm_cast
     rw [Rat.divInt_eq_div]
     field_simp
-    left
-    norm_num
-  norm_cast at *  
   rw [← UpperHalfPlane.coe_im, this, ← mul_pow]
   rw [sq_le_sq]
   have e : 0 < z.im ^ ((k : ℝ) / 2) := by apply Real.rpow_pos_of_pos; exact z.2
   have : abs (f z) * im z ^ ((k : ℝ) / 2) ≤ C1 :=
     by
-    rw [div_eq_inv_mul, mul_one, _root_.abs_inv, mul_comm] at h1' 
+    rw [div_eq_inv_mul, mul_one, _root_.abs_inv, mul_comm] at h1'
     simp at *
-    norm_cast at h1'
-    have h2 : 0 ≤ (z.1).im ^ ((k : ℝ) / 2) := by 
+    have h2 : 0 ≤ (z.1).im ^ ((k : ℝ) / 2) := by
       norm_cast
-      simp
-      apply Real.rpow_nonneg_of_nonneg
+      apply Real.rpow_nonneg
       exact z.2.le
-    have h1'' := mul_le_mul_of_nonneg_right h1' h2 
+    have h1'' := mul_le_mul_of_nonneg_right h1' h2
     refine' le_trans h1'' _
-    simp
     · rw [_root_.abs_of_nonneg]
       swap;
-      norm_cast at *
+      · norm_cast at *
       conv =>
         lhs
         congr
         rw [mul_comm];
       rw [mul_assoc]
-      suffices th : (z.im ^ ((k : ℝ) / 2))⁻¹ * z.im ^ ((k : ℝ) / 2) = 1 by 
+      suffices th : (z.im ^ ((k : ℝ) / 2))⁻¹ * z.im ^ ((k : ℝ) / 2) = 1 by
         simp_rw [← UpperHalfPlane.coe_im] at *
-        norm_cast at *
-        simp only [uhc2] at *
-        rw [th]; 
+        erw [th]; -- TODO why erw
         simp
       apply inv_mul_cancel; exact e.ne'
-  apply abs_le_abs; 
+  apply abs_le_abs;
   norm_cast at *
-  have aux : -(Complex.abs (f z) * (z.1).im ^ ((k : ℝ) / 2)) ≤ Complex.abs (f z) * z.1.im ^ ((k : ℝ) / 2) := by 
+  have aux : -(Complex.abs (f z) * (z.1).im ^ ((k : ℝ) / 2)) ≤ Complex.abs (f z) * z.1.im ^ ((k : ℝ) / 2) := by
     simp
     apply mul_nonneg; apply AbsoluteValue.nonneg; exact e.le
   norm_cast at *
   apply le_trans aux this
- 
+
 
 end Petersson
-

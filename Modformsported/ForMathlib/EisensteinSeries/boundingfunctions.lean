@@ -3,17 +3,13 @@ import Mathlib.NumberTheory.Modular
 import Mathlib.Data.Int.Interval
 import Mathlib.Analysis.SpecialFunctions.Pow.Complex
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
-
+import Modformsported.ForMathlib.EisensteinSeries.bounds
 
 noncomputable section
 
 open Complex
 
 open scoped BigOperators NNReal Classical Filter Matrix UpperHalfPlane Complex
-
-lemma upper_half_im_pow_pos (z : ℍ) (n : ℕ) : 0 < (z.1.2)^n := by
-    have:= pow_pos z.2 n
-    norm_cast
 
 namespace EisensteinSeries
 
@@ -61,7 +57,7 @@ lemma pow_two_of_nonzero_ge_one (a : ℤ) (ha : a  ≠ 0) : 0 ≤ a^2 - 1  := by
   simp only [sub_nonneg, one_le_sq_iff_one_le_abs, ge_iff_le]
   exact Int.one_le_abs ha
 
-theorem lowbound (z : ℍ) (δ : ℝ) (n : ℤ) (hn : n ≠ 0) :
+theorem lowbound_ (z : ℍ) (δ : ℝ) (n : ℤ) (hn : n ≠ 0) :
     (z.1.2 ^ 2 ) / (z.1.1 ^ 2 + z.1.2 ^ 2) ≤
       (δ * z.1.1 + n) ^ 2 + (δ * z.1.2) ^ 2 := by
   have H1 : (δ * z.1.1 + n) ^ 2 + (δ * z.1.2) ^ 2 =
@@ -102,7 +98,7 @@ theorem auxlem1 (z : ℍ) (δ : ℝ) : r z ≤ Complex.abs ((z : ℂ) + δ)  := 
     simp
     norm_cast at *
 
-theorem auxlem2 (z : ℍ) (δ : ℝ) (n : ℤ) (h : n ≠ 0) : r z ≤ Complex.abs (δ * (z : ℂ) + n) := by
+theorem auxlem2_ (z : ℍ) (δ : ℝ) (n : ℤ) (h : n ≠ 0) : r z ≤ Complex.abs (δ * (z : ℂ) + n) := by
   rw [r]
   rw [Complex.abs]
   simp
@@ -113,7 +109,7 @@ theorem auxlem2 (z : ℍ) (δ : ℝ) (n : ℤ) (h : n ≠ 0) : r z ≤ Complex.a
     by
     rw [lowerBound1]
     rw [Real.sqrt_le_sqrt_iff]
-    have := lowbound z δ n h
+    have := lowbound_ z δ n h
     rw [← pow_two]
     rw [← pow_two]
     simp only [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at *
@@ -125,7 +121,7 @@ theorem auxlem2 (z : ℍ) (δ : ℝ) (n : ℤ) (h : n ≠ 0) : r z ≤ Complex.a
   simp at *
   norm_cast
 
-theorem baux (a : ℝ) (k : ℤ) (hk : 0 ≤ k) (b : ℂ) (h : 0 ≤ a) (h2 : a ≤ Complex.abs b) :
+theorem baux_ (a : ℝ) (k : ℤ) (hk : 0 ≤ k) (b : ℂ) (h : 0 ≤ a) (h2 : a ≤ Complex.abs b) :
     a ^ k ≤ Complex.abs (b ^ k) := by
   lift k to ℕ using hk
   norm_cast at *
@@ -133,17 +129,17 @@ theorem baux (a : ℝ) (k : ℤ) (hk : 0 ≤ k) (b : ℂ) (h : 0 ≤ a) (h2 : a 
   norm_cast at *
   apply pow_le_pow_left h h2
 
-theorem baux2 (z : ℍ) (k : ℤ) : Complex.abs (r z ^ k) = r z ^ k := by
+theorem baux2_ (z : ℍ) (k : ℤ) : Complex.abs (r z ^ k) = r z ^ k := by
   have ha := (r_pos z).le
   have := Complex.abs_of_nonneg ha
   rw [←this]
   simp  [abs_ofReal, cpow_nat_cast, map_pow, _root_.abs_abs, Real.rpow_nat_cast]
 
-theorem auxlem3 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
+theorem auxlem3_ (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
     Complex.abs ((r z : ℂ) ^ k) ≤ Complex.abs (((z : ℂ) + (x.2 : ℂ) / (x.1 : ℂ)) ^ k) :=
   by
   norm_cast
-  have H1 : Complex.abs (r z ^ k) = r z ^ k := by apply baux2
+  have H1 : Complex.abs (r z ^ k) = r z ^ k := by apply baux2_
   norm_cast at H1
   rw [H1]
   have := auxlem1 z (x.2 / x.1 : ℝ)
@@ -164,10 +160,10 @@ theorem auxlem4 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
     Complex.abs ((r z : ℂ) ^ k) ≤ Complex.abs (((x.1 : ℂ) / (x.2 : ℂ) * (z : ℂ) + 1) ^ k) :=
   by
   norm_cast
-  have H1 : Complex.abs (r z ^ k) = r z ^ k := by apply baux2
+  have H1 : Complex.abs (r z ^ k) = r z ^ k := by apply baux2_
   norm_cast at H1
   rw [H1]
-  have := auxlem2 z (x.1 / x.2 : ℝ) 1 one_ne_zero
+  have := auxlem2_ z (x.1 / x.2 : ℝ) 1 one_ne_zero
   norm_cast at this
   lift k to ℕ using hk
   norm_cast at *

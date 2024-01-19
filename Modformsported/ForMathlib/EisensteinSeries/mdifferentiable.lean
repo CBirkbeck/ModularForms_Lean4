@@ -3,7 +3,7 @@ Copyright (c) 2023 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import Mathlib.Geometry.Manifold.MFDeriv
+import Mathlib.Geometry.Manifold.MFDeriv.Basic
 import Mathlib.Analysis.Complex.LocallyUniformLimit
 import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
 import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
@@ -80,7 +80,7 @@ theorem ext_chart (z : ℍ') : (extendByZero f) z = (f ∘ ⇑(chartAt ℂ z).sy
   apply symm
   congr
   apply PartialHomeomorph.left_inv
-  simp  [TopologicalSpace.Opens.localHomeomorphSubtypeCoe_source]
+  simp  [TopologicalSpace.Opens.partialHomeomorphSubtypeCoe_source]
 
 theorem holo_to_mdiff (f : ℍ' → ℂ) (hf : IsHolomorphicOn f) : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f :=
   by

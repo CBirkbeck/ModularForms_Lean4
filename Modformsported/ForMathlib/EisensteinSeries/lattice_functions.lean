@@ -82,11 +82,11 @@ theorem square_size (n : ℕ) : Finset.card (square (n + 1)) = 8 * (n + 1) := by
 theorem natAbs_le_mem_Icc (a : ℤ) (n : ℕ) (h : Int.natAbs a ≤ n) : a ∈ Finset.Icc (-(n : ℤ)) (n) :=
   by
   simp
-  have hm : max (a) (-a) ≤ n := by 
+  have hm : max (a) (-a) ≤ n := by
     have : ((Int.natAbs a) : ℤ) = |a| := by simp only [Int.coe_natAbs]
     rw [← abs_eq_max_neg]
     rw [← this]
-    norm_cast 
+    norm_cast
   rw [max_le_iff] at hm
   constructor
   nlinarith
@@ -98,13 +98,13 @@ theorem square_mem (n : ℕ) (x : ℤ × ℤ) : x ∈ square n ↔ max x.1.natAb
   constructor
   intro x
   rw [square] at x
-  simp only [ge_iff_le,  Prod.forall, Finset.mem_filter] at x 
+  simp only [ge_iff_le,  Prod.forall, Finset.mem_filter] at x
   have hx := x.2
   norm_cast at hx
   intro H
   rw [square]
   simp only [ge_iff_le, Prod.forall, Finset.mem_filter]
-  constructor 
+  constructor
   simp only [ge_iff_le, Finset.mem_product]
   constructor
   apply natAbs_le_mem_Icc
@@ -112,7 +112,7 @@ theorem square_mem (n : ℕ) (x : ℤ × ℤ) : x ∈ square n ↔ max x.1.natAb
   simp only [ge_iff_le, le_max_iff, le_refl, true_or]
   apply natAbs_le_mem_Icc
   rw [← H]
-  simp only [ge_iff_le, le_max_iff, le_refl, or_true] 
+  simp only [ge_iff_le, le_max_iff, le_refl, or_true]
   rw [H]
 
 theorem square_size' (n : ℕ) (h : 1 ≤ n) : Finset.card (square n) = 8 * n :=
@@ -129,7 +129,7 @@ theorem squares_cover_all (y : ℤ × ℤ) : ∃! i : ℕ, y ∈ square i :=
 
 /-
 theorem squares_are_disjoint : ∀ i j : ℕ, i ≠ j → Disjoint (square i) (square j) := by
-  apply disjoint_aux 
+  apply disjoint_aux
   apply squares_cover_all
 -/
 
@@ -140,8 +140,8 @@ theorem square_zero_card : Finset.card (square 0) = 1 :=
   rw [square_zero]
   rfl
 
-lemma Complex_abs_square_left_ne (n : ℕ) (x : ℤ × ℤ) (h : x ∈ square n) 
-  (hx : Complex.abs (x.1) ≠ n) : Complex.abs (x.2) = n := by 
+lemma Complex_abs_square_left_ne (n : ℕ) (x : ℤ × ℤ) (h : x ∈ square n)
+  (hx : Complex.abs (x.1) ≠ n) : Complex.abs (x.2) = n := by
   simp at h
   norm_cast at *
   have ht := max_choice (Int.natAbs x.1) (Int.natAbs x.2)
@@ -149,7 +149,7 @@ lemma Complex_abs_square_left_ne (n : ℕ) (x : ℤ × ℤ) (h : x ∈ square n)
   cases' ht with h1 h2
   rw [h1] at hx
   exfalso
-  have hh : Complex.abs (x.1) = Int.natAbs x.1 := by 
+  have hh : Complex.abs (x.1) = Int.natAbs x.1 := by
     have := (int_cast_abs x.1).symm
     convert this
     rw [Int.cast_natAbs]

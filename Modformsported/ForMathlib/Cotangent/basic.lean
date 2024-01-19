@@ -103,7 +103,7 @@ theorem geom_series_mul_add (x : R) (h : ‖x‖ < 1) : x * ∑' i : ℕ, x ^ i 
   have hh := @geom_sum_succ _ _ x
   rw [hh]
   simp only [add_sub_cancel]
-  exact Finset.mul_sum
+  rw [Finset.mul_sum]
 
 theorem geom_series_mul_one_add (x : R) (h : ‖x‖ < 1) :
     (1 + x) * ∑' i : ℕ, x ^ i = 2 * ∑' i : ℕ, x ^ i - 1 :=

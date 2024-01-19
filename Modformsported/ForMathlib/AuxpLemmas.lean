@@ -1,9 +1,8 @@
 import Mathlib.Data.Complex.Exponential
-import Mathlib.Analysis.Calculus.IteratedDeriv
+import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import Mathlib.Analysis.Calculus.Series
 import Modformsported.ForMathlib.TsumLemmas
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
-import Modformsported.ForMathlib.IteratedDerivLemmas
 import Modformsported.ForMathlib.EisensteinSeries.bounds
 import Modformsported.ForMathlib.EisensteinSeries.summable
 import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
@@ -549,19 +548,18 @@ theorem iter_div_aut_add (d : ℤ) (k : ℕ) :
       (fun z : ℂ => 1 / (z - d)) + fun z : ℂ => 1 / (z + d) :=
     by rfl
   rw [h1]
-  have := iter_deriv_within_add k ⟨x, hx⟩ (fun z : ℂ => 1 / (z - d)) fun z : ℂ => 1 / (z + d)
   simp at *
-  rw [this]
-  have h2 := aut_iter_deriv d k hx
-  have h3 := aut_iter_deriv' d k hx
-  simp at *
-  rw [h2, h3]
-  have h4 := aut_contDiffOn d k
-  simp at h4
-  apply h4
-  have h5 := aut_contDiffOn (-d) k
-  simp at h5
-  apply h5
+  rw [iteratedDerivWithin_add hx upperHalfSpace.uniqueDiffOn]
+  · have h2 := aut_iter_deriv d k hx
+    have h3 := aut_iter_deriv' d k hx
+    simp at *
+    rw [h2, h3]
+  · have h4 := aut_contDiffOn d k
+    simp at h4
+    apply h4
+  · have h5 := aut_contDiffOn (-d) k
+    simp at h5
+    apply h5
 
 theorem summable_iter_aut (k : ℕ) (z : ℍ) :
     Summable fun n : ℕ+ => iteratedDerivWithin k (fun z : ℂ => 1 / (z - n) + 1 / (z + n)) ℍ' z :=
@@ -987,45 +985,45 @@ theorem aux_iter_der_tsum (k : ℕ) (hk : 2 ≤ k) (x : ℍ') :
         ((fun z : ℂ => 1 / z) + fun z : ℂ => ∑' n : ℕ+, (1 / (z - n) + 1 / (z + n))) ℍ' x =
       (-1) ^ (k : ℕ) * (k : ℕ)! * ∑' n : ℤ, 1 / ((x : ℂ) + n) ^ (k + 1 : ℕ) :=
   by
-  rw [iter_deriv_within_add]
-  have h1 := aut_iter_deriv 0 k x.2
-  simp  at *
-  rw [h1]
-  have := aut_series_ite_deriv_uexp2 k x
-  simp at *
-  rw [this]
-  have h2 := tsum_ider_der_eq k x
-  simp at h2
-  rw [h2]
-  rw [int_tsum_pNat]
-  simp
-  rw [tsum_add]
-  rw [tsum_mul_left]
-  rw [tsum_mul_left]
-  rw [mul_add]
-  rw [mul_add]
-  conv =>
-    enter [2]
-    rw [add_assoc]
-    conv =>
-      enter [2]
-      rw [add_comm]
-  rw [summable_mul_left_iff]
-  have hk2 : 2 ≤ k + 1 := by linarith
-  simpa using lhs_summable_2 x (k + 1) hk2
-  simp only [Nat.factorial_ne_zero, Ne.def, neg_one_pow_mul_eq_zero_iff, Nat.cast_eq_zero,
-    not_false_iff]
-  rw [summable_mul_left_iff]
-  have hk2 : 2 ≤ k + 1 := by linarith
-  simpa using lhs_summable_2' x (k + 1) hk2
-  simp only [Nat.factorial_ne_zero, Ne.def, neg_one_pow_mul_eq_zero_iff, Nat.cast_eq_zero,
-    not_false_iff]
-  have hk3 : 3 ≤ (k + 1 : ℤ) := by linarith
-  have := summable_factor (-1 : ℤ) x (k + 1) hk3
-  simpa using this
-  have := aut_contDiffOn 0 k
-  simpa using this
-  apply tsum_aexp_contDiffOn k
+  rw [iteratedDerivWithin_add x.2 UpperHalfPlane.upperHalfSpace.uniqueDiffOn]
+  · have h1 := aut_iter_deriv 0 k x.2
+    simp  at *
+    rw [h1]
+    have := aut_series_ite_deriv_uexp2 k x
+    simp at *
+    rw [this]
+    have h2 := tsum_ider_der_eq k x
+    simp at h2
+    rw [h2]
+    rw [int_tsum_pNat]
+    · simp
+      rw [tsum_add]
+      · rw [tsum_mul_left]
+        rw [tsum_mul_left]
+        rw [mul_add]
+        rw [mul_add]
+        conv =>
+          enter [2]
+          rw [add_assoc]
+          conv =>
+            enter [2]
+            rw [add_comm]
+      rw [summable_mul_left_iff]
+      · have hk2 : 2 ≤ k + 1 := by linarith
+        simpa using lhs_summable_2 x (k + 1) hk2
+      · simp only [Nat.factorial_ne_zero, Ne.def, neg_one_pow_mul_eq_zero_iff, Nat.cast_eq_zero,
+          not_false_iff]
+      · rw [summable_mul_left_iff]
+        · have hk2 : 2 ≤ k + 1 := by linarith
+          simpa using lhs_summable_2' x (k + 1) hk2
+        · simp only [Nat.factorial_ne_zero, Ne.def, neg_one_pow_mul_eq_zero_iff, Nat.cast_eq_zero,
+            not_false_iff]
+    · have hk3 : 3 ≤ (k + 1 : ℤ) := by linarith
+      have := summable_factor (-1 : ℤ) x (k + 1) hk3
+      simpa using this
+  · have := aut_contDiffOn 0 k
+    simpa using this
+  · apply tsum_aexp_contDiffOn k
 
 theorem aux_iter_der_tsum_eqOn (k : ℕ) (hk : 3 ≤ k) :
     EqOn
