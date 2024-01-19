@@ -1,6 +1,6 @@
 import Mathlib.LinearAlgebra.Matrix.SpecialLinearGroup
 import Mathlib.LinearAlgebra.Determinant
-import Mathlib.Data.Matrix.Notation 
+import Mathlib.Data.Matrix.Notation
 import Mathlib.GroupTheory.GroupAction.Basic
 import Mathlib.Algebra.Hom.GroupAction
 import Mathlib.LinearAlgebra.Matrix.GeneralLinearGroup
@@ -100,23 +100,23 @@ theorem mat_mul_expl (A B : Matrix (Fin 2) (Fin 2) R) :
      zero_add, Fin.mk_one, le_refl]
 
 theorem valorsl (A : SL2Z) :
-    A 0 0 = A.1 0 0 ∧ A 0 1 = A.1 0 1 ∧ A 1 0 = A.1 1 0 ∧ A 1 1 = A.1 1 1 := by 
+    A 0 0 = A.1 0 0 ∧ A 0 1 = A.1 0 1 ∧ A 1 0 = A.1 1 0 ∧ A 1 1 = A.1 1 1 := by
   constructor; rfl;
-  constructor; 
-  rfl; 
+  constructor;
+  rfl;
   constructor; rfl; rfl
 
 theorem valor_mat_m (A : IntegralMatricesWithDeterminant (Fin 2) m) :
-    A 0 0 = A.1 0 0 ∧ A 0 1 = A.1 0 1 ∧ A 1 0 = A.1 1 0 ∧ A 1 1 = A.1 1 1 := by 
+    A 0 0 = A.1 0 0 ∧ A 0 1 = A.1 0 1 ∧ A 1 0 = A.1 1 0 ∧ A 1 1 = A.1 1 1 := by
     constructor; rfl;
-    constructor; rfl; 
+    constructor; rfl;
     constructor; rfl; rfl
 
 theorem det_onee (A : SL2Z) : det A.1 = A 0 0 * A 1 1 - A 1 0 * A 0 1 :=
   by
   have := det_of_22 A.1
   have ad := A.2; simp [valorsl]
-  rw [ad] at this 
+  rw [ad] at this
   have cg : A.1 1 0 * A.1 0 1 = A.1 0 1 * A.1 1 0 := by ring
   simp at cg ; rw [cg]; exact this
 
@@ -134,15 +134,15 @@ theorem det_onne' (A : SL2Z) : A 0 0 * A 1 1 - A 0 1 * A 1 0 = 1 :=
   have cg : A.1 1 0 * A.1 0 1 = A.1 0 1 * A.1 1 0 := by ring
   simp_rw [←cg]
   apply det_onne
-  
+
 
 theorem det_m (M : IntegralMatricesWithDeterminant (Fin 2) m) : M 0 0 * M 1 1 - M 1 0 * M 0 1 = m :=
   by
   have H := det_of_22 M.1
   simp [valor_mat_m] at *
-  have m2 := M.2; 
-  simp at m2 
-  rw [m2] at H 
+  have m2 := M.2;
+  simp at m2
+  rw [m2] at H
   have cg : M.1 1 0 * M.1 0 1 = M.1 0 1 * M.1 1 0 := by ring
   rw [cg]
   exact H.symm
@@ -153,14 +153,14 @@ theorem det_m''' (M : IntegralMatricesWithDeterminant (Fin 2) m) (h : M 1 0 = 0)
 theorem det_m' (M : IntegralMatricesWithDeterminant (Fin 2) m) :
     M 0 0 * M 1 1 - M 1 0 * M 0 1 = M.val.det :=
   by
-  have := det_of_22 M.1; simp [valor_mat_m]; simp at this 
-  have cg : M.1 1 0 * M.1 0 1 = M.1 0 1 * M.1 1 0 := by ring; 
-  simp at cg ; 
-  rw [cg]; 
+  have := det_of_22 M.1; simp [valor_mat_m]; simp at this
+  have cg : M.1 1 0 * M.1 0 1 = M.1 0 1 * M.1 1 0 := by ring;
+  simp at cg ;
+  rw [cg];
   exact this.symm
 
 theorem det_m2 (M : IntegralMatricesWithDeterminant (Fin 2) m) :
-    M.1 0 0 * M.1 1 1 - M.1 1 0 * M.1 0 1 = M.val.det := by 
+    M.1 0 0 * M.1 1 1 - M.1 1 0 * M.1 0 1 = M.val.det := by
     have := det_m' _ M;
     exact this
 
@@ -215,22 +215,22 @@ theorem sL2Z_mul_d (A B : SL2Z) : (A * B) 1 1 = A 1 0 * B 0 1 + A 1 1 * B 1 1 :=
 theorem mre : n * n = (1 : SL2Z) := by
   ext i j
   fin_cases i <;> fin_cases j
-  simp; 
+  simp;
   simp
   simp
   simp
 
-theorem ng : ni = (1 : SpecialLinearGroup (Fin 2) ℤ) := by 
-  rw [ni]; 
-  simp_rw [sr]; 
+theorem ng : ni = (1 : SpecialLinearGroup (Fin 2) ℤ) := by
+  rw [ni];
+  simp_rw [sr];
   ext i j;
-  fin_cases i <;> fin_cases j; 
+  fin_cases i <;> fin_cases j;
   simp [valorsl]; simp [valorsl]; simp [valorsl]; simp [valorsl]
 
 theorem vale (A : IntegralMatricesWithDeterminant (Fin 2) m) :
-    A 0 0 = A.1 0 0 ∧ A 0 1 = A.1 0 1 ∧ A 1 0 = A.1 1 0 ∧ A 1 1 = A.1 1 1 := by 
+    A 0 0 = A.1 0 0 ∧ A 0 1 = A.1 0 1 ∧ A 1 0 = A.1 1 0 ∧ A 1 1 = A.1 1 1 := by
     constructor; rfl;
-    constructor; rfl; 
+    constructor; rfl;
     constructor; rfl; rfl
 
 @[simp]
@@ -255,30 +255,30 @@ theorem sl2_inv (A : SL2Z) (B : SL2Z) (h1 : B.1 0 0 = A.1 1 1) (h2 : B.1 0 1 = -
   have := mat_mul_expl A.1 B.1
   ext i j
   fin_cases i <;> fin_cases j
-  have e1 := this.1; 
+  have e1 := this.1;
   simp only [Fin.mk_zero, mat_mul_expl, IntegralMatricesWithDeterminante.mat_m_vals]
-  simp_rw [e1]; 
+  simp_rw [e1];
   rw [h1]; rw [h3]; simp
-  have Adet := Matrix.det_fin_two A.1; 
-  simp only [SpecialLinearGroup.det_coe, IntegralMatricesWithDeterminante.mat_m_vals] at Adet  
-  apply Adet.symm; 
+  have Adet := Matrix.det_fin_two A.1;
+  simp only [SpecialLinearGroup.det_coe, IntegralMatricesWithDeterminante.mat_m_vals] at Adet
+  apply Adet.symm;
   simp only [Fin.mk_zero, Fin.mk_one, mat_mul_expl, IntegralMatricesWithDeterminante.mat_m_vals]
-  simp_rw [h2, h4]; 
+  simp_rw [h2, h4];
   ring_nf
   simp
-  rw [h1, h3]; 
-  ring_nf 
+  rw [h1, h3];
+  ring_nf
   simp only [Fin.mk_one, mat_mul_expl, IntegralMatricesWithDeterminante.mat_m_vals]
-  rw [h2, h4]; 
+  rw [h2, h4];
   simp only [IntegralMatricesWithDeterminante.mat_m_vals, mul_neg]
-  have Adet := Matrix.det_fin_two A.1; 
-  simp only [SpecialLinearGroup.det_coe, IntegralMatricesWithDeterminante.mat_m_vals] at Adet  
+  have Adet := Matrix.det_fin_two A.1;
+  simp only [SpecialLinearGroup.det_coe, IntegralMatricesWithDeterminante.mat_m_vals] at Adet
   rw [add_comm]
   rw [mul_comm]
-  have cg : A.1 1 0 * A.1 0 1 = A.1 0 1 * A.1 1 0 := by ring; 
+  have cg : A.1 1 0 * A.1 0 1 = A.1 0 1 * A.1 1 0 := by ring;
   rw [cg]
   ring_nf
-  rw [Adet.symm] 
+  rw [Adet.symm]
   simp
 
 
@@ -286,8 +286,8 @@ theorem sl2_inv (A : SL2Z) (B : SL2Z) (h1 : B.1 0 0 = A.1 1 1) (h2 : B.1 0 1 = -
 theorem sl2_inv' (A : SL2Z) (B : SL2Z) (h1 : B 0 0 = A 1 1) (h2 : B 0 1 = -A 0 1)
     (h3 : B 1 0 = -A 1 0) (h4 : B 1 1 = A 0 0) : A * B = 1 :=
   by
-  have H := sl2_inv A B h1 h2 h3 h4; 
-  simp at H ; rw [← Matrix.mul_eq_mul] at H 
+  have H := sl2_inv A B h1 h2 h3 h4;
+  simp at H ; rw [← Matrix.mul_eq_mul] at H
   simp only [valorsl] at *; cases B; cases A; dsimp at *; ext1; cases j
   cases i; dsimp at *; simp at *; solve_by_elim
 
@@ -301,8 +301,8 @@ def ainv' (A : SL2Z) : Matrix (Fin 2) (Fin 2) ℤ :=
 theorem ainvdet (A : SL2Z) : (ainv' A).det = 1 :=
   by
   rw [ainv']; rw [det_of_22]; simp; have := det_onne A; simp only [valorsl] at *;
-  rw [mul_comm] at this 
-  have cg : A.val 0 1 * A.val 1 0 = A.val 1 0 * A.val 0 1 := by ring; simp at cg 
+  rw [mul_comm] at this
+  have cg : A.val 0 1 * A.val 1 0 = A.val 1 0 * A.val 0 1 := by ring; simp at cg
   rw [cg]; exact this
 
 def ainv (A : SL2Z) : SL2Z :=
@@ -525,7 +525,7 @@ theorem mat_val (A : SL2Z) (i j : Fin 2) : (matZToR A.1) i j = (A.1 i j : ℝ) :
 instance sLZToGLZ : Coe SL2Z (Matrix.SpecialLinearGroup (Fin 2) ℝ) :=
   ⟨fun A =>
     ⟨matZToR A.1, by
-      rw [mat_Z_to_R]; rw [det_of_22]; have := det_onne' A; simp; simp at this 
+      rw [mat_Z_to_R]; rw [det_of_22]; have := det_onne' A; simp; simp at this
       norm_cast; exact this⟩⟩
 
 @[simp]
@@ -534,10 +534,10 @@ theorem mat_vals (A : SL2Z) (i j : Fin 2) : (A : GL (Fin 2) ℝ) i j = (A.1 i j 
 
 /-
 @[simp]
-theorem det_coe_sl (A : SL2Z) : (A : GL (Fin 2) ℝ).val.det = (A.val.det : ℝ) := by 
+theorem det_coe_sl (A : SL2Z) : (A : GL (Fin 2) ℝ).val.det = (A.val.det : ℝ) := by
   have := A.2;
-  rw [this]; simp; 
--/ 
+  rw [this]; simp;
+-/
 
 end SL2Z
 

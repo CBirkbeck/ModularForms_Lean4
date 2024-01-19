@@ -29,7 +29,7 @@ theorem SLnZ_eq_Mat_1 : SpecialLinearGroup n ℤ = IntegralMatricesWithDetermina
 
 instance coeMatrix : CoeOut (IntegralMatricesWithDeterminant n m) (Matrix n n ℤ) :=
     ⟨fun A => A.val⟩
-  
+
 
 instance coeFun : CoeFun (IntegralMatricesWithDeterminant n m) fun _ => n → n → ℤ
     where coe A := A.val
@@ -98,12 +98,12 @@ instance : Neg (IntegralMatricesWithDeterminant n m) :=
   ⟨fun g =>
     ⟨-g, by
       have := det_smul g.val (-1)
-      simp at this 
+      simp at this
       rw [this]
       have h : (Even (Fintype.card n)) := by apply Fact.out
       simp [Even.neg_one_pow, h ]
       have gdet := g.property
-      simp at gdet 
+      simp at gdet
       exact gdet⟩⟩
 
 @[simp]
@@ -112,10 +112,10 @@ theorem mat_m_coe_neg (g : IntegralMatricesWithDeterminant n m) : ↑(-g) = -(�
 
 @[simp]
 theorem mat_m_neg_elt (g : IntegralMatricesWithDeterminant n m) :
-    ∀ i j, (↑(-g) : Matrix n n ℤ) i j = -g i j := by 
+    ∀ i j, (↑(-g) : Matrix n n ℤ) i j = -g i j := by
     intro i j
     rw [mat_m_coe_neg]
-    simp 
+    simp
 
 end Neg
 

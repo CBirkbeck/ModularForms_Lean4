@@ -86,7 +86,7 @@ theorem m_a_b (m : ℤ) (A : SL2Z) (M N : IntegralMatricesWithDeterminant (Fin 2
   by
   have := mat_mul_expl A.1 M.1;
   constructor
-  intro h 
+  intro h
   rw [←h]; constructor ; apply this.1; constructor; apply this.2.1;
   constructor; apply this.2.2.1; apply this.2.2.2
   intro h
@@ -121,9 +121,9 @@ def matZToR (A : Matrix (Fin 2) (Fin 2) ℤ) : Matrix (Fin 2) (Fin 2) ℝ :=
 
 theorem nonzero_inv (a : ℝ) (h : 0 < a) : IsUnit a :=
   by
-  have h2 : a ≠ 0 := by 
+  have h2 : a ≠ 0 := by
     simp only [Ne.def]; by_contra h1; rw [h1] at h ;
-    simp only [lt_self_iff_false] at h ; 
+    simp only [lt_self_iff_false] at h ;
   rw [isUnit_iff_exists_inv]; use a⁻¹; apply mul_inv_cancel h2
 
 @[simp]
@@ -140,12 +140,12 @@ theorem mat_vals (A : SL2Z) (i j : Fin 2) : (A : GL (Fin 2) ℝ) i j = (A.1 i j 
 
 /-
 @[simp]
-theorem det_coe_sl (A : SpecialLinearGroup (Fin 2) ℤ) : 
-  (A : GeneralLinearGroup (Fin 2) ℝ).val.det = (A.val.det : ℝ) := by 
+theorem det_coe_sl (A : SpecialLinearGroup (Fin 2) ℤ) :
+  (A : GeneralLinearGroup (Fin 2) ℝ).val.det = (A.val.det : ℝ) := by
   have := Matrix.SpecialLinearGroup.coeToGL_det A
   have := A.2
-  rw [this]; simp; 
- -/ 
+  rw [this]; simp;
+ -/
 
 
 end ModularGroup
