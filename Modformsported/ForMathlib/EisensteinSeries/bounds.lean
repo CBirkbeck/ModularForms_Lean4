@@ -1,9 +1,4 @@
 import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
-import Mathlib.NumberTheory.Modular
-import Mathlib.Data.Int.Interval
-import Mathlib.Analysis.SpecialFunctions.Pow.Complex
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-
 
 noncomputable section
 
@@ -11,9 +6,7 @@ open Complex
 
 open scoped BigOperators NNReal Classical Filter Matrix UpperHalfPlane Complex
 
-lemma upper_half_im_pow_pos (z : ℍ) (n : ℕ) : 0 < (z.1.2)^n := by
-    have:= pow_pos z.2 n
-    norm_cast
+lemma upper_half_im_pow_pos (z : ℍ) (n : ℕ) : 0 < z.im ^ n := pow_pos z.im_pos n
 
 namespace EisensteinSeries
 
@@ -62,15 +55,11 @@ theorem rfunct_ne_zero (z : ℍ) :  rfunct z ≠ 0 := by
   norm_cast at *
 
 lemma rfunct_mul_n_pos (k : ℕ) (z : ℍ) (n : ℕ)  (hn : 1 ≤ n) :
-  0 < (Complex.abs ((rfunct z : ℂ) ^ (k : ℤ) * (n : ℂ)^ (k : ℤ))) := by
+    0 < (Complex.abs ((rfunct z : ℂ) ^ (k : ℤ) * (n : ℂ)^ (k : ℤ))) := by
+  have := rfunct_pos z
   apply Complex.abs.pos
-  apply mul_ne_zero
   norm_cast
-  apply pow_ne_zero
-  apply rfunct_ne_zero
-  norm_cast
-  apply pow_ne_zero
-  linarith
+  positivity
 
 theorem ineq1 (x y d : ℝ) : 0 ≤ d ^ 2 * (x ^ 2 + y ^ 2) ^ 2 + 2 * d * x * (x ^ 2 + y ^ 2) + x ^ 2 :=
   by
@@ -80,10 +69,7 @@ theorem ineq1 (x y d : ℝ) : 0 ≤ d ^ 2 * (x ^ 2 + y ^ 2) ^ 2 + 2 * d * x * (x
         norm_cast
         ring
   rw [h1]
-  have := pow_two_nonneg  (d * (x ^ 2 + y ^ 2) + x)
-  simp at *
-  norm_cast at *
-
+  positivity
 
 theorem lowbound (z : ℍ) (δ : ℝ) :
     (z.1.2 ^ 4 + (z.1.1 * z.1.2) ^ 2) / (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 ≤
@@ -96,6 +82,11 @@ theorem lowbound (z : ℍ) (δ : ℝ) :
   simp only [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at H1
   rw [H1]
   rw [div_le_iff]
+  swap
+  · have H8 : 0 < z.1.2 ^ 2 := by
+      have := upper_half_im_pow_pos z 2
+      norm_cast at *
+    positivity
   have H2 :
     (δ ^ 2 * ((z.1.1) ^ 2 + z.1.2 ^ 2) + 2 * δ * z.1.1 + 1) *
         (z.1.1 ^ 2 + z.1.2 ^ 2) ^ 2 =
@@ -133,21 +124,6 @@ theorem lowbound (z : ℍ) (δ : ℝ) :
   have HH :=mul_nonneg H6 H5
   simp at *
   norm_cast at *
-  have H8 : 0 < z.1.2 ^ 2 := by
-    have := upper_half_im_pow_pos z 2
-    norm_cast at *
-  have H9 : 0 < z.1.2 ^ 2 + z.1.1 ^ 2 := by
-    norm_cast
-    rw [add_comm]
-    apply add_pos_of_nonneg_of_pos
-    apply pow_two_nonneg
-    norm_cast at *
-  norm_cast
-  apply sq_pos_of_ne_zero
-  simp at H9
-  norm_cast at H9
-  linarith
-
 
 theorem auxlem (z : ℍ) (δ : ℝ) :
     rfunct z ≤ Complex.abs ((z : ℂ) + δ) ∧ rfunct z ≤ Complex.abs (δ * (z : ℂ) + 1) := by
@@ -198,7 +174,7 @@ theorem baux (a : ℝ) (k : ℤ) (hk : 0 ≤ k) (b : ℂ) (h : 0 ≤ a) (h2 : a 
     a ^ k ≤ Complex.abs (b ^ k) := by
   lift k to ℕ using hk
   norm_cast at *
-  simp only [Complex.cpow_int_cast, map_pow]
+  simp only [map_pow]
   norm_cast at *
   apply pow_le_pow_left h h2
 
@@ -206,7 +182,7 @@ theorem baux2 (z : ℍ) (k : ℤ) : Complex.abs (rfunct z ^ k) = rfunct z ^ k :=
   have ha := (rfunct_pos z).le
   have := Complex.abs_of_nonneg ha
   rw [←this]
-  simp  [abs_ofReal, cpow_nat_cast, map_pow, _root_.abs_abs, Real.rpow_nat_cast]
+  simp  [abs_ofReal, map_pow, _root_.abs_abs]
 
 theorem auxlem2 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
     Complex.abs ((rfunct z : ℂ) ^ k) ≤ Complex.abs (((z : ℂ) + (x.2 : ℂ) / (x.1 : ℂ)) ^ k) :=
@@ -220,7 +196,7 @@ theorem auxlem2 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
   have t2 := this.1
   lift k to ℕ using hk
   norm_cast at *
-  simp only [Complex.cpow_int_cast, map_pow]
+  simp only [map_pow]
   simp
   norm_cast at *
   apply pow_le_pow_left (rfunct_pos _).le
@@ -242,7 +218,7 @@ theorem auxlem3 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
   have t2 := this.2
   lift k to ℕ using hk
   norm_cast at *
-  simp only [Complex.cpow_int_cast, map_pow]
+  simp only [map_pow]
   simp
   norm_cast at *
   apply pow_le_pow_left (rfunct_pos _).le

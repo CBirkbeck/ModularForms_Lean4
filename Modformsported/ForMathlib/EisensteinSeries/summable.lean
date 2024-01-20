@@ -1,19 +1,13 @@
-import Modformsported.ForMathlib.ModForms2
 import Modformsported.ForMathlib.TsumLemmas
 import Modformsported.ForMathlib.EisensteinSeries.basic
-import Modformsported.ForMathlib.EisensteinSeries.lattice_functions
 import Modformsported.ForMathlib.EisensteinSeries.bounds
-import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
-import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
-import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
-import Mathlib.NumberTheory.ModularForms.Basic
-import Mathlib.Analysis.Calculus.Deriv.ZPow
-import Modformsported.ModForms.Riemzeta
-import Modformsported.ModForms.WeierstrassMTest
+import Modformsported.ForMathlib.EisensteinSeries.lattice_functions
+import Mathlib.Analysis.NormedSpace.FiniteDimension
+import Mathlib.Analysis.PSeries
 
 open Complex
 
-open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold
+open scoped BigOperators NNReal Classical Filter UpperHalfPlane
 
 open ModularForm
 

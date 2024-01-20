@@ -1,13 +1,5 @@
-import Mathlib.Data.Complex.Exponential
-import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
-import Mathlib.Analysis.Calculus.Series
-import Modformsported.ForMathlib.TsumLemmas
-import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
-import Modformsported.ForMathlib.EisensteinSeries.bounds
-import Modformsported.ForMathlib.EisensteinSeries.summable
 import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
-import Modformsported.ModForms.Riemzeta
-
+import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 
 noncomputable section
 
@@ -275,21 +267,17 @@ theorem upp_half_not_ints (z : ℍ) (n : ℤ) : (z : ℂ) ≠ n :=
 
 lemma upper_half_plane_ne_int_pow_two (z : ℍ) (n : ℤ) : (z : ℂ) ^ 2 - n ^ 2 ≠ 0 := by
   intro h
-  have h1 : (z : ℂ) ^ 2 - n ^ 2 = (z - n) * (z + n) := by
-    norm_cast
-    simp
-    ring
-  norm_cast at *
-  rw [h1] at h
-  simp at h
-  cases' h with h h
-  have := upp_half_not_ints z n
-  rw [sub_eq_zero] at h
-  apply absurd h this
-  have := upp_half_not_ints z (-n)
-  rw [add_eq_zero_iff_eq_neg] at h
-  simp at *
-  apply absurd h this
+  rw [sq_sub_sq, mul_eq_zero] at h
+  cases h with
+  | inr h =>
+    have := upp_half_not_ints z n
+    rw [sub_eq_zero] at h
+    apply absurd h this
+  | inl h =>
+    have := upp_half_not_ints z (-n)
+    rw [add_eq_zero_iff_eq_neg] at h
+    simp only [uhc, Int.cast_neg, ne_eq] at *
+    apply absurd h this
 
 /-
 theorem abs_pow_two_upp_half (z : ℍ) (n : ℤ) : 0 < Complex.abs ((z : ℂ) ^ 2 - n ^ 2) :=
@@ -336,75 +324,62 @@ lemma pnat_inv_sub_squares (z : ℍ) :
 theorem aux_rie_sum (z : ℍ) (k : ℕ) (hk : 2 ≤ k) :
     Summable fun n : ℕ+ => Complex.abs (rfunct z ^ k * n ^ k)⁻¹ :=
   by
-  simp
-  rw [summable_mul_right_iff]
-  have hkk : 1 < (k : ℝ):= by norm_cast at *
-  have H := Real.summable_nat_rpow_inv.2 hkk
-  norm_cast at *
-  apply H.subtype
-  simp
-  intro H
-  exfalso
   have := rfunct_ne_zero z
-  exact this H
-
+  simp only [mul_inv_rev, map_mul, map_inv₀, map_pow, abs_natCast, abs_ofReal]
+  rw [summable_mul_right_iff]
+  · have hkk : 1 < (k : ℝ):= by norm_cast at *
+    have H := Real.summable_nat_rpow_inv.2 hkk
+    norm_cast at *
+    apply H.subtype
+  positivity
 
 lemma summable_iff_abs_summable  {α : Type} (f : α → ℂ) :
-Summable f ↔ Summable (fun (n: α) => Complex.abs (f n)) :=
- by
+    Summable f ↔ Summable (fun (n: α) => Complex.abs (f n)) := by
   apply summable_norm_iff.symm
 
 theorem aux_rie_int_sum (z : ℍ) (k : ℕ) (hk : 2 ≤ k) :
     Summable fun n : ℤ => Complex.abs (rfunct z ^ k * n ^ k)⁻¹ :=
   by
-  simp
+  simp only [mul_inv_rev, map_mul, map_inv₀, map_pow, abs_ofReal]
   rw [summable_mul_right_iff]
-  have hkk : 1 < (k : ℝ) := by
+  · have hkk : 1 < (k : ℝ) := by
+      norm_cast
+    have :=  Real.summable_abs_int_rpow hkk
+    convert this using 2
     norm_cast
-  have :=  Real.summable_abs_int_rpow hkk
-  simp at this
-  norm_cast at this
-  convert this
-  simp
-  norm_num
-  intro H
-  exfalso
+    simp
   have := rfunct_ne_zero z
-  exact this H
-
-
-
+  positivity
 
 theorem lhs_summable (z : ℍ) : Summable fun n : ℕ+ => 1 / ((z : ℂ) - n) + 1 / (z + n) :=
   by
   have h1 := pnat_inv_sub_squares z
   rw [h1]
   apply Summable.mul_left
-  apply (summable_iff_abs_summable _).2
+  apply summable_norm_iff.1
   simp
   have hs : Summable fun n : ℕ+ => (rfunct z ^ 2 * n ^ 2)⁻¹ :=
     by
-    have := aux_rie_sum z 2 ?_
+    have := aux_rie_sum z 2 le_rfl
     simp at this
     norm_cast at *
     simp at *
     apply this
-    rfl
   apply Summable.of_nonneg_of_le _ _ hs
-  intro b
-  rw [inv_nonneg]
-  apply Complex.abs.nonneg
+  · intro b
+    rw [inv_nonneg]
+    apply Complex.abs.nonneg
   intro b
   rw [inv_le_inv]
-  rw [mul_comm]
-  have := upbnd z b
-  norm_cast at *
-  simp at *
-  simpa using  (upper_half_plane_ne_int_pow_two z b)
+  · rw [mul_comm]
+    have := upbnd z b
+    norm_cast at *
+  · simp at *
+    simpa using  (upper_half_plane_ne_int_pow_two z b)
   apply mul_pos
-  norm_cast
-  apply pow_pos
-  apply rfunct_pos
+  · norm_cast
+    apply pow_pos
+    apply rfunct_pos
   have hb := b.2
   norm_cast
   apply pow_pos

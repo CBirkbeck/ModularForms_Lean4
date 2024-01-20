@@ -1,11 +1,9 @@
-import Mathlib.Data.Complex.Exponential
-import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
-import Mathlib.Analysis.Calculus.Series
-import Modformsported.ForMathlib.TsumLemmas
-import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import Modformsported.ForMathlib.ModForms2
-import Modformsported.ModForms.HolomorphicFunctions
+import Modformsported.ForMathlib.TsumLemmas
+import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
+import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.Topology.ContinuousFunction.Compact
 
 noncomputable section
 
@@ -245,7 +243,7 @@ theorem iter_deriv_comp_bound2 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
         intro n
         rw [←mul_assoc]
         norm_cast
-        simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal,
+        simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, map_pow, abs_ofReal,
           abs_norm, map_mul, mul_eq_mul_right_iff]
         constructor
         norm_cast
@@ -257,7 +255,7 @@ theorem iter_deriv_comp_bound2 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
     apply Summable.congr _ this
     rw [summable_mul_left_iff]
 
-    simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal, abs_norm]
+    simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, map_pow, abs_ofReal, abs_norm]
     apply summable_pow_mul_geometric_of_norm_lt_1
     simp only [norm_norm]
     apply hr
@@ -327,7 +325,7 @@ theorem iter_deriv_comp_bound3 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
         intro n
         rw [←mul_assoc]
         norm_cast
-        simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal,
+        simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, map_pow, abs_ofReal,
           abs_norm, map_mul, mul_eq_mul_right_iff]
         constructor
         norm_cast
@@ -339,7 +337,7 @@ theorem iter_deriv_comp_bound3 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
     apply Summable.congr _ this
     rw [summable_mul_left_iff]
 
-    simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal, abs_norm]
+    simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, map_pow, abs_ofReal, abs_norm]
     apply summable_pow_mul_geometric_of_norm_lt_1
     simp only [norm_norm]
     apply hr
@@ -459,7 +457,7 @@ theorem tsum_uexp_contDiffOn (k : ℕ) :
   refine' ⟨u, hu, _⟩
   intro n r
   have HU2 := hu2 n r
-  simp only [cpow_nat_cast, deriv_const_mul_field', map_mul, map_pow, Complex.abs_two, abs_ofReal,
+  simp only [deriv_const_mul_field', map_mul, map_pow, Complex.abs_two, abs_ofReal,
     abs_I, mul_one,abs_natCast, ge_iff_le]
   apply le_trans _ HU2
   apply le_of_eq

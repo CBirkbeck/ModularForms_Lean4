@@ -1,10 +1,6 @@
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.Analysis.Calculus.Deriv.Add
 import Mathlib.Analysis.Calculus.Deriv.Mul
-import Mathlib.RingTheory.Subring.Basic
-import Mathlib.Analysis.NormedSpace.Basic
-import Mathlib.Analysis.Analytic.Basic
-
 
 attribute [local instance] Classical.propDecidable
 

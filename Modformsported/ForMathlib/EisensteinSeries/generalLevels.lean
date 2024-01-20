@@ -10,6 +10,7 @@ import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
 import Mathlib.Data.Set.Pointwise.SMul
 import Mathlib.Analysis.Normed.Field.InfiniteSum
 import Modformsported.ForMathlib.EisensteinSeries.SL2lemmas
+import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
 
 noncomputable section
 
