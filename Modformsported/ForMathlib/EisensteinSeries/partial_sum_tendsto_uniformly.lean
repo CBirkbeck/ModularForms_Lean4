@@ -535,9 +535,7 @@ lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
     simp  [zpow_coe_nat, ne_eq, zero_pow_eq_zero, gt_iff_lt]
     right
     linarith
-    have hb: 1 ≤ b := by
-      exact Iff.mpr Nat.one_le_iff_ne_zero b0
-    rw [square_size' b hb]
+    rw [square_size' b0]
     field_simp
     ring_nf
     simp_rw [mul_assoc]
@@ -545,7 +543,7 @@ lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
       rw [Real.rpow_add]
       congr
       exact Real.rpow_neg_one ↑b
-      norm_cast
+      simpa [pos_iff_ne_zero] using b0
     norm_cast at *
     rw [hbb]
     ring_nf

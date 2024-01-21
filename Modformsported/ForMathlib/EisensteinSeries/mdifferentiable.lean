@@ -3,11 +3,7 @@ Copyright (c) 2023 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import Mathlib.Geometry.Manifold.MFDeriv.Basic
-import Mathlib.Analysis.Complex.LocallyUniformLimit
 import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
-import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
-import Mathlib.Analysis.Complex.UpperHalfPlane.Manifold
 
 open Complex
 
