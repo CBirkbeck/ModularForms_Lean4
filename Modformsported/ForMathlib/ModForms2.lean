@@ -56,6 +56,9 @@ noncomputable section
 def UpperHalfPlane.upperHalfSpace :=
   {z : ℂ | 0 < z.im}
 
+@[simp]
+theorem UpperHalfPlane.mem_upperHalfSpace (z : ℂ) : z ∈ upperHalfSpace ↔ 0 < z.im := .rfl
+
 theorem upper_half_plane_isOpen : IsOpen UpperHalfPlane.upperHalfSpace :=
   IsOpen.preimage Complex.continuous_im isOpen_Ioi
 

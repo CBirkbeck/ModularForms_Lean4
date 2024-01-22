@@ -523,7 +523,7 @@ theorem iter_div_aut_add (d : ℤ) (k : ℕ) :
       (fun z : ℂ => 1 / (z - d)) + fun z : ℂ => 1 / (z + d) :=
     by rfl
   rw [h1]
-  simp at *
+  simp only [Opens.coe_mk, one_div, Pi.add_apply] at *
   rw [iteratedDerivWithin_add hx upperHalfSpace.uniqueDiffOn]
   · have h2 := aut_iter_deriv d k hx
     have h3 := aut_iter_deriv' d k hx

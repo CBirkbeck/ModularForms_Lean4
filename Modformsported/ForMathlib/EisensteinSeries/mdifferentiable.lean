@@ -93,7 +93,8 @@ theorem holo_to_mdiff (f : ℍ' → ℂ) (hf : IsHolomorphicOn f) : MDifferentia
   simp [extendByZero]
 
   rw [←dite_eq_ite]
-  have hh : y.1 ∈ UpperHalfPlane.upperHalfSpace := by apply y.2
+  have hh := y.2
+  simp only [TopologicalSpace.Opens.mem_mk, UpperHalfPlane.mem_upperHalfSpace] at hh
   rw [dif_pos hh]
   have hH : ℍ'.1 ∈ 𝓝 ((chartAt ℂ x) x) :=
     by
@@ -148,59 +149,49 @@ theorem Eise'_has_deriv_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
     IsHolomorphicOn fun z : ℍ' => eise k z y := by
   rw [IsHolomorphicOn]
   intro z
-  by_cases hy : (y.1 : ℂ) * z.1 + y.2 ≠ 0
-  simp_rw [eise]; ring_nf
-  have := aux8 y.1 y.2 k z.1
+  by_cases (y.1 : ℂ) * z.1 + y.2 = 0
+  case neg hy =>
+    simp_rw [eise, one_div]
+    have := aux8 y.1 y.2 k z.1
 
-  have nz : (y.1 : ℂ) * z.1 + y.2 ≠ 0 := by apply hy
-  have hdd := dd2 y.1 y.2 (-k) z nz
+    have nz : (y.1 : ℂ) * z.1 + y.2 ≠ 0 := by apply hy
+    have hdd := dd2 y.1 y.2 (-k) z hy
 
-  have H :
-    HasDerivWithinAt (fun x : ℂ => (↑y.fst * x + ↑y.snd) ^ (-k))
-      (↑(-k) * (↑y.fst * ↑z + ↑y.snd) ^ (-k - 1) * ↑y.fst) UpperHalfPlane.upperHalfSpace ↑z := by
-      apply HasDerivAt.hasDerivWithinAt
-      convert hdd
-  simp at H
-  let fx := (-k * ((y.1 : ℂ) * z.1 + y.2) ^ (-k - 1) * y.1 : ℂ)
-  refine' ⟨fx, _⟩
-  rw [hasDerivWithinAt_iff_tendsto] at *
-  simp [zpow_neg, Algebra.id.smul_eq_mul, eq_self_iff_true, Ne.def, Int.cast_neg,
-    norm_eq_abs, sub_neg_eq_add] at *
-  rw [Metric.tendsto_nhdsWithin_nhds] at *
-  intro ε hε
-  have HH := H ε hε
-  obtain ⟨d1, hd1, hh⟩ := HH
-  refine' ⟨d1, hd1, _⟩
-  intro x hx hd
-  simp_rw [extendByZero]
-  simp [hx]
-  have H3 := hh hx hd
-  simp at H3
-  norm_cast at *
-
-  simp only [TopologicalSpace.Opens.carrier_eq_coe, TopologicalSpace.Opens.coe_mk]
-  have hz : y.1 = 0 ∧ y.2 = 0 := by
-    simp at hy
-    apply (linear_eq_zero_iff y.1 y.2 z).1 hy
-  simp_rw [eise]; rw [hz.1, hz.2]
-  simp only [one_div, add_zero, Int.cast_zero, MulZeroClass.zero_mul]
-  have zhol := zero_hol ℍ'
-  rw [IsHolomorphicOn] at zhol
-  have zhol' := zhol z
-  simp only at zhol'
-  have zk : ((0 : ℂ) ^ k)⁻¹ = 0 := by
-    simp only [inv_eq_zero]
-    norm_cast
-    apply zero_zpow
-    exact hkn
-  rw [zk]
-  exact zhol'
+    have H :
+      HasDerivWithinAt (fun x : ℂ => (↑y.fst * x + ↑y.snd) ^ (-k))
+        (↑(-k) * (↑y.fst * ↑z + ↑y.snd) ^ (-k - 1) * ↑y.fst) UpperHalfPlane.upperHalfSpace ↑z := by
+        apply HasDerivAt.hasDerivWithinAt
+        convert hdd
+    simp only [zpow_neg, Int.cast_neg, TopologicalSpace.Opens.carrier_eq_coe,
+      TopologicalSpace.Opens.coe_mk, neg_mul] at H
+    let fx := (-k * ((y.1 : ℂ) * z.1 + y.2) ^ (-k - 1) * y.1 : ℂ)
+    refine' ⟨fx, _⟩
+    rw [hasDerivWithinAt_iff_tendsto] at *
+    simp only [ne_eq, TopologicalSpace.Opens.carrier_eq_coe, TopologicalSpace.Opens.coe_mk,
+      zpow_neg, Int.cast_neg, neg_mul, norm_eq_abs, smul_eq_mul, mul_neg, sub_neg_eq_add] at *
+    rw [Metric.tendsto_nhdsWithin_nhds] at *
+    intro ε hε
+    have HH := H ε hε
+    obtain ⟨d1, hd1, hh⟩ := HH
+    refine' ⟨d1, hd1, _⟩
+    intro x hx hd
+    simp_rw [extendByZero]
+    simp only [UpperHalfPlane.mem_upperHalfSpace] at hx
+    simp only [UpperHalfPlane.mem_upperHalfSpace, hx, dite_eq_ite, ite_true, Subtype.coe_prop,
+      dist_zero_right, norm_mul, norm_inv, Real.norm_eq_abs, Complex.abs_abs]
+    have H3 := hh hx hd
+    simp only [dist_zero_right, norm_mul, norm_inv, Real.norm_eq_abs, Complex.abs_abs] at H3
+    norm_cast at *
+  case pos hy =>
+    have hz : y.1 = 0 ∧ y.2 = 0 := (linear_eq_zero_iff y.1 y.2 z).1 hy
+    simp_rw [eise, hz.1, hz.2, Int.cast_zero, zero_mul, add_zero, zero_zpow _ hkn, div_zero]
+    simpa only [IsHolomorphicOn] using zero_hol ℍ' z
 
 theorem Eise'_has_diff_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
     DifferentiableOn ℂ (extendByZero fun z : ℍ' => eise k z y) ℍ' :=
   by
   have := isHolomorphicOn_iff_differentiableOn ℍ' fun z : ℍ' => eise k z y
-  simp
+  simp only [TopologicalSpace.Opens.coe_mk]
   rw [this]
   apply Eise'_has_deriv_within_at
   apply hkn
@@ -237,40 +228,27 @@ theorem eisenSquare'_diff_on (k : ℤ) (hkn : k ≠ 0) (n : ℕ) : IsHolomorphic
   exact fun i _ => (isHolomorphicOn_iff_differentiableOn _ _).mpr (eisenSquare_diff_on k hkn i)
 
 theorem Eisenstein_is_holomorphic' (k : ℤ) (hk : 3 ≤ k) :
-    IsHolomorphicOn (↑ₕ (Eisenstein_tsum k)) :=
-  by
+    IsHolomorphicOn (↑ₕ (Eisenstein_tsum k)) := by
   rw [← isHolomorphicOn_iff_differentiableOn]
   apply diff_on_diff
   intro x
   have H := Eisen_partial_tends_to_uniformly_on_ball' k hk x
   obtain ⟨A, B, ε, hε, hball, _, hεB, hunif⟩ := H
-  use ε
   have hball2 : Metric.closedBall (↑x) ε ⊆ ℍ'.1 := by
-    apply ball_in_upper_half x A B ε  hε hεB hball
-  constructor
-  apply hε
-  constructor
-  intro w hw
-  have hwa : w ∈ ℍ'.1 := by apply hball2; simp; simp at hw ; apply le_trans hw.le; field_simp
-  apply hwa
-  have hkn : (k : ℤ) ≠ 0 := by norm_cast; linarith
+    apply ball_in_upper_half x A B ε hε hεB hball
+  refine ⟨ε, hε, Metric.ball_subset_closedBall.trans hball2, ?_⟩
+  have hkn : (k : ℤ) ≠ 0 := by norm_cast; rintro rfl; norm_num at hk
   let F : ℕ → ℂ → ℂ := fun n => extendByZero (eisenSquare' k n)
-  have hdiff : ∀ n : ℕ, DifferentiableOn ℂ (F n) (Metric.closedBall x ε) :=
-    by
-    intro n
+  have hdiff (n : ℕ) : DifferentiableOn ℂ (F n) (Metric.closedBall x ε) := by
     have := eisenSquare'_diff_on k hkn n
     rw [← isHolomorphicOn_iff_differentiableOn] at this
     apply this.mono
     apply hball2
-  rw [←tendstoLocallyUniformlyOn_iff_tendstoUniformlyOn_of_compact] at hunif
-  have mbb : Metric.ball x.1 ε ⊆  Metric.closedBall (x) ε := by exact Metric.ball_subset_closedBall
-  have :=TendstoLocallyUniformlyOn.mono hunif mbb
-  have := this.differentiableOn ?_ ?_
-  apply this
+  rw [←tendstoLocallyUniformlyOn_iff_tendstoUniformlyOn_of_compact (isCompact_closedBall _ _)] at hunif
+  have := TendstoLocallyUniformlyOn.mono hunif Metric.ball_subset_closedBall
+  apply this.differentiableOn ?_ Metric.isOpen_ball
   apply Filter.eventually_of_forall
-  apply (fun n : ℕ => (hdiff n).mono mbb)
-  exact Metric.isOpen_ball
-  exact isCompact_closedBall (x.1) ε
+  apply (fun n : ℕ => (hdiff n).mono Metric.ball_subset_closedBall)
 
 /-
 theorem Eisenstein_is_holomorphic (k : ℤ) (hk : 3 ≤ k) :
@@ -287,8 +265,5 @@ theorem Eisenstein_is_holomorphic (k : ℤ) (hk : 3 ≤ k) :
   -/
 
 theorem Eisenstein_series_is_mdiff (k : ℤ) (hk : 3 ≤ k) :
-    MDifferentiable 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ) (↑ₕ (Eisenstein_SIF ⊤ ↑k)) :=
-  by
-  have := Eisenstein_is_holomorphic' k hk
-  have h2 := (mdiff_iff_holo (↑ₕ (Eisenstein_SIF ⊤ k).toFun)).2 this
-  convert h2
+    MDifferentiable 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ) (↑ₕ (Eisenstein_SIF ⊤ ↑k)) := by
+  simpa using (mdiff_iff_holo (↑ₕ (Eisenstein_SIF ⊤ k).toFun)).2 (Eisenstein_is_holomorphic' k hk)
