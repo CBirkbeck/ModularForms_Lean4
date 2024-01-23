@@ -645,9 +645,9 @@ theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℤ) (h : 3 ≤ k) (z : �
   have Hba := ball_in_upper_half z A B ε hε hεB hball
   intro b hb x hx
   have hxx : x ∈ ℍ'.1 := by apply Hba; simp [hx]
-  have hf := ext_by_zero_apply ℍ' (Eisenstein_tsum k) ⟨x, hxx⟩
+  have hf := extendByZero_eq_of_mem (Eisenstein_tsum k) _ hxx
   let F : ℕ → ℍ' → ℂ := fun n => eisenSquare' k n
-  have hFb := ext_by_zero_apply ℍ' (F b) ⟨x, hxx⟩
+  have hFb := extendByZero_eq_of_mem (F b) _ hxx
   simp  at *
   rw [hf]
   rw [hFb]

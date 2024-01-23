@@ -33,50 +33,27 @@ theorem aux8 (a b k : ℤ) (x : ℂ) : (((a : ℂ) * x + b) ^ k)⁻¹ = ((a : �
   have := (zpow_neg ((a : ℂ) * x + b) k).symm
   norm_cast at *
 
-def powfun (k : ℤ) : ℂ → ℂ := fun x => x ^ k
-
-def trans (a b : ℤ) : ℂ → ℂ := fun x => a * x + b
-
 def ein (a b k : ℤ) : ℂ → ℂ := fun x => (a * x + b) ^ k
 
-theorem com (a b k : ℤ) : ein a b k = powfun k ∘ trans a b := by rfl
-
 theorem dd2 (a b k : ℤ) (x : ℂ) (h : (a : ℂ) * x + b ≠ 0) :
-    HasDerivAt (ein a b k) (k * (a * x + b) ^ (k - 1) * a : ℂ) x :=
-  by
-  rw [com]
+    HasDerivAt (ein a b k) (k * (a * x + b) ^ (k - 1) * a : ℂ) x := by
+  unfold ein
+  rw [← Function.comp_def (fun x : ℂ => x ^ k) (a * · + b)]
   apply HasDerivAt.comp
-
-  simp_rw [trans]
-
-  have := hasDerivAt_zpow k ((a : ℂ) * x + b ) ?_
-  norm_cast at *
-  simp [h]
-
-  apply HasDerivAt.add_const
-  have := HasDerivAt.const_mul (a : ℂ) (hasDerivAt_id x)
-  simp at *
-  exact this
+  · exact hasDerivAt_zpow k ((a : ℂ) * x + b ) (Or.inl h)
+  · simpa using (hasDerivAt_id' x).const_mul (a : ℂ) |>.add_const _
 
 variable (f : ℍ' → ℂ)
 
 open scoped Topology Manifold
 
-theorem ext_chart (z : ℍ') : (extendByZero f) z = (f ∘ ⇑(chartAt ℂ z).symm) z :=
-  by
-  classical!
-  simp_rw [chartAt]
-  simp_rw [extendByZero]
+theorem ext_chart (z : ℍ') : (extendByZero f) z = (f ∘ ⇑(chartAt ℂ z).symm) z := by
+  simp_rw [chartAt, extendByZero]
   simp only [TopologicalSpace.Opens.coe_mk, Subtype.coe_prop, Subtype.coe_eta, dite_eq_ite, ite_true,
     Function.comp_apply]
-  congr
   have hh : z.1 ∈ UpperHalfPlane.upperHalfSpace := by apply z.2
-  rw [← dite_eq_ite]
-  rw [dif_pos hh]
-  apply symm
-  congr
-  apply PartialHomeomorph.left_inv
-  simp  [TopologicalSpace.Opens.partialHomeomorphSubtypeCoe_source]
+  rw [if_pos hh]
+  erw [PartialHomeomorph.left_inv _ (mem_chart_source _ _)]
 
 theorem holo_to_mdiff (f : ℍ' → ℂ) (hf : IsHolomorphicOn f) : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f :=
   by
@@ -85,27 +62,28 @@ theorem holo_to_mdiff (f : ℍ' → ℂ) (hf : IsHolomorphicOn f) : MDifferentia
   simp only [MDifferentiableAt, differentiableWithinAt_univ, mfld_simps]
   intro x
   constructor
-  have hc := hf.continuousOn
-  simp at hc
-  rw [continuousOn_iff_continuous_restrict] at hc
-  convert hc.continuousAt
-  funext y
-  simp [extendByZero]
+  · have hc := hf.continuousOn
+    simp only [TopologicalSpace.Opens.carrier_eq_coe, TopologicalSpace.Opens.coe_mk] at hc
+    rw [continuousOn_iff_continuous_restrict] at hc
+    convert hc.continuousAt
+    funext y
+    simp only [Set.restrict_apply, extendByZero, UpperHalfPlane.mem_upperHalfSpace, Subtype.coe_eta,
+      dite_eq_ite]
 
-  rw [←dite_eq_ite]
-  have hh := y.2
-  simp only [TopologicalSpace.Opens.mem_mk, UpperHalfPlane.mem_upperHalfSpace] at hh
-  rw [dif_pos hh]
+    have hh := y.2
+    simp only [TopologicalSpace.Opens.mem_mk, UpperHalfPlane.mem_upperHalfSpace] at hh
+    rw [if_pos hh]
   have hH : ℍ'.1 ∈ 𝓝 ((chartAt ℂ x) x) :=
     by
-    simp_rw [Metric.mem_nhds_iff]; simp
-    simp_rw [chartAt]; have := upper_half_plane_isOpen; rw [Metric.isOpen_iff] at this
-    have ht := this x.1 x.2; simp at ht ; exact ht
+    simp_rw [Metric.mem_nhds_iff, chartAt]
+    have := upper_half_plane_isOpen
+    rw [Metric.isOpen_iff] at this
+    exact this x.1 x.2
   apply DifferentiableOn.differentiableAt _ hH
   apply DifferentiableOn.congr hf
   intro z hz
   have HH := ext_chart f (⟨z, hz⟩ : ℍ')
-  simp at HH
+  simp only [TopologicalSpace.Opens.coe_mk, Function.comp_apply] at HH
   simp only [Function.comp_apply]
   simp_rw [HH]
   norm_cast
@@ -126,8 +104,7 @@ theorem mdiff_to_holo (f : ℍ' → ℂ) (hf : MDifferentiable 𝓘(ℂ) 𝓘(�
   simp_rw [Filter.eventuallyEq_iff_exists_mem]
   refine' ⟨ℍ', _⟩
   constructor
-  simp_rw [Metric.mem_nhds_iff]; simp
-  simp_rw [chartAt];
+  simp_rw [Metric.mem_nhds_iff, chartAt]
   have := upper_half_plane_isOpen
   rw [Metric.isOpen_iff] at this
   have ht := this x hx
@@ -138,10 +115,7 @@ theorem mdiff_to_holo (f : ℍ' → ℂ) (hf : MDifferentiable 𝓘(ℂ) 𝓘(�
   apply ext_chart f (⟨y, hy⟩ : ℍ')
 
 theorem mdiff_iff_holo (f : ℍ' → ℂ) : MDifferentiable 𝓘(ℂ) 𝓘(ℂ) f ↔ IsHolomorphicOn f :=
-  by
-  constructor
-  apply mdiff_to_holo f
-  apply holo_to_mdiff f
+  ⟨mdiff_to_holo f, holo_to_mdiff f⟩
 
 section mdifferentiable_lemmas
 
@@ -193,8 +167,7 @@ theorem Eise'_has_diff_within_at (k : ℤ) (y : ℤ × ℤ) (hkn : k ≠ 0) :
   have := isHolomorphicOn_iff_differentiableOn ℍ' fun z : ℍ' => eise k z y
   simp only [TopologicalSpace.Opens.coe_mk]
   rw [this]
-  apply Eise'_has_deriv_within_at
-  apply hkn
+  apply Eise'_has_deriv_within_at _ _ hkn
 
 theorem eisenSquare_diff_on (k : ℤ) (hkn : k ≠ 0) (n : ℕ) :
     IsHolomorphicOn fun z : ℍ' => eisenSquare k n z :=
