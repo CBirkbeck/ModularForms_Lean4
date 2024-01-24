@@ -1,21 +1,15 @@
-import Mathlib.Data.Complex.Exponential
 import Mathlib.Analysis.Calculus.Series
-import Mathlib.Analysis.Calculus.ParametricIntervalIntegral
-import Mathlib.Data.Complex.Basic
+import Mathlib.Analysis.InnerProductSpace.Basic
 
 noncomputable section
 
-open TopologicalSpace Set Metric Filter Function Complex MeasureTheory
+open TopologicalSpace Set Metric Filter Function Complex
 
 open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
 
 section coe_lems
 
-theorem embedding_coer : Embedding (Complex.ofReal' : ℝ → ℂ) :=
-  by
-  apply Isometry.embedding
-  have := isometry_ofReal
-  convert this
+theorem embedding_coer : Embedding (Complex.ofReal' : ℝ → ℂ) := isometry_ofReal.embedding
 
 
 @[norm_cast]

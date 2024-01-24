@@ -3,14 +3,10 @@ Copyright (c) 2023 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import Modformsported.ForMathlib.ModForms2
 import Modformsported.ForMathlib.EisensteinSeries.summable
-import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
-import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
-import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
-import Mathlib.NumberTheory.ModularForms.Basic
-import Mathlib.Analysis.Calculus.Deriv.ZPow
+import Modformsported.ForMathlib.ModForms2
 import Modformsported.ModForms.HolomorphicFunctions
+import Modformsported.ModForms.WeierstrassMTest
 import Mathlib.NumberTheory.ZetaFunction
 
 open Complex
@@ -41,44 +37,23 @@ lemma uhc (z : ℍ) : (z : ℂ) = z.1 := by rfl
 
 theorem div_self_add_eq_one_div_div_add_one (a b : ℝ) (h : a ≠ 0) : a / (a + b) = 1 / (b / a + 1) :=
   by
-  have : b / a + 1 = (b + a) / a := by
-    ring_nf;
-    simp [h]
-    ring
-  rw [this]
-  simp
   rw [add_comm]
+  field_simp
 
 theorem aux4 (a b : ℝ) (h : 0 < b) :
     (b ^ 4 + (a * b) ^ 2) / (a ^ 2 + b ^ 2) ^ 2 = 1 / ((a / b) ^ 2 + 1) :=
   by
-  have h1 : (a ^ 2 + b ^ 2) ^ 2 = (a ^ 2 + b ^ 2) * (a ^ 2 + b ^ 2) := by
-    ring
-  rw [h1]
-  have h2 : b ^ 4 + (a * b) ^ 2 = b ^ 2 * (a ^ 2 + b ^ 2) := by
-    norm_cast
-    ring
-  rw [h2]
-  rw [mul_div_assoc]
-  simp only [one_div, div_pow, div_self_mul_self']
   field_simp
-
-
-lemma abs_even_pow_eq_self (a : ℝ) (n : ℕ) (h2 : Even n) : |a|^n = a^n := by
-    norm_cast
-    have := _root_.abs_pow a n
-    rw [←this]
-    rw [abs_eq_self]
-    exact Even.pow_nonneg h2 a
+  ring
 
 section upperHalfSpaceslices
 
 def upperHalfSpaceSlice (A B : ℝ) :=
-  {z : ℍ' | Complex.abs z.1.1 ≤ A ∧ Complex.abs z.1.2 ≥ B}
+  {z : ℍ' | Complex.abs z.1.1 ≤ A ∧ B ≤ Complex.abs z.1.2}
 
 /-- Canonical point in the `A B` slice-/
 def lbpoint (A B : ℝ) (h : 0 < B) : ℍ :=
-  ⟨⟨A, B⟩, by simp; exact h⟩
+  ⟨⟨A, B⟩, by simp [h]⟩
 
 instance sliceCoe (A B : ℝ) : CoeOut (upperHalfSpaceSlice A B) ℍ :=
   ⟨fun x : upperHalfSpaceSlice A B => (x : ℍ')⟩
@@ -89,50 +64,38 @@ theorem slice_mem (A B : ℝ) (z : ℍ) :
 
 instance nonemp (A B : ℝ) (ha : 0 ≤ A) (hb : 0 < B) : Nonempty (upperHalfSpaceSlice A B) :=
   by
-  let z := (⟨A, B⟩ : ℂ)
-  rw [← exists_true_iff_nonempty]
-  simp
-  use z
-  use hb
-  simp [upperHalfSpaceSlice]
-  constructor
-  have := abs_eq_self.2 ha
-  rw [this]
-  apply le_abs_self
+  refine ⟨⟨(⟨A, B⟩ : ℂ), ?_⟩, ?_⟩
+  · simp [UpperHalfPlane.upperHalfSpace, hb]
+  · simp [upperHalfSpaceSlice, le_abs_self, abs_eq_self.2 ha]
 
 theorem ball_in_upper_half (z : ℍ') (A B ε : ℝ) (hε : 0 < ε) (hBε : ε < B)
-    (h : Metric.closedBall z ε ⊆ upperHalfSpaceSlice A B) : Metric.closedBall z.1 ε ⊆ ℍ'.1 :=
+    (h : Metric.closedBall z ε ⊆ upperHalfSpaceSlice A B) :
+    Metric.closedBall z.1 ε ⊆ UpperHalfPlane.upperHalfSpace :=
   by
   intro x hx
-  simp at *
-  have hg : 0 < x.2 := by
-    rw [Metric.closedBall] at h
-    have hz : z ∈ upperHalfSpaceSlice A B := by apply h; simp [hε.le]
-    simp at hz
-    have hzB : B ≤ Complex.abs z.1.2 := by
-      have := hz.2
-      linarith
-    rw [dist_eq_norm] at hx
-    simp at hx
-    have h3 := le_trans (abs_im_le_abs (x - z.1)) hx
-    rw [sub_im] at h3
-    rw [_root_.abs_sub_comm] at h3
-    have h33 : -ε ≤ -|z.1.im - x.im| := by simp; apply h3
-    simp at hzB
-    have h6 : B - ε ≤ |z.1.im| - |z.1.im - x.im| := by simp at *; linarith
-    by_contra hc
-    simp at hc
-    have hcc : 0 ≤ -x.im := by linarith
-    have hzc : |z.1.im - x.im| = z.1.im - x.im :=
-      by
-      apply _root_.abs_of_nonneg; apply add_nonneg
-      have := UpperHalfPlane.im_pos z
-      apply this.le; apply hcc
-    have hzp : |z.1.im| = z.1.im := by apply _root_.abs_of_nonneg (UpperHalfPlane.im_pos z).le
-    simp_rw [hzc, hzp] at h6
-    simp only [sub_sub_cancel] at h6
-    linarith
-  apply hg
+  simp only [Metric.mem_closedBall] at hx
+  simp only [UpperHalfPlane.upperHalfSpace, Set.mem_setOf_eq]
+  rw [Metric.closedBall] at h
+  have hz : z ∈ upperHalfSpaceSlice A B := by apply h; simp [hε.le]
+  have hzB : B ≤ Complex.abs z.1.2 := hz.2
+  rw [dist_eq_norm, norm_eq_abs] at hx
+  have h3 := le_trans (abs_im_le_abs (x - z.1)) hx
+  rw [sub_im, abs_sub_comm] at h3
+  have h33 : -ε ≤ -|z.1.im - x.im| := by simp only [neg_le_neg_iff]; apply h3
+  simp only [abs_ofReal] at hzB
+  have h6 : B - ε ≤ |z.1.im| - |z.1.im - x.im| := by simp at *; linarith
+  by_contra! hc
+  have hcc : 0 ≤ -x.im := by exact neg_nonneg.mpr hc
+  have hzc : |z.1.im - x.im| = z.1.im - x.im := by
+    apply _root_.abs_of_nonneg
+    rw [sub_eq_add_neg]
+    apply add_nonneg
+    · have := UpperHalfPlane.im_pos z
+      apply this.le
+    · apply hcc
+  have hzp : |z.1.im| = z.1.im := _root_.abs_of_nonneg (UpperHalfPlane.im_pos z).le
+  simp_rw [hzc, hzp, sub_sub_cancel] at h6
+  linarith
 
 theorem closedBall_in_slice (z : ℍ') :
     ∃ A B ε : ℝ, 0 < ε ∧ 0 < B ∧ Metric.closedBall z ε ⊆ upperHalfSpaceSlice A B ∧ 0 ≤ A ∧ ε < B :=
@@ -140,108 +103,85 @@ theorem closedBall_in_slice (z : ℍ') :
   let e := 3⁻¹ * Complex.abs z.1.2
   let a := Complex.abs z.1.2 + Complex.abs z
   let b := Complex.abs z.1.2 - e
-  refine ⟨a, b, e, ?_⟩
-  constructor
-  simp only [abs_ofReal, gt_iff_lt, inv_pos, zero_lt_three,mul_pos_iff_of_pos_left, abs_pos, ne_eq]
-  apply UpperHalfPlane.im_ne_zero z
-  constructor
-  ring_nf
-  simp [UpperHalfPlane.coe_im]
-  apply mul_pos
-  swap
-  nlinarith
-  simp only [abs_pos, ne_eq]
-  apply UpperHalfPlane.im_ne_zero z
-  constructor
-  intro x
-  simp only [abs_ofReal, Metric.mem_closedBall, TopologicalSpace.Opens.coe_mk]
-  intro hxz
-  have d1 : dist x z = dist (x : ℂ) (z : ℂ) := Subtype.dist_eq x z
-  rw [d1] at hxz
-  rw [dist_eq_norm] at hxz
-  simp only [norm_eq_abs] at hxz
-  have := Complex.abs.sub_le (x : ℂ) (z : ℂ) 0
-  simp only [sub_zero] at this
-  constructor
-  have hre := le_trans (abs_re_le_abs x.1) this
-  simp  [UpperHalfPlane.coe_im, UpperHalfPlane.coe_re] at *
-  apply le_trans hre
-  simp only [add_le_add_iff_right]
-  apply le_trans hxz
-  have hxim : 0 ≤ |(z : ℂ).im| := by apply _root_.abs_nonneg
-  ring_nf
-  simp only [Int.ofNat_eq_coe, Nat.cast_one, Int.cast_one, Nat.cast_ofNat, gt_iff_lt, abs_pos, ne_eq,
-    ge_iff_le]
-  linarith
-  have ineq1 := _root_.abs_sub_le z.1.2 x.1.2 0
-  simp  [sub_zero, UpperHalfPlane.coe_im] at ineq1
-  simp only [abs_ofReal, ge_iff_le, tsub_le_iff_right]
-  apply le_trans ineq1
-  rw [add_comm]
-  simp only [add_le_add_iff_left]
-  have ki := le_trans (abs_im_le_abs (x.1 - z.1)) hxz
-  rw [sub_im] at ki
-  rw [_root_.abs_sub_comm] at ki
-  convert ki
-  constructor
-  apply add_nonneg
-  apply Complex.abs.nonneg
-  apply Complex.abs.nonneg
-  ring_nf
-  rw [← sub_pos]
-  have hr : 0 < Complex.abs z.1.im := by simp; apply UpperHalfPlane.im_ne_zero z
-  have hxim : 0 < |(z : ℂ).im| := by norm_cast at *
-  simp only [abs_ofReal, Int.ofNat_eq_coe, Nat.cast_ofNat, Int.int_cast_ofNat, Nat.cast_one, Int.cast_one,
-    sub_pos, gt_iff_lt, abs_pos, ne_eq]
-  linarith
+  refine ⟨a, b, e, ?_, ?_, ?_, ?_, ?_⟩
+  · simp only [abs_ofReal, gt_iff_lt, inv_pos, zero_lt_three,mul_pos_iff_of_pos_left, abs_pos, ne_eq]
+    apply UpperHalfPlane.im_ne_zero z
+  · ring_nf
+    simp [UpperHalfPlane.coe_im]
+    apply mul_pos
+    · rw [abs_pos, ne_eq]
+      apply UpperHalfPlane.im_ne_zero z
+    · norm_num
+  · intro x
+    simp only [abs_ofReal, Metric.mem_closedBall, TopologicalSpace.Opens.coe_mk]
+    intro hxz
+    have d1 : dist x z = dist (x : ℂ) (z : ℂ) := Subtype.dist_eq x z
+    rw [d1] at hxz
+    rw [dist_eq_norm] at hxz
+    simp only [norm_eq_abs] at hxz
+    have := Complex.abs.sub_le (x : ℂ) (z : ℂ) 0
+    simp only [sub_zero] at this
+    simp only [upperHalfSpaceSlice, abs_ofReal, tsub_le_iff_right, Set.mem_setOf_eq]
+    constructor
+    · have hre := le_trans (abs_re_le_abs x.1) this
+      apply le_trans hre
+      simp only [add_le_add_iff_right]
+      apply le_trans hxz
+      apply mul_le_of_le_one_left (abs_nonneg _)
+      norm_num
+    have ineq1 := _root_.abs_sub_le z.1.2 x.1.2 0
+    simp only [sub_zero] at ineq1
+    apply le_trans ineq1
+    rw [add_comm]
+    simp only [add_le_add_iff_left]
+    have ki := le_trans (abs_im_le_abs (x.1 - z.1)) hxz
+    rwa [sub_im, abs_sub_comm] at ki
+  · apply add_nonneg
+    · apply Complex.abs.nonneg
+    · apply Complex.abs.nonneg
+  · ring_nf
+    rw [← sub_pos]
+    have hr : 0 < Complex.abs z.1.im := by simp; apply UpperHalfPlane.im_ne_zero z
+    have hxim : 0 < |(z : ℂ).im| := by norm_cast at *
+    simp only [abs_ofReal, Int.ofNat_eq_coe, Nat.cast_ofNat, Int.int_cast_ofNat, Nat.cast_one, Int.cast_one,
+      sub_pos, gt_iff_lt, abs_pos, ne_eq]
+    linarith
 
 open Set Metric UpperHalfPlane
 
 theorem mem_uhs (x : ℂ) : x ∈ ℍ'.1 ↔ 0 < x.im := by rfl
 
 theorem compact_in_slice' (S : Set ℂ) (hne : Set.Nonempty S) (hs : S ⊆ ℍ') (hs2 : IsCompact S) :
-    ∃ A B : ℝ, 0 < B ∧ Set.image (Set.inclusion hs) ⊤ ⊆ upperHalfSpaceSlice A B :=
+    ∃ A B : ℝ, 0 < B ∧ Set.image (Set.inclusion hs) univ ⊆ upperHalfSpaceSlice A B :=
   by
   have hcts : ContinuousOn (fun t => Complex.im t) S := by apply Continuous.continuousOn; continuity
   have := IsCompact.exists_isMinOn hs2 hne hcts
   obtain ⟨b, hb, HB⟩ := this
-  have hh : IsCompact (Set.image (inclusion hs) ⊤) :=
-    by
+  have hh : IsCompact (Set.image (inclusion hs) univ) := by
     apply IsCompact.image_of_continuousOn
-    simp; exact isCompact_iff_isCompact_univ.mp hs2;
-    apply Continuous.continuousOn
-    apply  (continuous_inclusion hs)
+    · exact isCompact_iff_isCompact_univ.mp hs2
+    · exact continuous_inclusion hs |>.continuousOn
   let t := (⟨Complex.I, by simp⟩ : ℍ)
   have hb2 := _root_.Bornology.IsBounded.subset_ball_lt hh.isBounded 0 t
-  obtain ⟨r, hr, hr2⟩ := hb2
-  refine' ⟨r + 1, b.im, _⟩
-  constructor
-  have hbim := hs hb
-  simp at hbim
-  rw [mem_uhs b] at hbim
-  exact hbim
+  obtain ⟨r, -, hr2⟩ := hb2
+  refine ⟨r + 1, b.im, ?_, ?_⟩
+  · simpa only [TopologicalSpace.Opens.coe_mk, UpperHalfPlane.mem_upperHalfSpace] using hs hb
   intro z hz
-  simp  [slice_mem, coe_re, coe_im, ge_iff_le, top_eq_univ,
-    image_univ, range_inclusion] at *
+  simp only [TopologicalSpace.Opens.coe_mk, image_univ, range_inclusion, mem_setOf_eq] at *
+  rw [slice_mem]
+  simp only [abs_ofReal, ge_iff_le]
   constructor
-  have hr3 := hr2 hz
-  simp  at hr3
-  norm_cast at *
-  apply le_trans (abs_re_le_abs z)
-  have := Complex.abs.sub_le (z : ℂ) (t : ℂ) 0
-  simp only [sub_zero, Subtype.coe_mk, abs_I] at this
-  have hds : dist z t = Complex.abs ((z : ℂ) - t) := by rfl
-  rw [hds] at hr3
-  apply le_trans this
-  simp only [add_le_add_iff_right]
-  apply hr3.le
-  have hbz := HB  hz
-  simp at *
-  convert hbz
-  simp only [abs_eq_self]
-  have hhf := hs hz
-  rw [mem_uhs _] at hhf
-  apply hhf.le
+  · apply le_trans (abs_re_le_abs z)
+    have := Complex.abs.sub_le (z : ℂ) (t : ℂ) 0
+    simp only [sub_zero, Subtype.coe_mk, abs_I] at this
+    apply le_trans this
+    simp only [add_le_add_iff_right]
+    have hr3 := hr2 hz
+    simp_rw [mem_ball, Subtype.dist_eq, dist_eq] at hr3
+    apply hr3.le
+  have hbz := HB hz
+  simp only [mem_setOf_eq] at hbz
+  apply hbz.trans <| le_abs_self _
 
 /-- The sum of Eise over the `square`'s-/
 def eisenSquare (k : ℤ) (n : ℕ) : ℍ → ℂ := fun z => ∑ x in square n, eise k z x
@@ -276,61 +216,24 @@ theorem rfunct_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfSpaceS
   have zpos := UpperHalfPlane.im_pos z.1
   have hz := z.2
   rw [slice_mem] at hz
-  simp at *
-  rw [rfunct]
-  rw [rfunct]
-  simp
+  simp only [abs_ofReal, ge_iff_le] at hz
+  rw [rfunct, rfunct]
+  apply min_le_min
+  · dsimp only
+    rw [Real.sqrt_sq_eq_abs, Real.sqrt_sq_eq_abs, abs_eq_self.mpr h.le]
+    exact hz.2
   simp_rw [lb]
-  constructor
-  rw [Real.sqrt_le_sqrt_iff]
-  left
-  norm_cast
-  have := pow_le_pow_left h.le hz.2 2
-  simp at *
-  norm_cast at *
-  apply pow_two_nonneg
-  right
   rw [Real.sqrt_le_sqrt_iff]
   have := aux4 (z : ℂ).re (z : ℂ).im zpos
-  norm_cast at *
-  simp at this
-  rw [this]
-  have t3 := aux4 A B h
-  norm_cast at *
-  rw [t3]
-  ring_nf
-  rw [inv_le_inv]
-  simp
-  apply mul_le_mul
-  have t2 := abs_even_pow_eq_self (z : ℂ).re 2
-  simp only [TopologicalSpace.Opens.coe_mk, Nat.cast_ofNat, Real.rpow_two, forall_true_left, uhc] at t2
-  norm_cast at t2
-  rw [←t2]
-  apply pow_le_pow_left (abs_nonneg _) hz.1 2
-  simp
-  rw [inv_le_inv]
-  have t2 := abs_even_pow_eq_self (z : ℂ).im 2
-  simp only [TopologicalSpace.Opens.coe_mk, Nat.cast_ofNat, Real.rpow_two, forall_true_left, uhc] at t2
-  norm_cast at t2
-  rw [←t2]
-  apply pow_le_pow_left h.le hz.2 2
-  simp
-  apply pow_pos
-  norm_cast at *
-  nlinarith
-  rw [inv_nonneg]
-  apply pow_two_nonneg
-  apply pow_two_nonneg
-  nlinarith
-  nlinarith
-  apply div_nonneg
-  apply add_nonneg
-  norm_cast
-  apply pow_nonneg ?_ 4
-  apply zpos.le
-  simpa using (pow_two_nonneg  ((z : ℂ).re *(z : ℂ).im ))
-  norm_cast
-  apply pow_two_nonneg
+  simp only [uhc, div_pow, one_div] at this
+  rw [this, aux4 A B h, one_div, inv_le_inv, add_le_add_iff_right, div_pow]
+  apply div_le_div (sq_nonneg _)
+  · simpa [even_two.pow_abs] using pow_le_pow_left (abs_nonneg _) hz.1 2
+  · positivity
+  · simpa [even_two.pow_abs] using pow_le_pow_left h.le hz.2 2
+  · positivity
+  · positivity
+  · positivity
 
 theorem rfunctbound (k : ℕ) (A B : ℝ) (hb : 0 < B) (z : upperHalfSpaceSlice A B) :
     8 / rfunct (z : ℍ') ^ k * Complex.abs (riemannZeta (k - 1)) ≤
@@ -587,9 +490,7 @@ lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
     simp  [zpow_coe_nat, ne_eq, zero_pow_eq_zero, gt_iff_lt]
     right
     linarith
-    have hb: 1 ≤ b := by
-      exact Iff.mpr Nat.one_le_iff_ne_zero b0
-    rw [square_size' b hb]
+    rw [square_size' b0]
     field_simp
     ring_nf
     simp_rw [mul_assoc]
@@ -597,7 +498,7 @@ lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
       rw [Real.rpow_add]
       congr
       exact Real.rpow_neg_one ↑b
-      norm_cast
+      simpa [pos_iff_ne_zero] using b0
     norm_cast at *
     rw [hbb]
     ring_nf
@@ -734,10 +635,7 @@ theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℤ) (h : 3 ≤ k) (z : �
   by
   have H := Eisen_partial_tends_to_uniformly_on_ball k h z
   obtain ⟨A, B, ε, hε, hball, hB, hεB, hunif⟩ := H
-  use A
-  use B
-  use ε
-  simp only [hε, hball, hB, hεB, true_and_iff]
+  refine ⟨A, B, ε, hε, hball, hB, hεB, ?_⟩
   simp_rw [Metric.tendstoUniformlyOn_iff] at *
   intro ε' hε'
   have h2 := hunif ε' hε'
@@ -747,9 +645,9 @@ theorem Eisen_partial_tends_to_uniformly_on_ball' (k : ℤ) (h : 3 ≤ k) (z : �
   have Hba := ball_in_upper_half z A B ε hε hεB hball
   intro b hb x hx
   have hxx : x ∈ ℍ'.1 := by apply Hba; simp [hx]
-  have hf := ext_by_zero_apply ℍ' (Eisenstein_tsum k) ⟨x, hxx⟩
+  have hf := extendByZero_eq_of_mem (Eisenstein_tsum k) _ hxx
   let F : ℕ → ℍ' → ℂ := fun n => eisenSquare' k n
-  have hFb := ext_by_zero_apply ℍ' (F b) ⟨x, hxx⟩
+  have hFb := extendByZero_eq_of_mem (F b) _ hxx
   simp  at *
   rw [hf]
   rw [hFb]

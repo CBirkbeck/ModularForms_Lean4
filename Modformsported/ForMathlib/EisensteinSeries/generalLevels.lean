@@ -9,6 +9,8 @@ import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups
 import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
 import Mathlib.Data.Set.Pointwise.SMul
 import Mathlib.Analysis.Normed.Field.InfiniteSum
+import Modformsported.ForMathlib.EisensteinSeries.SL2lemmas
+import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
 
 noncomputable section
 
@@ -103,18 +105,18 @@ def vec_equiv_2 : (⋃ n : ℕ, int_vec_gcd_n n)  ≃  (⋃ n : ℕ, ({n} : Set 
     simp
     simp
     apply Int.mul_ediv_cancel'
-    exact Int.gcd_dvd_left (v.1 0) (v.1 1)
+    exact Int.gcd_dvd_left
     apply Int.mul_ediv_cancel'
-    exact Int.gcd_dvd_right (v.1 0) (v.1 1)
+    exact Int.gcd_dvd_right
   right_inv := by
     intro v
     ext i
     fin_cases i
     simp
     apply Int.mul_ediv_cancel'
-    exact Int.gcd_dvd_left (v.1 0) (v.1 1)
+    exact Int.gcd_dvd_left
     apply Int.mul_ediv_cancel'
-    exact Int.gcd_dvd_right (v.1 0) (v.1 1)
+    exact Int.gcd_dvd_right
 
 def top_equiv : ((Fin 2) → ℤ) ≃ (⋃ n : ℕ, ({n} : Set ℕ)  • (lvl_N_congr' 1 0 0)) := by
   apply Equiv.trans vec_gcd_vec_equiv vec_equiv_2
@@ -150,55 +152,6 @@ lemma smul_disjoint ( i j : ℕ) (hij : i ≠ j) : Disjoint (({i} : Set ℕ)  �
 section
 
 variable {n : Type u} [DecidableEq n] [Fintype n] {R : Type v} [CommRing R]
-
-def SpecialLinearGroup.transpose ( A:  Matrix.SpecialLinearGroup n R)  :
-  Matrix.SpecialLinearGroup n R  := by
-  use A.1.transpose
-  rw [Matrix.det_transpose]
-  apply A.2
-
-
-
-def gcd_one_to_SL (a b : ℤ) (hab : a.gcd b =1) : SL(2, ℤ) := by
-  use !![a, -Int.gcdB a b;  b, Int.gcdA a b]
-  simp
-  have := Int.gcd_eq_gcd_ab a b
-  rw [hab] at this
-  simp at this
-  rw [this]
-  ring
-
-def gcd_one_to_SL_bot_row (a b : ℤ) (hab : a.gcd b =1) : SL(2, ℤ) := by
-  use !![ Int.gcdB a b,  -Int.gcdA a b; a, b]
-  simp
-  have := Int.gcd_eq_gcd_ab a b
-  rw [hab] at this
-  simp at this
-  rw [this]
-  ring
-
-def SL_to_gcd_one_fst_col (A: SL(2,ℤ)) : (A.1 0 0).gcd (A.1 0 1) = 1 := by
-    rw [Int.gcd_eq_one_iff_coprime]
-    rw [IsCoprime]
-    use (A.1 1 1)
-    use -(A.1 1 0)
-    have T:= EisensteinSeries.det_SL_eq_one A
-    norm_cast at *
-    ring_nf
-    rw [mul_comm]
-    norm_cast at *
-    have : A.1 0 1 * A.1 1 0 = A.1 1 0 * A.1 0 1 := by ring
-    rw [this] at T
-    exact T
-
-lemma SL2_gcd (a b : ℤ) (hab : a.gcd b = 1) (A : SL(2,ℤ)) :
-  (Matrix.vecMul (![a,b]) A.1 0).gcd (Matrix.vecMul (![a,b]) A.1 1) = 1  := by
-    let C := SpecialLinearGroup.transpose ((gcd_one_to_SL a b hab)) *A
-    have := SL_to_gcd_one_fst_col C
-    simp at this
-    rw [SpecialLinearGroup.transpose, gcd_one_to_SL] at this
-    simp at this
-    norm_cast at this
 
 def GammaSLinv (N : ℕ)  (a b : ℤ )  (A  : SL(2,ℤ)) (f : lvl_N_congr' N a b) :
   (lvl_N_congr' N (Matrix.vecMul (![a,b]) A.1 0) (Matrix.vecMul (![a,b]) A.1 1)) := by
@@ -361,7 +314,7 @@ lemma GammaSLleftinv (N : ℕ)  (a b : ℤ ) (A  : SL(2,ℤ))(v : lvl_N_congr' N
 lemma Gammaleftinv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (v : lvl_N_congr' N a b) :
   Gammainv N a b γ⁻¹ (Gammainv N a b γ v) = v := by
   simp_rw [Gammainv]
-  simp only [SubgroupClass.coe_inv,  Matrix.vecMul_vecMul]
+  simp only [InvMemClass.coe_inv,  Matrix.vecMul_vecMul]
   apply Subtype.ext
   simp
   rw [Matrix.mul_adjugate]
@@ -371,7 +324,7 @@ lemma Gammaleftinv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (v : lvl_N_congr' N 
 lemma Gammarightinv (N : ℕ)  (a b : ℤ )  (γ  : Gamma N) (v : lvl_N_congr' N a b) :
   Gammainv N a b γ (Gammainv N a b γ⁻¹ v) = v := by
   simp_rw [Gammainv]
-  simp only [SubgroupClass.coe_inv,  Matrix.vecMul_vecMul]
+  simp only [InvMemClass.coe_inv,  Matrix.vecMul_vecMul]
   apply Subtype.ext
   simp
   rw [Matrix.adjugate_mul]
@@ -603,12 +556,12 @@ def nsmul_equiv (n : ℕ) :  smullset (n+1) 1 0 0 ≃ (lvl_N_congr' 1 0 0) where
 
 lemma mul_gcd_div_gcd_cancel_a (a b : ℤ) : (a.gcd b) * (a / (a.gcd b)) = a := by
   refine Int.mul_ediv_cancel' ?H
-  exact Int.gcd_dvd_left a b
+  exact Int.gcd_dvd_left
 
 
 lemma mul_gcd_div_gcd_cancel_b (a b : ℤ) : (a.gcd b) * (b / (a.gcd b)) = b := by
   refine Int.mul_ediv_cancel' ?H
-  exact Int.gcd_dvd_right a b
+  exact Int.gcd_dvd_right
 
 lemma feise_smul2 (k : ℤ)  (z : ℍ) (v : (Fin 2) → ℤ):
   vector_eise k z v =
@@ -1020,7 +973,8 @@ lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N : ℕ) (k : ℤ) (hk : 3 �
     (extendByZero (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1) atTop ℍ' := by
   have := Eisenstein_lvl_N_tendstolocunif2 a b k N hk
   simp at *
-  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact] at *
+  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact upper_half_plane_isOpen]
+  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact isOpen_univ] at this
   simp at this
   intro K hk1 hk2
   let S := Set.image (Set.inclusion hk1) ⊤
@@ -1043,13 +997,11 @@ lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N : ℕ) (k : ℤ) (hk : 3 �
   have H6 := H5 J hJ ⟨r, hk1 hr⟩ hr
   simp at *
   convert H6
-  have t1:= ext_by_zero_apply ℍ' (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1 ⟨r, hk1 hr⟩
+  have t1:= extendByZero_eq_of_mem (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1 _ (hk1 hr)
   exact t1
-  have t2 := ext_by_zero_apply ℍ'
-    (fun (z : ℍ) => ∑ x in J, eise k z  ((piFinTwoEquiv fun _ => ℤ).1 x)) ⟨r, hk1 hr⟩
+  have t2 := extendByZero_eq_of_mem
+    (fun (z : ℍ) => ∑ x in J, eise k z  ((piFinTwoEquiv fun _ => ℤ).1 x)) _ (hk1 hr)
   exact t2
-  simp
-  apply upper_half_plane_isOpen
 
 local notation "↑ₕ" => holExtn
 

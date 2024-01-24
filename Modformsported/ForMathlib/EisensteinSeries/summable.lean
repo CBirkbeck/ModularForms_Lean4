@@ -1,19 +1,13 @@
-import Modformsported.ForMathlib.ModForms2
 import Modformsported.ForMathlib.TsumLemmas
 import Modformsported.ForMathlib.EisensteinSeries.basic
-import Modformsported.ForMathlib.EisensteinSeries.lattice_functions
 import Modformsported.ForMathlib.EisensteinSeries.bounds
-import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
-import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
-import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
-import Mathlib.NumberTheory.ModularForms.Basic
-import Mathlib.Analysis.Calculus.Deriv.ZPow
-import Modformsported.ModForms.Riemzeta
-import Modformsported.ModForms.WeierstrassMTest
+import Modformsported.ForMathlib.EisensteinSeries.lattice_functions
+import Mathlib.Analysis.NormedSpace.FiniteDimension
+import Mathlib.Analysis.PSeries
 
 open Complex
 
-open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold
+open scoped BigOperators NNReal Classical Filter UpperHalfPlane
 
 open ModularForm
 
@@ -239,7 +233,7 @@ theorem AbsEise_bounded_on_square (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
     linarith
   have := Finset.sum_le_sum BO
   simp only [Finset.sum_const, map_mul Complex.abs, nsmul_eq_mul] at this
-  rw [square_size' n] at this
+  rw [square_size' n0] at this
   norm_cast at this
   have ne :
     (8 * n * (Complex.abs (rfunct z ^ k) * (n ^ k : ℝ))⁻¹ : ℝ) =
@@ -272,8 +266,6 @@ theorem AbsEise_bounded_on_square (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
   convert this
   lift k to ℕ using hk0
   simp
-  have hhh := Nat.pos_of_ne_zero n0
-  linarith
 
 
 /-

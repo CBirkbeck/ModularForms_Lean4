@@ -9,7 +9,6 @@ import Mathlib.Data.Set.Pointwise.SMul
 import Mathlib.Analysis.Normed.Field.InfiniteSum
 import Modformsported.ForMathlib.EisensteinSeries.SL2lemmas
 
-
 noncomputable section
 
 open ModularForm UpperHalfPlane TopologicalSpace Set
@@ -62,7 +61,7 @@ theorem moebius_aux_lem (k : ℤ) (a b c d i1 i2 : ℂ) (z : ℍ) (h : c * z + d
   field_simp
 
 -- How the Eise function changes under the Moebius action
-theorem eise_Moebius (k : ℤ) (z : ℍ) (A : SL(2,ℤ)) (i : (Fin 2 → ℤ)) :
+theorem eise_Moebius' (k : ℤ) (z : ℍ) (A : SL(2,ℤ)) (i : (Fin 2 → ℤ)) :
     eise k (A • z) i =
       (A.1 1 0 * z.1 + A.1 1 1) ^ k * eise k z (moebiusEquiv A i) := by
   simp only [eise, specialLinearGroup_apply, algebraMap_int_eq, eq_intCast, ofReal_int_cast,
@@ -95,7 +94,7 @@ lemma gammaMoebiusFun_eq_Moebequiv (N : ℕ) (a b : ℤ ) (γ : Gamma N) (f : ga
 
 lemma gamma_left_inv (N : ℕ) (a b : ℤ ) (γ : Gamma N) (v : gammaSet N a b) :
   gammaMoebiusFun N a b γ⁻¹ (gammaMoebiusFun N a b γ v) = v := by
-  simp_rw [gammaMoebiusFun, SubgroupClass.coe_inv, Matrix.vecMul_vecMul]
+  simp_rw [gammaMoebiusFun, InvMemClass.coe_inv, Matrix.vecMul_vecMul]
   apply Subtype.ext
   simp only [Matrix.SpecialLinearGroup.coe_inv]
   rw [Matrix.mul_adjugate, γ.1.2]
@@ -104,7 +103,7 @@ lemma gamma_left_inv (N : ℕ) (a b : ℤ ) (γ : Gamma N) (v : gammaSet N a b) 
 lemma gamma_right_inv (N : ℕ) (a b : ℤ ) (γ : Gamma N) (v : gammaSet N a b) :
   gammaMoebiusFun N a b γ (gammaMoebiusFun N a b γ⁻¹ v) = v := by
   simp_rw [gammaMoebiusFun]
-  simp only [SubgroupClass.coe_inv, Matrix.vecMul_vecMul]
+  simp only [InvMemClass.coe_inv, Matrix.vecMul_vecMul]
   apply Subtype.ext
   simp only [Matrix.SpecialLinearGroup.coe_inv]
   rw [Matrix.adjugate_mul, γ.1.2]
@@ -137,7 +136,7 @@ def eisensteinLevelNSIF (N : ℕ) (k a b : ℤ) : SlashInvariantForm (Gamma N) k
       ←tsum_mul_left]
     apply tsum_congr
     intro v
-    have := eise_Moebius k x A v
+    have := eise_Moebius' k x A v
     simp at this
     rw [this]
     congr

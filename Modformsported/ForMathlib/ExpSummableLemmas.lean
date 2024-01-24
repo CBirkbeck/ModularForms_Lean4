@@ -1,10 +1,9 @@
-import Mathlib.Data.Complex.Exponential
-import Mathlib.Analysis.Calculus.IteratedDeriv
-import Mathlib.Analysis.Calculus.Series
+import Modformsported.ForMathlib.ModForms2
 import Modformsported.ForMathlib.TsumLemmas
-import Modformsported.ForMathlib.IteratedDerivLemmas
-import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
+import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.Topology.ContinuousFunction.Compact
 
 noncomputable section
 
@@ -244,7 +243,7 @@ theorem iter_deriv_comp_bound2 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
         intro n
         rw [←mul_assoc]
         norm_cast
-        simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal,
+        simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, map_pow, abs_ofReal,
           abs_norm, map_mul, mul_eq_mul_right_iff]
         constructor
         norm_cast
@@ -256,7 +255,7 @@ theorem iter_deriv_comp_bound2 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
     apply Summable.congr _ this
     rw [summable_mul_left_iff]
 
-    simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal, abs_norm]
+    simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, map_pow, abs_ofReal, abs_norm]
     apply summable_pow_mul_geometric_of_norm_lt_1
     simp only [norm_norm]
     apply hr
@@ -326,7 +325,7 @@ theorem iter_deriv_comp_bound3 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
         intro n
         rw [←mul_assoc]
         norm_cast
-        simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal,
+        simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, map_pow, abs_ofReal,
           abs_norm, map_mul, mul_eq_mul_right_iff]
         constructor
         norm_cast
@@ -338,7 +337,7 @@ theorem iter_deriv_comp_bound3 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
     apply Summable.congr _ this
     rw [summable_mul_left_iff]
 
-    simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, cpow_nat_cast, map_pow, abs_ofReal, abs_norm]
+    simp only [BoundedContinuousFunction.norm_mkOfCompact, Nat.cast_pow, map_pow, abs_ofReal, abs_norm]
     apply summable_pow_mul_geometric_of_norm_lt_1
     simp only [norm_norm]
     apply hr
@@ -458,7 +457,7 @@ theorem tsum_uexp_contDiffOn (k : ℕ) :
   refine' ⟨u, hu, _⟩
   intro n r
   have HU2 := hu2 n r
-  simp only [cpow_nat_cast, deriv_const_mul_field', map_mul, map_pow, Complex.abs_two, abs_ofReal,
+  simp only [deriv_const_mul_field', map_mul, map_pow, Complex.abs_two, abs_ofReal,
     abs_I, mul_one,abs_natCast, ge_iff_le]
   apply le_trans _ HU2
   apply le_of_eq
@@ -487,22 +486,26 @@ theorem iter_der_within_add (k : ℕ+) (x : ℍ') :
         (fun z => ↑π * I - (2 * ↑π * I) • ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z)) ℍ' x =
       -(2 * ↑π * I) * ∑' n : ℕ, (2 * ↑π * I * n) ^ (k : ℕ) * Complex.exp (2 * ↑π * I * n * x) :=
   by
-  rw [iter_der_within_const_neg k k.2 x]
+  have := iteratedDerivWithin_const_neg x.2 UpperHalfPlane.upperHalfSpace.uniqueDiffOn k.2 (↑π * I)
+    (f := fun z => (2 * ↑π * I) • ∑' (n : ℕ), cexp (2 * ↑π * I * ↑n * z))
+  erw [this]
   simp
   have :=
-    iter_der_within_neg' k x fun z => (2 * ↑π * I) • ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z)
+    iteratedDerivWithin_neg' x.2 UpperHalfPlane.upperHalfSpace.uniqueDiffOn (n := k)
+      (f := fun z => (2 * ↑π * I) • ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z))
   simp at this
-  rw [this]
-  rw [neg_eq_neg_one_mul]
-  have t2 :=
-    iter_der_within_const_mul' k x (2 * ↑π * I) fun z => ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z)
-  simp at t2
-  rw [t2]
-  simp
-  have h3 := exp_series_ite_deriv_uexp'' k x
-  simp at h3
-  left
-  apply h3
-  apply tsum_uexp_contDiffOn k
-  have := ContDiffOn.const_smul (2 * ↑π * I) (tsum_uexp_contDiffOn k)
-  simpa using this
+  erw [this]
+  · rw [neg_eq_neg_one_mul]
+    have t2 :=
+      iteratedDerivWithin_const_mul x.2 UpperHalfPlane.upperHalfSpace.uniqueDiffOn (n := k)
+        (2 * ↑π * I) (f := fun z => ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z))
+    simp at t2
+    rw [t2]
+    · simp
+      have h3 := exp_series_ite_deriv_uexp'' k x
+      simp at h3
+      left
+      apply h3
+    · apply tsum_uexp_contDiffOn k
+  · have := ContDiffOn.const_smul (2 * ↑π * I) (tsum_uexp_contDiffOn k)
+    simpa using this

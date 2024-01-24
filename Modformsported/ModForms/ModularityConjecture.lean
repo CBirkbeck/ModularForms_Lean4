@@ -1,13 +1,10 @@
-import Modformsported.ForMathlib.ModForms2
-import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups
 import Mathlib.AlgebraicGeometry.EllipticCurve.Weierstrass
-import Mathlib.MeasureTheory.Integral.CircleTransform
+import Mathlib.MeasureTheory.Integral.IntervalIntegral
+import Mathlib.NumberTheory.ModularForms.Basic
+import Mathlib.NumberTheory.ModularForms.CongruenceSubgroups
 
-open ModularForm Complex
-
-open scoped Interval Real ModularForm
-
-local notation "ℍ" => UpperHalfPlane
+open Complex
+open scoped UpperHalfPlane Real ModularForm
 
 noncomputable section
 
@@ -29,26 +26,24 @@ def setOfPointsModN (E : EllipticCurve ℚ) (n : ℕ) :=
       x ^ 3 + ratRed E.a₂ n * x ^ 2 + ratRed E.a₄ n * x + ratRed E.a₆ n}
 
 /-- The set of point `mod n` is finite.-/
-instance apFintype (E : EllipticCurve ℚ) (p : ℕ+) : Fintype (setOfPointsModN E p) :=
-  by
+instance apFintype (E : EllipticCurve ℚ) (p : ℕ+) : Fintype (setOfPointsModN E p) := by
   rw [setOfPointsModN]
   apply Subtype.fintype _
 
-
 def EllipticCurve.ap (E : EllipticCurve ℚ) (p : ℕ) : ℕ :=
-  p - Cardinal.toNat  (Cardinal.mk (setOfPointsModN E p))
-
+  p - Cardinal.toNat (Cardinal.mk (setOfPointsModN E p))
 
 def IsNormalisedEigenform {N : ℕ} {k : ℤ} (f : CuspForm (Gamma0 N) k) : Prop :=
   a_[1]f = 1 ∧
-    ∀ (m n : ℕ) (hmn : m.Coprime n),
+    ∀ (m n : ℕ), m.Coprime n →
       a_[n * m]f = a_[n]f * a_[m]f ∧
-        ∀ (p r : ℕ) (hp : p.Prime) (hr : 2 ≤ r) (HpN : (N : ZMod p) ≠ 0),
+        ∀ (p r : ℕ), p.Prime → 2 ≤ r → (N : ZMod p) ≠ 0 →
           a_[p ^ r]f = a_[p]f * a_[p ^ (r - 1)]f - p ^ (k - 1) * a_[p ^ (r - 2)]f ∧
-            ∀ (p r : ℕ) (hp : p.Prime) (hr : 2 ≤ r) (HpN : (N : ZMod p) = 0),
+            ∀ (p r : ℕ), p.Prime → 2 ≤ r → (N : ZMod p) = 0 →
               a_[p ^ r]f = (a_[p]f) ^ r
 
-theorem modularity_conjecture (E : EllipticCurve ℚ) :
-    ∃ (N : ℕ+) (f : CuspForm (Gamma0 N) 2) (hf : IsNormalisedEigenform f),
-      ∀ (p : ℕ) (hp : p.Prime) (hN : (N : ZMod p) ≠ 0), a_[p]f = E.ap p :=
-  by sorry
+def ModularityConjecture (E : EllipticCurve ℚ) :=
+  ∃ (N : ℕ+) (f : CuspForm (Gamma0 N) 2), IsNormalisedEigenform f ∧
+    ∀ (p : ℕ), p.Prime → (N : ZMod p) ≠ 0 → a_[p]f = E.ap p
+
+theorem modularity_conjecture (E : EllipticCurve ℚ) : ModularityConjecture E := sorry

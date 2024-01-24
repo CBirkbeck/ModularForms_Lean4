@@ -40,7 +40,6 @@ lemma neg_moeb_eq_id (z : ℍ) : (-1 : SL(2,ℤ)) • z = z := by
   simp
   simp_rw [coeGLl (-1 : SL(2,ℤ)) ]
   simp
-  field_simp
 
 theorem slash_action_eqn'' (k : ℤ) (Γ : Subgroup SL(2, ℤ)) [SlashInvariantFormClass F Γ k] (f : F)
     (γ : Γ) (z : ℍ) : f (γ • z) = ((γ.1 1 0 : ℂ) * z + (γ.1 1 1 : ℂ)) ^ k * f z := by
@@ -53,7 +52,7 @@ lemma SlashInvariantForm_neg_one_in_lvl_odd_wt_eq_zero
   (k : ℤ) (hkO : Odd k) (Γ : Subgroup SL(2, ℤ)) (hΓ : -1 ∈ Γ)
   [SlashInvariantFormClass F Γ k] [AddCommMonoid F] [Module ℤ F] (hzero : ⇑(0 : F) = 0) (f : F):
     f = 0 := by
-  apply FunLike.ext
+  apply DFunLike.ext
   intro z
   have hO : (-1 :ℂ)^k = -1 := by
     apply hkO.neg_one_zpow
@@ -85,7 +84,7 @@ lemma toSIF_injective (k : ℤ) (Γ : Subgroup SL(2, ℤ)): Function.Injective
   (@toSlashInvariantForm Γ k) := by
   intro f g
   intro h
-  rw [FunLike.ext_iff] at *
+  rw [DFunLike.ext_iff] at *
   intro z
   have hz := h z
   simpa using hz

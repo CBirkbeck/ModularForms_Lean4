@@ -3,18 +3,12 @@ Copyright (c) 2023 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import Modformsported.ForMathlib.ModForms2
-import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
-import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
+import Mathlib.NumberTheory.ModularForms.SlashInvariantForms
 import Mathlib.Analysis.Complex.UpperHalfPlane.Topology
-import Mathlib.NumberTheory.ModularForms.Basic
-import Mathlib.Analysis.Calculus.Deriv.ZPow
-import Mathlib.Analysis.SpecialFunctions.Pow.Complex
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 open Complex Real ModularForm SlashInvariantForm
 
-open scoped BigOperators NNReal Classical Filter UpperHalfPlane Manifold
+open scoped BigOperators NNReal Classical Filter UpperHalfPlane
 
 local notation "SL(" n ", " R ")" => Matrix.SpecialLinearGroup (Fin n) R
 
@@ -97,7 +91,7 @@ theorem eise_Moebius (k : ℤ) (z : ℍ) (A : SL(2,ℤ)) (i : ℤ × ℤ) :
       (A.1 1 0 * z.1 + A.1 1 1) ^ k * eise k z (MoebiusEquiv A i) :=
   by
   simp_rw [eise, UpperHalfPlane.specialLinearGroup_apply]
-  simp only [algebraMap_int_eq, eq_intCast, ofReal_int_cast, UpperHalfPlane.coe_mk, cpow_int_cast,
+  simp only [algebraMap_int_eq, eq_intCast, ofReal_int_cast, UpperHalfPlane.coe_mk,
     one_div]
   norm_cast
   have hc := Moebius_aux_lem k (A 0 0) (A 0 1) (A 1 0) (A 1 1) i.fst i.snd z ?_

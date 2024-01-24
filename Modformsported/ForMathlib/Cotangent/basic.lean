@@ -3,9 +3,6 @@ Copyright (c) 2023 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as  described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import Mathlib.Data.Complex.Exponential
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.Analysis.Complex.UpperHalfPlane.Basic
 import Modformsported.ForMathlib.ExpSummableLemmas
 
 noncomputable section
@@ -103,7 +100,7 @@ theorem geom_series_mul_add (x : R) (h : ‖x‖ < 1) : x * ∑' i : ℕ, x ^ i 
   have hh := @geom_sum_succ _ _ x
   rw [hh]
   simp only [add_sub_cancel]
-  exact Finset.mul_sum
+  rw [Finset.mul_sum]
 
 theorem geom_series_mul_one_add (x : R) (h : ‖x‖ < 1) :
     (1 + x) * ∑' i : ℕ, x ^ i = 2 * ∑' i : ℕ, x ^ i - 1 :=

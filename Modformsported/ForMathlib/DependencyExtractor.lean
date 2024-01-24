@@ -96,8 +96,6 @@ def getUsedConstantGraph (names : List Name) (depth : Nat) : TermElabM (List (Na
   return state.g.toList
 
 
-#synth ToJson (List (Name × List Name))
-
 def writeJsonToFile (filePath : String) (json : Json) : IO Unit := do
   let jsonString := toString json
   IO.FS.withFile filePath IO.FS.Mode.write fun handle => do
@@ -153,4 +151,4 @@ def serializeAndWriteToFile (source : Source) (depth : Nat) : TermElabM Unit := 
 -- Edit and uncomment one of the lines below to get your .json file created in the current workspace folder
 
 -- #eval serializeAndWriteToFile (Source.Constant `(@Nat.add_zero)) 7
-#eval serializeAndWriteToFile (Source.Namespace "EisensteinSeries") 2
+-- #eval serializeAndWriteToFile (Source.Namespace "EisensteinSeries") 2
