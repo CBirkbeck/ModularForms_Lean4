@@ -52,8 +52,7 @@ def moebiusEquiv (A : SL(2,ℤ)) : (Fin 2 → ℤ) ≃ (Fin 2 → ℤ) :=
 
 theorem moebius_aux_lem (k : ℤ) (a b c d i1 i2 : ℂ) (z : ℍ) (h : c * z + d ≠ 0) :
     ((i1 * ((a * z + b) / (c * z + d)) + i2) ^ k)⁻¹ =
-      (c * z + d) ^ k * (((i1 * a + i2 * c ) * z + ( i1 * b + i2 * d)) ^ k)⁻¹ :=
-  by
+      (c * z + d) ^ k * (((i1 * a + i2 * c ) * z + ( i1 * b + i2 * d)) ^ k)⁻¹ := by
   have h1 : i1 * ((a * z + b) / (c * z + d)) + i2 = i1 * (a * z + b) / (c * z + d) + i2 := by ring;
   have h2 : i1 * (a * z + b) / (c * z + d) + i2 = i1 * (a * z + b) / (c * z + d) + i2 := by ring;
   have h3 := div_add' (i1 * (a * z + b)) i2 (c * z + d) h
@@ -64,8 +63,7 @@ theorem moebius_aux_lem (k : ℤ) (a b c d i1 i2 : ℂ) (z : ℍ) (h : c * z + d
 -- How the Eise function changes under the Moebius action
 theorem eise_Moebius' (k : ℤ) (z : ℍ) (A : SL(2,ℤ)) (i : (Fin 2 → ℤ)) :
     eise k (A • z) i =
-      (A.1 1 0 * z.1 + A.1 1 1) ^ k * eise k z (moebiusEquiv A i) :=
-  by
+      (A.1 1 0 * z.1 + A.1 1 1) ^ k * eise k z (moebiusEquiv A i) := by
   simp only [eise, specialLinearGroup_apply, algebraMap_int_eq, eq_intCast, ofReal_int_cast,
     one_div, moebiusEquiv, SpecialLinearGroup.transpose, EquivLike.coe_coe,
     Matrix.SpecialLinearGroup.toLin'_apply, Matrix.toLin'_apply', Matrix.mulVecLin_transpose,

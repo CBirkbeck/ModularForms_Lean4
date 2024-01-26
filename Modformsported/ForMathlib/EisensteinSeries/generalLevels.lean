@@ -10,6 +10,7 @@ import Modformsported.ForMathlib.EisensteinSeries.partial_sum_tendsto_uniformly
 import Mathlib.Data.Set.Pointwise.SMul
 import Mathlib.Analysis.Normed.Field.InfiniteSum
 import Modformsported.ForMathlib.EisensteinSeries.SL2lemmas
+import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
 
 noncomputable section
 
@@ -972,7 +973,8 @@ lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N : ℕ) (k : ℤ) (hk : 3 �
     (extendByZero (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1) atTop ℍ' := by
   have := Eisenstein_lvl_N_tendstolocunif2 a b k N hk
   simp at *
-  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact] at *
+  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact upper_half_plane_isOpen]
+  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact isOpen_univ] at this
   simp at this
   intro K hk1 hk2
   let S := Set.image (Set.inclusion hk1) ⊤
@@ -995,13 +997,11 @@ lemma  Eisenstein_lvl_N_tendstolocunif (a b: ℤ) (N : ℕ) (k : ℤ) (hk : 3 �
   have H6 := H5 J hJ ⟨r, hk1 hr⟩ hr
   simp at *
   convert H6
-  have t1:= ext_by_zero_apply ℍ' (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1 ⟨r, hk1 hr⟩
+  have t1:= extendByZero_eq_of_mem (Eisenstein_SIF_lvl_N N (k : ℤ) a b).1 _ (hk1 hr)
   exact t1
-  have t2 := ext_by_zero_apply ℍ'
-    (fun (z : ℍ) => ∑ x in J, eise k z  ((piFinTwoEquiv fun _ => ℤ).1 x)) ⟨r, hk1 hr⟩
+  have t2 := extendByZero_eq_of_mem
+    (fun (z : ℍ) => ∑ x in J, eise k z  ((piFinTwoEquiv fun _ => ℤ).1 x)) _ (hk1 hr)
   exact t2
-  simp
-  apply upper_half_plane_isOpen
 
 local notation "↑ₕ" => holExtn
 

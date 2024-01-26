@@ -3,9 +3,6 @@ Copyright (c) 2022 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck, David Loeffler
 -/
-import Mathlib.Algebra.DirectSum.Ring
-import Mathlib.NumberTheory.Modular
-import Mathlib.Analysis.Complex.UpperHalfPlane.FunctionsBoundedAtInfty
 import Mathlib.NumberTheory.ModularForms.Basic
 
 section SLModularAction
@@ -58,6 +55,9 @@ noncomputable section
 /-- The upper half space as a subset of `ℂ` which is convenient sometimes.-/
 def UpperHalfPlane.upperHalfSpace :=
   {z : ℂ | 0 < z.im}
+
+@[simp]
+theorem UpperHalfPlane.mem_upperHalfSpace (z : ℂ) : z ∈ upperHalfSpace ↔ 0 < z.im := .rfl
 
 theorem upper_half_plane_isOpen : IsOpen UpperHalfPlane.upperHalfSpace :=
   IsOpen.preimage Complex.continuous_im isOpen_Ioi
