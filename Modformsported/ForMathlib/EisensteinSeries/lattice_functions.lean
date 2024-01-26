@@ -30,14 +30,6 @@ lemma square_disj {n : ℤ} : Disjoint (square (n+1)) (Icc (-n) n ×ˢ Icc (-n) 
   rintro x ⟨-, hx⟩
   simp [hx]
 
--- copied from the nat version, probably it already exists somewhere?
-lemma Int.le_add_one_iff {m n : ℤ} : m ≤ n + 1 ↔ m ≤ n ∨ m = n + 1 :=
-  ⟨fun h =>
-    match eq_or_lt_of_le h with
-    | Or.inl h => Or.inr h
-    | Or.inr h => Or.inl <| Int.lt_add_one_iff.1 h,
-    Or.rec (fun h => le_trans h <| Int.le.intro 1 rfl) le_of_eq⟩
-
 lemma square_union {n : ℤ} :
     square (n+1) ∪ Icc (-n) n ×ˢ Icc (-n) n = Icc (-(n+1)) (n+1) ×ˢ Icc (-(n+1)) (n+1) := by
   ext x
