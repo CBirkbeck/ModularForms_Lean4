@@ -28,7 +28,7 @@ theorem lowerBound1_pos (z : ℍ) : 0 < lowerBound1 z := by
 
 /-- This function is used to give an upper bound on Eisenstein series-/
 def r (z : ℍ) : ℝ :=
-  min (Real.sqrt (z.1.2 ^ (2))) (Real.sqrt (lowerBound1 z))
+  min (z.1.2) (Real.sqrt (lowerBound1 z))
 
 theorem r_pos (z : ℍ) : 0 < r z :=
   by
@@ -85,12 +85,13 @@ theorem auxlem1 (z : ℍ) (δ : ℝ) : r z ≤ Complex.abs ((z : ℂ) + δ)  := 
     rw [Complex.abs]
     simp
     have H1 :
-      Real.sqrt ((z : ℂ).im ^ 2) ≤
+        ((z : ℂ).im) ≤
         Real.sqrt (((z : ℂ).re + δ) * ((z : ℂ).re + δ) + (z : ℂ).im * (z : ℂ).im) :=
       by
-      rw [Real.sqrt_le_sqrt_iff]
+      rw [Real.le_sqrt' ]
       norm_cast
-      nlinarith; nlinarith
+      nlinarith
+      apply z.2
     simp at *
     left
     norm_cast
@@ -135,14 +136,14 @@ theorem baux2_ (z : ℍ) (k : ℤ) : Complex.abs (r z ^ k) = r z ^ k := by
   rw [←this]
   simp  [abs_ofReal, cpow_nat_cast, map_pow, _root_.abs_abs, Real.rpow_nat_cast]
 
-theorem auxlem3_ (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
-    Complex.abs ((r z : ℂ) ^ k) ≤ Complex.abs (((z : ℂ) + (x.2 : ℂ) / (x.1 : ℂ)) ^ k) :=
+theorem auxlem3_ (z : ℍ) (x : Fin 2 → ℤ) (k : ℤ) (hk : 0 ≤ k) :
+    Complex.abs ((r z : ℂ) ^ k) ≤ Complex.abs (((z : ℂ) + (x 1 : ℂ) / (x 0 : ℂ)) ^ k) :=
   by
   norm_cast
   have H1 : Complex.abs (r z ^ k) = r z ^ k := by apply baux2_
   norm_cast at H1
   rw [H1]
-  have := auxlem1 z (x.2 / x.1 : ℝ)
+  have := auxlem1 z (x 1 / x 0 : ℝ)
   norm_cast at this
   lift k to ℕ using hk
   norm_cast at *
@@ -153,17 +154,14 @@ theorem auxlem3_ (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
   simp at *
   convert this
 
-
-
-
-theorem auxlem4 (z : ℍ) (x : ℤ × ℤ) (k : ℤ) (hk : 0 ≤ k) :
-    Complex.abs ((r z : ℂ) ^ k) ≤ Complex.abs (((x.1 : ℂ) / (x.2 : ℂ) * (z : ℂ) + 1) ^ k) :=
+theorem auxlem4 (z : ℍ) (x : Fin 2 → ℤ) (k : ℤ) (hk : 0 ≤ k) :
+    Complex.abs ((r z : ℂ) ^ k) ≤ Complex.abs (((x 0 : ℂ) / (x 1 : ℂ) * (z : ℂ) + 1) ^ k) :=
   by
   norm_cast
   have H1 : Complex.abs (r z ^ k) = r z ^ k := by apply baux2_
   norm_cast at H1
   rw [H1]
-  have := auxlem2_ z (x.1 / x.2 : ℝ) 1 one_ne_zero
+  have := auxlem2_ z (x 0 / x 1 : ℝ) 1 one_ne_zero
   norm_cast at this
   lift k to ℕ using hk
   norm_cast at *
