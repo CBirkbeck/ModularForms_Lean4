@@ -107,26 +107,6 @@ theorem summable_pow_mul_exp {k : ℕ} (z : ℍ) :
   apply exp_upperHalfPlane_lt_one
   simp
 
-
-theorem exp_iter_deriv (n m : ℕ) :
-    (iteratedDeriv n fun s : ℂ => Complex.exp (2 * ↑π * I * m * s)) = fun t =>
-      (2 * ↑π * I * m) ^ n * Complex.exp (2 * ↑π * I * m * t) :=
-  by
-  induction' n with n IH
-  simp
-  funext x
-  rw [iteratedDeriv_succ]
-  rw [IH]
-  simp
-  rw [deriv_cexp ]
-  rw [deriv_const_mul]
-  simp
-  norm_cast
-  rw [pow_succ]
-  ring
-  exact differentiableAt_id'
-  apply differentiableAt_id'.const_mul
-
 theorem iteratedDerivWithin_of_is_open (n m : ℕ) :
     EqOn (iteratedDerivWithin n (fun s : ℂ => Complex.exp (2 * ↑π * I * m * s)) ℍ')
       (iteratedDeriv n fun s : ℂ => Complex.exp (2 * ↑π * I * m * s)) ℍ' :=
@@ -151,12 +131,12 @@ theorem exp_iter_deriv_within (n m : ℕ) :
   apply EqOn.trans (iteratedDerivWithin_of_is_open n m)
   rw [EqOn]
   intro x _
-  apply congr_fun (exp_iter_deriv n m)
+  apply congr_fun (iteratedDeriv_cexp_const_mul ..)
 
 theorem exp_iter_deriv_apply (n m : ℕ) (x : ℂ) :
     ((iteratedFDeriv ℂ n fun s : ℂ => Complex.exp (2 * ↑π * I * m * s)) x fun i : Fin n => 1) =
       (2 * ↑π * I * m) ^ n * Complex.exp (2 * ↑π * I * m * x) :=
-  by apply congr_fun (exp_iter_deriv n m)
+  by apply congr_fun (iteratedDeriv_cexp_const_mul ..)
 
 def uexp (n : ℕ) : ℍ' → ℂ := fun z => Complex.exp (2 * ↑π * I * z * n)
 
