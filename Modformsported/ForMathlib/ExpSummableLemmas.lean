@@ -16,69 +16,30 @@ open scoped Interval Real NNReal ENNReal Topology BigOperators Nat Classical
 local notation "ℍ'" =>
   (TopologicalSpace.Opens.mk UpperHalfPlane.upperHalfSpace upper_half_plane_isOpen)
 
-theorem exp_upperHalfPlane_lt_one (z : ℍ) : Complex.abs (Complex.exp (2 * ↑π * I * z)) < 1 :=
-  by
-  rw [← UpperHalfPlane.re_add_im]
-  rw [mul_add]
-  rw [exp_add]
-  simp only [AbsoluteValue.map_mul]
-  have h1 : Complex.abs (exp (2 * ↑π * I * ↑z.re)) = Complex.abs (exp (2 * ↑π * ↑z.re * I)) := by
-    ring_nf
-  rw [h1]
-  norm_cast
-  have := abs_exp_ofReal_mul_I (2 * ↑π * ↑z.re)
-  simp at this
-  norm_cast at *
-  rw [this]
-  simp only [ofReal_mul,  ofReal_one, one_mul]
-  ring_nf
-  simp only [I_sq, mul_neg, mul_one]
-  norm_cast
-  simp  [Real.abs_exp, Real.exp_lt_one_iff, Right.neg_neg_iff]
-  apply mul_pos
-  apply Real.two_pi_pos
-  exact z.2
-
-
+theorem exp_upperHalfPlane_lt_one (z : ℍ) : Complex.abs (Complex.exp (2 * ↑π * I * z)) < 1 := by
+  simp only [abs_exp, mul_re, re_ofNat, ofReal_re, im_ofNat, ofReal_im, mul_zero, sub_zero, I_re,
+    mul_im, zero_mul, add_zero, I_im, mul_one, sub_self, coe_re, coe_im, zero_sub,
+    Real.exp_lt_one_iff, neg_neg_iff_pos]
+  positivity
 
 theorem summable_iter_derv' (k : ℕ) (y : ℍ') :
     Summable fun n : ℕ => (2 * ↑π * I * n) ^ k * Complex.exp (2 * ↑π * I * n * y) :=
   by
   apply Summable.of_norm
-  simp
-  have hv1 :
-    ∀ b : ℕ,
-      (b : ℝ) ^ k * Complex.abs (Complex.exp (2 * ↑π * I * y)) ^ (b : ℕ) =
-        b ^ k * Complex.abs (Complex.exp (2 * ↑π * I * b * y)) :=
-    by
-    intro b
-    norm_cast
-    rw [← Complex.abs_pow];
-    congr;
-    rw [← exp_nat_mul];
-    ring_nf
-  simp_rw [mul_pow]
-  have h2ne : (2 : ℝ) ^ (k : ℕ) ≠ 0 := by
-    norm_cast
-    apply pow_ne_zero;
-    exact NeZero.ne 2
+  simp only [Opens.coe_mk, norm_mul, norm_pow, IsROrC.norm_ofNat, norm_eq_abs, abs_ofReal, abs_I,
+    mul_one, norm_nat, abs_natCast, mul_pow]
   simp_rw [mul_assoc]
-  norm_cast at h2ne
-  rw [summable_mul_left_iff]
-  rw [summable_mul_left_iff _]
+  rw [summable_mul_left_iff (pow_ne_zero _ two_ne_zero)]
+  rw [summable_mul_left_iff (pow_ne_zero _ (abs_ne_zero.mpr Real.pi_ne_zero))]
   simp_rw [← mul_assoc]
-  norm_cast at hv1
-  simp only [Nat.cast_pow, ofReal_mul, ofReal_ofNat, Opens.coe_mk,
-    pow_eq_zero_iff', Nat.cast_eq_zero, ne_eq] at hv1
-  apply Summable.congr _ hv1
-  apply summable_pow_mul_geometric_of_norm_lt_1
-  simp only [Real.norm_eq_abs, Complex.abs_abs]
-  apply exp_upperHalfPlane_lt_one
-  apply pow_ne_zero
-  simpa using Real.pi_ne_zero
-  norm_cast at *
-
-
+  have : Summable fun n : ℕ => (n : ℝ) ^ k * Complex.abs (Complex.exp (2 * ↑π * I * y)) ^ n := by
+    apply summable_pow_mul_geometric_of_norm_lt_1
+    simp only [Real.norm_eq_abs, Complex.abs_abs]
+    apply exp_upperHalfPlane_lt_one
+  apply this.congr
+  intro n
+  rw [← Complex.abs_pow, one_pow, one_mul, ← exp_nat_mul]
+  ring_nf
 
 theorem summable_pow_mul_exp {k : ℕ} (z : ℍ) :
     Summable fun i : ℕ+ => Complex.abs (2 * ↑i ^ (k + 1) * exp (2 * ↑π * I * ↑z * ↑i)) :=
@@ -107,28 +68,22 @@ theorem summable_pow_mul_exp {k : ℕ} (z : ℍ) :
   apply exp_upperHalfPlane_lt_one
   simp
 
-theorem iteratedDerivWithin_of_is_open (n m : ℕ) :
-    EqOn (iteratedDerivWithin n (fun s : ℂ => Complex.exp (2 * ↑π * I * m * s)) ℍ')
-      (iteratedDeriv n fun s : ℂ => Complex.exp (2 * ↑π * I * m * s)) ℍ' :=
-  by
-  induction' n with n IH
-  · intro x _
-    simp
-  · intro x hx
-    rw [iteratedDeriv_succ, iteratedDerivWithin_succ]
-    dsimp
-    rw [derivWithin_of_isOpen upper_half_plane_isOpen]
-    apply Filter.EventuallyEq.deriv_eq
-    filter_upwards [upper_half_plane_isOpen.mem_nhds hx]
-    apply IH
-    exact hx
-    apply IsOpen.uniqueDiffWithinAt upper_half_plane_isOpen hx
+section
+variable {𝕜 : Type u_1} [NontriviallyNormedField 𝕜] {F : Type u_2}
+  [NormedAddCommGroup F] [NormedSpace 𝕜 F] (n : ℕ) (f : 𝕜 → F) (s : Set 𝕜) (x : 𝕜)
+
+theorem iteratedDerivWithin_of_isOpen (hs : IsOpen s) :
+    EqOn (iteratedDerivWithin n f s) (iteratedDeriv n f) s := by
+  unfold iteratedDerivWithin iteratedDeriv
+  intro x hx
+  simp_rw [iteratedFDerivWithin_of_isOpen (𝕜 := 𝕜) (F := F) (E := 𝕜) (f := f) n hs hx]
+end
 
 theorem exp_iter_deriv_within (n m : ℕ) :
     EqOn (iteratedDerivWithin n (fun s : ℂ => Complex.exp (2 * ↑π * I * m * s)) ℍ')
       (fun t => (2 * ↑π * I * m) ^ n * Complex.exp (2 * ↑π * I * m * t)) ℍ' :=
   by
-  apply EqOn.trans (iteratedDerivWithin_of_is_open n m)
+  apply EqOn.trans (iteratedDerivWithin_of_isOpen _ _ _ upper_half_plane_isOpen)
   rw [EqOn]
   intro x _
   apply congr_fun (iteratedDeriv_cexp_const_mul ..)
@@ -140,8 +95,8 @@ theorem exp_iter_deriv_apply (n m : ℕ) (x : ℂ) :
 
 def uexp (n : ℕ) : ℍ' → ℂ := fun z => Complex.exp (2 * ↑π * I * z * n)
 
-def cts_exp_two_pi_n (K : Set ℂ) : ContinuousMap K ℂ
-    where toFun := fun r : K => Complex.exp (2 * ↑π * I * r)
+def cts_exp_two_pi_n (K : Set ℂ) : ContinuousMap K ℂ where
+  toFun := fun r : K => Complex.exp (2 * ↑π * I * r)
 
 /-
 def funnN (K : Set ℂ) (n k : ℕ) : ContinuousMap K ℂ
@@ -187,14 +142,6 @@ theorem der_iter_eq_der2' (k n : ℕ) (r : ↥upperHalfSpace) :
   rw [iteratedDerivWithin_succ]
   apply IsOpen.uniqueDiffOn upper_half_plane_isOpen
   apply r.2
-
-theorem cray (n : ℕ) : 0 ≤ 2 * |π| * n :=
-  by
-  apply mul_nonneg
-  apply mul_nonneg
-  linarith
-  simp
-  apply Nat.cast_nonneg
 
 theorem iter_deriv_comp_bound2 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact K) (k : ℕ) :
     ∃ u : ℕ → ℝ,
@@ -279,7 +226,7 @@ theorem iter_deriv_comp_bound2 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
   simp at ineqe
   convert ineqe
   apply Complex.abs.nonneg
-  apply pow_nonneg (cray n)
+  positivity
 
 theorem iter_deriv_comp_bound3 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact K) (k : ℕ) :
     ∃ u : ℕ → ℝ,
@@ -355,7 +302,7 @@ theorem iter_deriv_comp_bound3 (K : Set ℂ) (hK1 : K ⊆ ℍ') (hK2 : IsCompact
   convert ineqe
   norm_cast
   apply Complex.abs.nonneg
-  apply pow_nonneg (cray n)
+  positivity
 
 theorem exp_series_ite_deriv_uexp2 (k : ℕ) (x : ℍ') :
     iteratedDerivWithin k (fun z => ∑' n : ℕ, Complex.exp (2 * ↑π * I * n * z)) ℍ' x =
