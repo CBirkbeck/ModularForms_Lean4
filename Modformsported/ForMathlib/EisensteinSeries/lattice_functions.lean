@@ -71,6 +71,10 @@ theorem squares_cover_all (y : ℤ × ℤ) : ∃! i : ℕ, y ∈ square i := by
   use max y.1.natAbs y.2.natAbs
   simp only [square_mem, and_self_iff, forall_eq']
 
+theorem squares_cover_all' (y : Fin 2 → ℤ) : ∃! i : ℕ, ⟨y 0, y 1⟩ ∈ square i := by
+  use max (y 0).natAbs (y 1).natAbs
+  simp only [square_mem, and_self_iff, forall_eq']
+
 /-
 theorem squares_are_disjoint : ∀ i j : ℕ, i ≠ j → Disjoint (square i) (square j) := by
   apply disjoint_aux
