@@ -81,7 +81,8 @@ theorem squares_are_disjoint : ∀ i j : ℕ, i ≠ j → Disjoint (square i) (s
   apply squares_cover_all
 -/
 
-theorem square_zero : square 0 = {(0, 0)} := rfl
+@[simp]
+lemma square_zero : square 0 = {(0, 0)} := rfl
 
 theorem square_zero_card : Finset.card (square 0) = 1 := by
   rw [square_zero, card_singleton]
