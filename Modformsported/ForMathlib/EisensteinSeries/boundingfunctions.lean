@@ -183,97 +183,39 @@ theorem r_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfPlaneSlice 
 
 variable {α : Type u} {β : Type v} {γ : Type w} {i : α → Set β}
 
-def unionEquiv (ι : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : (Fin 2 → ℤ), ∃! i : ℕ, ⟨y 0, y 1⟩ ∈ ι i) :
-    (⋃ s : ℕ, ((ι s) : Set (ℤ × ℤ))) ≃ (ℤ × ℤ) where
-  toFun x := x.1
-  invFun x := by
-    use x
-    simp only [mem_iUnion, Finset.mem_coe]
-    obtain ⟨i, hi1,_⟩:= HI ![x.1, x.2]
-    refine ⟨i,hi1⟩
-  left_inv := by  intro x; cases x; rfl
-  right_inv := by intro x; rfl
-
-def sigmaEquiv (ι : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : (Fin 2 → ℤ), ∃! i : ℕ, ⟨y 0, y 1⟩ ∈ ι i) :
-    (Σ s : ℕ, ((ι s) : Set (ℤ × ℤ))) ≃ (ℤ × ℤ) where
+def sigmaEquiv (ι : α → Finset (β × β)) (HI : ∀ y : (Fin 2 → β), ∃! i : α, ⟨y 0, y 1⟩ ∈ ι i) :
+    (Σ s : α, ((ι s) : Set (β × β))) ≃ (β × β) where
   toFun x := x.2
   invFun x := by
-    let i := (HI ![x.1, x.2]).choose
-    let hi := (HI ![x.1, x.2]).choose_spec.1
-    refine ⟨i, x, hi⟩
-  left_inv := by
-      intro x
-      simp
+    refine ⟨(HI ![x.1, x.2]).choose, x, (HI ![x.1, x.2]).choose_spec.1⟩
+  left_inv x := by
       ext
-      simp
-      have ht := (HI ![x.2.1.1, x.2.1.2]).choose_spec.2
-      simp at *
-      have htt:= ht x.1 x.2.2
-      exact htt.symm
-      simp
-      simp
-
-  right_inv := by intro x; rfl
-
-theorem summable_disjoint_union_of_nonneg {i : α → Set β} {f : (⋃ x, i x) → ℝ}
-    (h : ∀ a b, a ≠ b → Disjoint (i a) (i b)) (hf : ∀ x, 0 ≤ f x) :
-    Summable f ↔
-      (∀ x, Summable fun y : i x => f ⟨y,  Set.mem_iUnion_of_mem (x) y.2 ⟩) ∧
-        Summable fun x => ∑' y : i x, f ⟨y, Set.mem_iUnion_of_mem (x) y.2 ⟩ :=
-  by
-  let h0 := (Set.unionEqSigmaOfDisjoint h).symm
-  have h01 : Summable f ↔ Summable (f ∘ h0) := by
-   rw [Equiv.summable_iff]
-  have h22 : ∀ y : Σ s : α, i s, 0 ≤ (f ∘ h0) y :=
-    by
-    intro y
-    simp
-    apply hf
-  have h1 := summable_sigma_of_nonneg h22
-  rw [←h01] at h1;
-  convert h1
-
-theorem summable_disjoint_union_of_nonnegg {i : α → Set β} {f : (Σ x, i x) → ℝ} (hf : ∀ x, 0 ≤ f x) :
-    Summable f ↔ (∀ x, Summable fun y : i x => f ⟨x,   y ⟩) ∧ Summable fun x => ∑' y : i x, f ⟨x, y ⟩ :=by
-    apply  summable_sigma_of_nonneg hf
-
-
-theorem disjoint_aux (In : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : (Fin 2 → ℤ), ∃! i : ℕ, ⟨y 0, y 1⟩ ∈ In i) :
-    ∀ i j : ℕ, i ≠ j → Disjoint (In i) (In j) :=
-  by
-  intro i j h
-  intro x h1 h2 a h3
-  have H0 := HI ![a.1, a.2]
-  have := ExistsUnique.unique H0 (h1 h3) (h2 h3)
-  simp at *
-  exact h this
+      exact ((HI ![x.2.1.1, x.2.1.2]).choose_spec.2 x.1 x.2.2).symm
+      repeat {rfl}
+  right_inv x := by rfl
 
 theorem summable_lemma (f : (Fin 2 → ℤ) → ℝ) (h : ∀ y : (Fin 2 → ℤ), 0 ≤ f y)
   (ι : ℕ → Finset (ℤ × ℤ)) (HI : ∀ y : (Fin 2 → ℤ), ∃! i : ℕ, ⟨y 0, y 1⟩ ∈ ι i) :
     Summable f ↔ Summable fun n : ℕ => ∑ x in ι n, f ![x.1, x.2] := by
-  let h2 := Equiv.trans (unionEquiv ι HI) (piFinTwoEquiv fun _ => ℤ).symm
-  have h22 : ∀ y : ⋃ s : ℕ, (ι s), 0 ≤ (f ∘ h2) y := by
+  let h2 := Equiv.trans (sigmaEquiv ι HI) (piFinTwoEquiv fun _ => ℤ).symm
+  have h22 : ∀ y : Σ s : ℕ, (ι s), 0 ≤ (f ∘ h2) y := by
     intro y
     apply h
-  have h3 := summable_disjoint_union_of_nonneg ?_ h22
   have h4 : Summable f ↔ Summable (f ∘ h2) := by rw [Equiv.summable_iff]
-  rw [h4, h3]
+  rw [h4, summable_sigma_of_nonneg h22]
   constructor
-  intro H
-  convert H.2
-  rw [←Finset.tsum_subtype]
-  rfl
-  intro H
-  constructor
-  intro x
-  simp only [Finset.coe_sort_coe, Equiv.coe_trans, Function.comp_apply]
-  rw [unionEquiv]
-  simp only [Equiv.coe_fn_mk]
-  convert (Finset.summable (ι x) (f ∘ (piFinTwoEquiv fun _ => ℤ).symm))
-  convert H
-  rw [←Finset.tsum_subtype]
-  rfl
-  simpa using (disjoint_aux ι HI)
+  · intro H
+    convert H.2
+    rw [←Finset.tsum_subtype]
+    rfl
+  · intro H
+    constructor
+    · intro x
+      simp only [Finset.coe_sort_coe, Equiv.coe_trans, Function.comp_apply,sigmaEquiv]
+      convert (Finset.summable (ι x) (f ∘ (piFinTwoEquiv fun _ => ℤ).symm))
+    · convert H
+      rw [←Finset.tsum_subtype]
+      rfl
 
 lemma summable_r_pow  (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
   Summable fun n : ℕ => 8 / (r z) ^ k * ((n : ℝ) ^ (k - 1))⁻¹ := by
@@ -284,51 +226,26 @@ lemma summable_r_pow  (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
   have nze : (8 / (r z) ^ k : ℝ) ≠ 0 :=
     by
     apply div_ne_zero
-    simp only [Ne.def, not_false_iff, bit0_eq_zero, one_ne_zero]
-    linarith
-    norm_cast
-    apply zpow_ne_zero
-    simp only [Ne.def]
-    by_contra HR
-    have := r_pos z
-    rw [HR] at this
-    simp only [lt_self_iff_false] at this
+    simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true]
+    apply zpow_ne_zero k (ne_of_gt (r_pos z))
   rw [← (summable_mul_left_iff nze).symm]
-  simp only [Int.cast_ofNat, Int.cast_one, Int.cast_sub] at riesum
   convert riesum
   norm_cast
 
-lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
- Summable fun (x : Fin 2 → ℤ) => (1/(r z)^k) * ((max (x 0).natAbs (x 1).natAbs : ℝ)^k)⁻¹ := by
-  rw [summable_lemma _ _ (fun (n : ℕ) => square n)]
-  have : ∀ n : ℕ, ∑ v in square n, (1/((r z)^k))*((max v.1.natAbs v.2.natAbs: ℝ)^k)⁻¹ =
-     ∑ v in square n, (1/(r (z)^k))*((n : ℝ)^k)⁻¹ := by
-     intro n
-     apply Finset.sum_congr
-     rfl
-     intro x hx
-     simp at hx
-     congr
-     norm_cast at *
-  have hs : Summable (fun n : ℕ => ∑ v in square n, (1/(r z)^k) * ((n : ℝ)^k)⁻¹)  := by
-    simp
+lemma summable_over_square (k : ℤ) (z : ℍ) (h : 3 ≤ k):
+    Summable (fun n : ℕ => ∑ v in square n, (1 / (r z) ^ k) * ((n : ℝ) ^ k)⁻¹)  := by
+    simp only [one_div, Finset.sum_const, nsmul_eq_mul]
     apply Summable.congr (summable_r_pow k z h)
     intro b
     by_cases b0 : b = 0
     rw [b0]
-    have hk : (0: ℝ)^((k : ℤ)-1) = 0:= by
-      rw [zero_zpow]
-      linarith
-    simp at *
-    rw [hk]
+    have hk0 :  k ≠ 0 := by linarith
+    have hk1 :  k - 1 ≠ 0 := by linarith
+    norm_cast
+    rw [zero_zpow k hk0, zero_zpow (k - 1) hk1]
     simp
-    right
-    have hk0 : 0 ≤ k := by linarith
-    lift k to ℕ using hk0
-    simp  [zpow_coe_nat, ne_eq, zero_pow_eq_zero, gt_iff_lt]
-    linarith
     rw [square_size' b0]
-    field_simp
+    simp only [Nat.cast_mul, Nat.cast_ofNat]
     ring_nf
     simp_rw [mul_assoc]
     have hbb : (b : ℝ)^(-1 + (k : ℝ)) = (b : ℝ)⁻¹ * b^(k : ℝ) := by
@@ -340,17 +257,59 @@ lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
     rw [hbb]
     ring_nf
     simp
-  apply Summable.congr hs
+
+example (r : ℝ) (b : ℤ) (hr : r ≠ 0)   : r^(b-1)= r^b * r⁻¹  := by
+    exact zpow_sub_one₀ hr b
+
+
+ lemma summable_over_squardfe (k : ℤ) (z : ℍ) (h : 3 ≤ k):
+    Summable (fun n : ℕ => ∑ v in square n, (1 / (r z) ^ k) * ((n : ℝ) ^ k)⁻¹)  := by
+    simp only [one_div, Finset.sum_const, nsmul_eq_mul]
+    apply Summable.congr (summable_r_pow k z h)
+    intro b
+    by_cases b0 : b = 0
+    rw [b0]
+    have hk0 :  k ≠ 0 := by linarith
+    have hk1 :  k - 1 ≠ 0 := by linarith
+    norm_cast
+    rw [zero_zpow k hk0, zero_zpow (k - 1) hk1]
+    simp
+    rw [square_size' b0]
+    stop
+    have dgh := zpow_sub_one₀ (a:= b) b0  k
+    ring_nf
+    simp_rw [mul_assoc]
+    have hbb : (b : ℝ)^(-1 + (k : ℝ)) = (b : ℝ)⁻¹ * b^(k : ℝ) := by
+      rw [Real.rpow_add]
+      congr
+      exact Real.rpow_neg_one ↑b
+      simpa [pos_iff_ne_zero] using b0
+    norm_cast at *
+    rw [hbb]
+    ring_nf
+    simp
+
+lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
+  Summable fun (x : Fin 2 → ℤ) =>
+    (1 / (r z) ^ k) * ((max (x 0).natAbs (x 1).natAbs : ℝ) ^ k)⁻¹ := by
+  rw [summable_lemma _ _ (fun (n : ℕ) => square n)]
+  have : ∀ n : ℕ, ∑ v in square n, (1 / (r z) ^ k) * ((max v.1.natAbs v.2.natAbs: ℝ) ^ k)⁻¹ =
+     ∑ v in square n, (1 / (r z) ^ k) * ((n : ℝ)^k)⁻¹ := by
+     intro n
+     apply Finset.sum_congr rfl
+     intro x hx
+     simp only [square_mem] at hx
+     congr
+     norm_cast
+  apply Summable.congr (summable_over_square k z h)
   intro b
   apply (this b).symm
   apply squares_cover_all'
   intro y
   apply mul_nonneg
-  simp
-  apply zpow_nonneg
-  apply (r_pos z).le
-  simp  [ge_iff_le, Nat.cast_le, Real.rpow_nat_cast, inv_nonneg, le_max_iff, Nat.cast_nonneg,
-    or_self, zpow_nonneg]
+  simp only [one_div, inv_nonneg]
+  apply zpow_nonneg (r_pos z).le
+  simp only [inv_nonneg, ge_iff_le, le_max_iff, Nat.cast_nonneg, or_self, zpow_nonneg]
 
 
 lemma Eise_on_square_is_bounded_Case1 (k : ℤ) (z : ℍ) (n : ℕ) (x : Fin 2 → ℤ) (hn : 1 ≤ n) (hk : 0 ≤ k)

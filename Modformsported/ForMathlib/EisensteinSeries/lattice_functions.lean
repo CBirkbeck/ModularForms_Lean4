@@ -87,6 +87,13 @@ lemma square_zero : square 0 = {(0, 0)} := rfl
 theorem square_zero_card : Finset.card (square 0) = 1 := by
   rw [square_zero, card_singleton]
 
+theorem square_card_le {n : ℕ}  : Finset.card (square n) ≤  8 * n + 1 := by
+  by_cases hn : n = 0
+  · rw [hn]
+    simp
+  · rw [square_size' hn]
+    linarith
+
 lemma _root_.Complex.abs_int_cast (z : ℤ) : Complex.abs z = |z| := by
   rw [← int_cast_abs]
   norm_cast
