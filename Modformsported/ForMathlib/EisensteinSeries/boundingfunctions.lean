@@ -123,14 +123,12 @@ lemma compact_in_some_slice (K : Set ℍ) (hK : IsCompact K) : ∃  A B : ℝ, 0
     let t := (⟨Complex.I, by simp⟩ : ℍ)
     have  ht : UpperHalfPlane.im t = I.im := by rfl
     obtain ⟨r, _, hr2⟩ := Bornology.IsBounded.subset_closedBall_lt hK.isBounded 0 t
-    refine' ⟨Real.sinh (r) + Complex.abs ((UpperHalfPlane.center t r)), b.im, _⟩
-    constructor
-    exact b.2
+    refine' ⟨Real.sinh (r) + Complex.abs ((UpperHalfPlane.center t r)), b.im, b.2, _⟩
     intro z hz
     simp only [I_im, slice_mem, abs_ofReal, ge_iff_le] at *
     constructor
     have hr3 := hr2 hz
-    simp  at hr3
+    simp only [Metric.mem_closedBall] at hr3
     apply le_trans (abs_re_le_abs z)
     have := Complex.abs.sub_le (z : ℂ) (UpperHalfPlane.center t r) 0
     simp only [sub_zero, ge_iff_le] at this
@@ -157,18 +155,16 @@ lemma uhc (z : ℍ) : (z : ℂ) = z.1 := rfl
 
 theorem r_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfPlaneSlice A B) :
     r ⟨⟨A, B⟩, h⟩ ≤ r z.1 := by
-  have zpos := UpperHalfPlane.im_pos z.1
   have hz := z.2
-  rw [slice_mem] at hz
-  simp only [abs_ofReal, ge_iff_le] at hz
+  simp only [slice_mem, abs_ofReal, ge_iff_le] at hz
   rw [r, r]
   apply min_le_min
   · dsimp only
     convert hz.2
-    have := abs_eq_self.mpr zpos.le
+    have := abs_eq_self.mpr (UpperHalfPlane.im_pos z.1).le
     convert this.symm
   rw [Real.sqrt_le_sqrt_iff]
-  have := aux4 (z : ℂ).re (z : ℂ).im zpos
+  have := aux4 (z : ℂ).re (z : ℂ).im (UpperHalfPlane.im_pos z.1)
   simp only [uhc, div_pow, one_div] at this
   simp_rw [lowerBound1]
   rw [this, aux4 A B h, one_div, inv_le_inv, add_le_add_iff_right, div_pow]
@@ -183,6 +179,7 @@ theorem r_lower_bound_on_slice (A B : ℝ) (h : 0 < B) (z : upperHalfPlaneSlice 
 
 variable {α : Type u} {β : Type v} {γ : Type w} {i : α → Set β}
 
+/--Equivalence between the sigma of a bijective fammily of finsets of `ℤ × ℤ` and `ℤ × ℤ`-/
 def sigmaEquiv (ι : α → Finset (β × β)) (HI : ∀ y : (Fin 2 → β), ∃! i : α, ⟨y 0, y 1⟩ ∈ ι i) :
     (Σ s : α, ((ι s) : Set (β × β))) ≃ (β × β) where
   toFun x := x.2
@@ -238,61 +235,19 @@ lemma summable_over_square (k : ℤ) (z : ℍ) (h : 3 ≤ k):
     apply Summable.congr (summable_r_pow k z h)
     intro b
     by_cases b0 : b = 0
-    rw [b0]
-    have hk0 :  k ≠ 0 := by linarith
-    have hk1 :  k - 1 ≠ 0 := by linarith
-    norm_cast
-    rw [zero_zpow k hk0, zero_zpow (k - 1) hk1]
-    simp
-    rw [square_size' b0]
-    simp only [Nat.cast_mul, Nat.cast_ofNat]
-    ring_nf
-    simp_rw [mul_assoc]
-    have hbb : (b : ℝ)^(-1 + (k : ℝ)) = (b : ℝ)⁻¹ * b^(k : ℝ) := by
-      rw [Real.rpow_add]
-      congr
-      exact Real.rpow_neg_one ↑b
-      simpa [pos_iff_ne_zero] using b0
-    norm_cast at *
-    rw [hbb]
-    ring_nf
-    simp
+    · rw [b0]
+      have hk0 :  k ≠ 0 := by linarith
+      have hk1 :  k - 1 ≠ 0 := by linarith
+      norm_cast
+      rw [zero_zpow k hk0, zero_zpow (k - 1) hk1]
+      simp only [inv_zero, mul_zero, square_zero, Finset.card_singleton, Nat.cast_one]
+    · rw [square_size' b0, zpow_sub_one₀ (a:= ( b: ℝ)) (Nat.cast_ne_zero.mpr b0)  k]
+      simp only [mul_inv_rev, inv_inv, Nat.cast_mul, Nat.cast_ofNat]
+      ring_nf
 
-example (r : ℝ) (b : ℤ) (hr : r ≠ 0)   : r^(b-1)= r^b * r⁻¹  := by
-    exact zpow_sub_one₀ hr b
-
-
- lemma summable_over_squardfe (k : ℤ) (z : ℍ) (h : 3 ≤ k):
-    Summable (fun n : ℕ => ∑ v in square n, (1 / (r z) ^ k) * ((n : ℝ) ^ k)⁻¹)  := by
-    simp only [one_div, Finset.sum_const, nsmul_eq_mul]
-    apply Summable.congr (summable_r_pow k z h)
-    intro b
-    by_cases b0 : b = 0
-    rw [b0]
-    have hk0 :  k ≠ 0 := by linarith
-    have hk1 :  k - 1 ≠ 0 := by linarith
-    norm_cast
-    rw [zero_zpow k hk0, zero_zpow (k - 1) hk1]
-    simp
-    rw [square_size' b0]
-    stop
-    have dgh := zpow_sub_one₀ (a:= b) b0  k
-    ring_nf
-    simp_rw [mul_assoc]
-    have hbb : (b : ℝ)^(-1 + (k : ℝ)) = (b : ℝ)⁻¹ * b^(k : ℝ) := by
-      rw [Real.rpow_add]
-      congr
-      exact Real.rpow_neg_one ↑b
-      simpa [pos_iff_ne_zero] using b0
-    norm_cast at *
-    rw [hbb]
-    ring_nf
-    simp
-
-lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
-  Summable fun (x : Fin 2 → ℤ) =>
+lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) : Summable fun (x : Fin 2 → ℤ) =>
     (1 / (r z) ^ k) * ((max (x 0).natAbs (x 1).natAbs : ℝ) ^ k)⁻¹ := by
-  rw [summable_lemma _ _ (fun (n : ℕ) => square n)]
+  rw [summable_lemma _ _ (fun (n : ℕ) => square n) squares_cover_all']
   have : ∀ n : ℕ, ∑ v in square n, (1 / (r z) ^ k) * ((max v.1.natAbs v.2.natAbs: ℝ) ^ k)⁻¹ =
      ∑ v in square n, (1 / (r z) ^ k) * ((n : ℝ)^k)⁻¹ := by
      intro n
@@ -304,7 +259,6 @@ lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
   apply Summable.congr (summable_over_square k z h)
   intro b
   apply (this b).symm
-  apply squares_cover_all'
   intro y
   apply mul_nonneg
   simp only [one_div, inv_nonneg]
@@ -312,10 +266,9 @@ lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
   simp only [inv_nonneg, ge_iff_le, le_max_iff, Nat.cast_nonneg, or_self, zpow_nonneg]
 
 
-lemma Eise_on_square_is_bounded_Case1 (k : ℤ) (z : ℍ) (n : ℕ) (x : Fin 2 → ℤ) (hn : 1 ≤ n) (hk : 0 ≤ k)
-  (C1 :Complex.abs (x 0 : ℂ) = n) : (Complex.abs (((x 0 : ℂ) * z + (x 1 : ℂ)) ^ (k : ℤ)))⁻¹ ≤
-      (Complex.abs ((r z) ^ (k : ℤ) * n ^ (k : ℤ)))⁻¹ := by
-  lift k to ℕ using hk
+lemma Eise_bound_1 (k : ℕ) (z : ℍ) (n : ℕ) (x : Fin 2 → ℤ) (hn : 1 ≤ n)
+  (C1 : Complex.abs (x 0 : ℂ) = n) : (Complex.abs (((x 0 : ℂ) * z + (x 1 : ℂ)) ^ (k : ℤ)))⁻¹ ≤
+  (Complex.abs ((r z) ^ (k : ℤ) * n ^ (k : ℤ)))⁻¹ := by
   rw [inv_le_inv]
   have h0 : (x 0 : ℂ) ≠ 0 := by
     intro hx
@@ -354,11 +307,9 @@ lemma Eise_on_square_is_bounded_Case1 (k : ℤ) (z : ℍ) (n : ℕ) (x : Fin 2 �
   simp only [Nat.one_ne_zero, le_zero_iff] at hn
   apply r_mul_n_pos k z n hn
 
-lemma Eise_on_square_is_bounded_Case2 (k : ℤ) (z : ℍ) (n : ℕ) (x : Fin 2 → ℤ) (hn : 1 ≤ n)
-  (hk : 0 ≤ k) (C2 : Complex.abs (x 1 : ℂ) = n) :
-  (Complex.abs (((x 0 : ℂ) * z + (x 1 : ℂ)) ^ (k : ℤ)))⁻¹ ≤
-      (Complex.abs ((r z) ^ (k : ℤ) * n ^ (k : ℤ)))⁻¹ := by
-  lift k to ℕ using hk
+lemma Eis_bound_2 (k : ℕ) (z : ℍ) (n : ℕ) (x : Fin 2 → ℤ) (hn : 1 ≤ n)
+  (C2 : Complex.abs (x 1 : ℂ) = n) : (Complex.abs (((x 0 : ℂ) * z + (x 1 : ℂ)) ^ (k : ℤ)))⁻¹ ≤
+  (Complex.abs ((r z) ^ (k : ℤ) * n ^ (k : ℤ)))⁻¹ := by
   rw [inv_le_inv]
   have h0 : (x 1 : ℂ) ≠ 0 := by
     norm_cast
@@ -403,7 +354,7 @@ lemma Eise_on_square_is_bounded_Case2 (k : ℤ) (z : ℍ) (n : ℕ) (x : Fin 2 �
   norm_cast at *
   apply r_mul_n_pos k z n hn
 
-theorem Eise_on_square_is_bounded2 (k : ℕ) (z : ℍ) (n : ℕ) (x : Fin 2 → ℤ)
+theorem Eis_is_bounded_on_square (k : ℕ) (z : ℍ) (n : ℕ) (x : Fin 2 → ℤ)
   (hx : ⟨x 0, x 1⟩ ∈ square n) : (Complex.abs (((x 0 : ℂ) * z + (x 1 : ℂ)) ^ k))⁻¹ ≤
   (Complex.abs ((r z) ^ k * n ^ k))⁻¹ := by
   by_cases hn : n = 0
@@ -420,14 +371,16 @@ theorem Eise_on_square_is_bounded2 (k : ℕ) (z : ℍ) (n : ℕ) (x : Fin 2 → 
       CharP.cast_eq_zero, map_mul, abs_ofReal, mul_zero, le_refl]
   · have hnn : 1 ≤ n := by exact Nat.one_le_iff_ne_zero.mpr hn
     by_cases C1 : Complex.abs (x 0 : ℂ) = n
-    apply Eise_on_square_is_bounded_Case1 k z n x hnn (Int.ofNat_nonneg k) C1
+    apply Eise_bound_1 k z n x hnn C1
     have C2 := Complex_abs_square_left_ne n ⟨x 0, x 1⟩ hx C1
-    apply Eise_on_square_is_bounded_Case2 k z n x hnn (Int.ofNat_nonneg k) C2
+    apply Eis_bound_2 k z n x hnn C2
 
 lemma  eisensteinSeries_TendstoLocallyUniformlyOn  (k : ℤ) (hk : 3 ≤ k) (N : ℕ)
   (a : Fin 2 → ZMod N) : TendstoLocallyUniformlyOn (fun (s : Finset (gammaSet N a )) =>
-    (fun (z : ℍ) => ∑ x in s, eisSummand k x z ) )
-    ( fun (z : ℍ) => (eisensteinSeries_SIF a k).1 z) Filter.atTop ⊤ := by
+  (fun (z : ℍ) => ∑ x in s, eisSummand k x z ) )
+  ( fun (z : ℍ) => (eisensteinSeries_SIF a k).1 z) Filter.atTop ⊤ := by
+  have hk0 : 0 ≤ k := by linarith
+  lift k to ℕ using hk0
   rw [tendstoLocallyUniformlyOn_iff_forall_isCompact, eisensteinSeries_SIF]
   simp only [top_eq_univ, subset_univ, eisensteinSeries, forall_true_left]
   intros K hK
@@ -438,28 +391,24 @@ lemma  eisensteinSeries_TendstoLocallyUniformlyOn  (k : ℤ) (hk : 3 ≤ k) (N :
     have := Summable.subtype (summable_upper_bound k hk  ⟨⟨A, B⟩, hB⟩) (gammaSet N a )
     apply this.congr
     intro v
-    simp
+    simp only [zpow_coe_nat, one_div, Function.comp_apply]
   apply tendstoUniformlyOn_tsum hu
   intro v x hx
   have sq := square_mem (max (v.1 0).natAbs (v.1 1).natAbs ) ⟨(v.1 0), v.1 1⟩
-  have hk0 : 0 ≤ k := by linarith
-  lift k to ℕ using hk0
-  have := Eise_on_square_is_bounded2 k x (max (v.1 0).natAbs (v.1 1).natAbs ) v
-  rw [eisSummand]
-  simp at *
+  have := Eis_is_bounded_on_square k x (max (v.1 0).natAbs (v.1 1).natAbs ) v
+  simp only [Nat.cast_max, Int.coe_natAbs, iff_true, zpow_coe_nat, one_div, uhc, map_pow, map_mul,
+    abs_ofReal, abs_natCast, mul_inv_rev, eisSummand, norm_inv, norm_pow, norm_eq_abs,
+    ge_iff_le] at *
   apply le_trans (this sq)
   rw [mul_comm]
   apply mul_le_mul
   rw [inv_le_inv]
-  apply pow_le_pow_left
-  apply (r_pos _).le
+  apply pow_le_pow_left (r_pos _).le
   rw [abs_of_pos (r_pos _)]
-  exact r_lower_bound_on_slice A B hB ⟨x, HABK hx⟩
-  apply pow_pos
-  simpa only [abs_pos, ne_eq] using (r_ne_zero x)
-  apply pow_pos (r_pos _)
-  rfl
-  simp only [inv_nonneg, ge_iff_le, le_max_iff, Nat.cast_nonneg, or_self, pow_nonneg]
-  simp [inv_nonneg, ge_iff_le]
-  apply pow_nonneg (r_pos _).le
-  simp only [top_eq_univ, isOpen_univ]
+  · exact r_lower_bound_on_slice A B hB ⟨x, HABK hx⟩
+  · apply pow_pos (abs_pos.mpr (r_ne_zero x))
+  · apply pow_pos (r_pos _)
+  · rfl
+  repeat {simp only [inv_nonneg, ge_iff_le, le_max_iff, Nat.cast_nonneg, or_self, pow_nonneg,
+    inv_nonneg, pow_nonneg (r_pos _).le]}
+  · simp only [top_eq_univ, isOpen_univ]

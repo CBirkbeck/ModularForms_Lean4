@@ -488,6 +488,7 @@ lemma summable_upper_bound (k : ℤ) (h : 3 ≤ k) (z : ℍ) :
     have hk0 : 0 ≤ k := by linarith
     lift k to ℕ using hk0
     simp  [zpow_coe_nat, ne_eq, zero_pow_eq_zero, gt_iff_lt]
+    right
     linarith
     rw [square_size' b0]
     field_simp

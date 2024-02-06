@@ -1,6 +1,12 @@
 import Mathlib.Data.Complex.Abs
 import Mathlib.Data.IsROrC.Basic
 
+/-! # Decomposing `ℤ × ℤ` into squares
+
+We partition `ℤ × ℤ` into squares of the form `Icc (-n) n × Icc (-n) n` for `n : ℕ`. This is useful
+for bounding Eisenstein series.
+-/
+
 open Complex
 
 open scoped BigOperators NNReal Classical Filter Matrix
@@ -74,12 +80,6 @@ theorem squares_cover_all (y : ℤ × ℤ) : ∃! i : ℕ, y ∈ square i := by
 theorem squares_cover_all' (y : Fin 2 → ℤ) : ∃! i : ℕ, ⟨y 0, y 1⟩ ∈ square i := by
   use max (y 0).natAbs (y 1).natAbs
   simp only [square_mem, and_self_iff, forall_eq']
-
-/-
-theorem squares_are_disjoint : ∀ i j : ℕ, i ≠ j → Disjoint (square i) (square j) := by
-  apply disjoint_aux
-  apply squares_cover_all
--/
 
 @[simp]
 lemma square_zero : square 0 = {(0, 0)} := rfl
