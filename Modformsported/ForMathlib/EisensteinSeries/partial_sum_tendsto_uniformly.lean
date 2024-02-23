@@ -32,7 +32,6 @@ theorem complex_abs_sum_le {ι : Type _} (s : Finset ι) (f : ι → ℂ) :
     Complex.abs (∑ i in s, f i) ≤ ∑ i in s, Complex.abs (f i) :=
   abv_sum_le_sum_abv (fun k : ι => f k) s
 
-@[simp]
 lemma uhc (z : ℍ) : (z : ℂ) = z.1 := by rfl
 
 theorem div_self_add_eq_one_div_div_add_one (a b : ℝ) (h : a ≠ 0) : a / (a + b) = 1 / (b / a + 1) :=
