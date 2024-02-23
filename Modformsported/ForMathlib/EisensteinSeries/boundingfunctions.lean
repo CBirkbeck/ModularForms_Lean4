@@ -375,20 +375,20 @@ theorem Eis_is_bounded_on_square (k : ℕ) (z : ℍ) (n : ℕ) (x : Fin 2 → �
     have C2 := Complex_abs_square_left_ne n ⟨x 0, x 1⟩ hx C1
     apply Eis_bound_2 k z n x hnn C2
 
-lemma  eisensteinSeries_TendstoLocallyUniformlyOn  (k : ℤ) (hk : 3 ≤ k) (N : ℕ)
-  (a : Fin 2 → ZMod N) : TendstoLocallyUniformlyOn (fun (s : Finset (gammaSet N a )) =>
-  (fun (z : ℍ) => ∑ x in s, eisSummand k x z ) )
-  ( fun (z : ℍ) => (eisensteinSeries_SIF a k).1 z) Filter.atTop ⊤ := by
+lemma  eisensteinSeries_TendstoLocallyUniformlyOn (k : ℤ) (hk : 3 ≤ k) (N : ℕ)
+  (a : Fin 2 → ZMod N) : TendstoLocallyUniformly (fun (s : Finset (gammaSet N a )) =>
+  (fun (z : ℍ) => ∑ x in s, eisSummand k x z ))
+  ( fun (z : ℍ) => (eisensteinSeries_SIF a k).1 z) Filter.atTop := by
   have hk0 : 0 ≤ k := by linarith
   lift k to ℕ using hk0
-  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact, eisensteinSeries_SIF]
+  rw [←tendstoLocallyUniformlyOn_univ, tendstoLocallyUniformlyOn_iff_forall_isCompact, eisensteinSeries_SIF]
   simp only [top_eq_univ, subset_univ, eisensteinSeries, forall_true_left]
   intros K hK
   obtain ⟨A,B,hB, HABK⟩:= compact_in_some_slice K hK
   let u :=  fun x : (gammaSet N a ) =>
     (1/((r ⟨⟨A, B⟩, hB⟩)^k))* ( (max (x.1 0).natAbs (x.1 1).natAbs : ℝ)^k)⁻¹
   have hu : Summable u := by
-    have := Summable.subtype (summable_upper_bound k hk  ⟨⟨A, B⟩, hB⟩) (gammaSet N a )
+    have := Summable.subtype (summable_upper_bound k hk ⟨⟨A, B⟩, hB⟩) (gammaSet N a )
     apply this.congr
     intro v
     simp only [zpow_coe_nat, one_div, Function.comp_apply]
@@ -412,3 +412,20 @@ lemma  eisensteinSeries_TendstoLocallyUniformlyOn  (k : ℤ) (hk : 3 ≤ k) (N :
   repeat {simp only [inv_nonneg, ge_iff_le, le_max_iff, Nat.cast_nonneg, or_self, pow_nonneg,
     inv_nonneg, pow_nonneg (r_pos _).le]}
   · simp only [top_eq_univ, isOpen_univ]
+
+
+/- A version for the extension to maps `ℂ → ℂ` that is nice to have for holomorphicity later -/
+lemma  eisensteinSeries_TendstoLocallyUniformlyOn2 {k : ℤ} (hk : 3 ≤ k) (N : ℕ)
+    (a : Fin 2 → ZMod N) : TendstoLocallyUniformlyOn (fun (s : Finset (gammaSet N a )) =>
+      (fun (z : ℍ) => ∑ x in s, eisSummand k x z ) ∘
+        (PartialHomeomorph.symm
+          (OpenEmbedding.toPartialHomeomorph UpperHalfPlane.coe openEmbedding_coe)))
+    ((fun (z : ℍ) => (eisensteinSeries_SIF a k).1 z) ∘
+      (PartialHomeomorph.symm
+        (OpenEmbedding.toPartialHomeomorph UpperHalfPlane.coe openEmbedding_coe)))
+          Filter.atTop (UpperHalfPlane.coe '' ⊤) := by
+  apply TendstoLocallyUniformlyOn.comp (s := ⊤)
+  simp only [SlashInvariantForm.toFun_eq_coe, Set.top_eq_univ, tendstoLocallyUniformlyOn_univ]
+  apply eisensteinSeries_TendstoLocallyUniformlyOn k hk
+  simp only [Set.top_eq_univ, image_univ, mapsTo_range_iff, Set.mem_univ, forall_const]
+  apply PartialHomeomorph.continuousOn_symm
