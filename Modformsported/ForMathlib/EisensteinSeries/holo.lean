@@ -1,6 +1,7 @@
 import Modformsported.ForMathlib.EisensteinSeries.boundingfunctions
 import Mathlib.Analysis.Complex.UpperHalfPlane.Metric
 import Mathlib.Analysis.Complex.LocallyUniformLimit
+import LeanCopilot
 
 noncomputable section
 
@@ -19,43 +20,43 @@ theorem complex_eisSummand_HasDerivAt(a : Fin 2 → ℤ) (k : ℤ) (z : ℂ) (h 
   · exact hasDerivAt_zpow k ((a 0 ) * z + a 1 ) (Or.inl h)
   · simpa using (hasDerivAt_id' z).const_mul (a 0 : ℂ) |>.add_const _
 
-lemma fun_ne_zero_cases {G : Type*} [OfNat G 0] (x : Fin 2 → G) : x ≠ 0 ↔ x 0 ≠ 0 ∨ x 1 ≠ 0 := by
-  rw [Function.ne_iff]; exact Fin.exists_fin_two
+lemma comp_inj_ne_zero {α β γ: Type*} [OfNat β 0] [ OfNat γ 0] (f : α → β) (hf : f ≠ 0) (g : β → γ)
+    (hg : Injective g) (hg0 : g 0 = 0) : (g ∘ f) ≠ 0 := by
+  simp only [ne_eq, funext_iff, Pi.zero_apply, not_forall, comp_apply] at hf ⊢
+  rcases hf with ⟨a, ha⟩
+  exact ⟨a, by rw [hg.eq_iff'] <;> assumption⟩
+
+example (a : Fin 2 → ℤ) (ha : a ≠ 0) : (Int.cast (R := ℝ)) ∘ a ≠ 0 :=
+  comp_inj_ne_zero _ ha _ Int.cast_injective Int.cast_zero
+
 
 lemma complex_eisSummand_differentiableOn (k : ℤ) (a : Fin 2 → ℤ) (hk : k ≠ 0) :
   DifferentiableOn ℂ (fun z : ℂ => 1/(a 0 * z + a 1) ^ k) (UpperHalfPlane.coe '' ⊤) := by
   by_cases ha : a ≠ 0
-  apply DifferentiableOn.div
-  exact differentiableOn_const 1
-  intro z hz
-  apply DifferentiableAt.differentiableWithinAt
-  apply (complex_eisSummand_HasDerivAt a k z ?_).differentiableAt
-  have := UpperHalfPlane.linear_ne_zero ![a 0, a 1]
-  have hz:= z.2
-  simp only [Int.cast_eq_zero, Matrix.zero_empty, and_true, not_and,
-    Matrix.cons_val_zero, ofReal_int_cast, uhc, Matrix.cons_val_one, Matrix.head_cons, top_eq_univ,
-    image_univ, mem_range] at *
-  obtain ⟨y, hy⟩ := hz
-  have := this y
-  rw [hy] at this
-  apply this
-  rw [fun_ne_zero_cases] at *
-  simp [ha] at *
-  simp
-  intro z
-  apply zpow_ne_zero
-  have := UpperHalfPlane.linear_ne_zero ![a 0, a 1] z
-  apply this
-  rw [fun_ne_zero_cases] at *
-  simp [ha] at *
-  simp at ha
-  rw [ha]
-  have : ((0 : ℂ)^k)⁻¹ = 0 := by
-    simp
-    rw [zpow_eq_zero_iff hk]
-  simp only [Pi.zero_apply, Int.cast_zero, zero_mul, add_zero, one_div, this, uhc, top_eq_univ,
-    image_univ]
-  exact differentiableOn_const 0
+  · apply DifferentiableOn.div (differentiableOn_const 1)
+    intro z hz
+    apply DifferentiableAt.differentiableWithinAt
+      (complex_eisSummand_HasDerivAt a k z ?_).differentiableAt
+    simp only [ne_eq, top_eq_univ, image_univ, mem_range] at *
+    obtain ⟨y, hy⟩ := hz
+    rw [← hy]
+    apply UpperHalfPlane.linear_ne_zero ((Int.cast (R := ℝ)) ∘ a) y
+      (comp_inj_ne_zero _ ha _ Int.cast_injective Int.cast_zero)
+    intro z hz
+    apply zpow_ne_zero
+    simp only [top_eq_univ, image_univ, mem_range] at hz
+    obtain ⟨y, hy⟩ := hz
+    rw [← hy]
+    apply UpperHalfPlane.linear_ne_zero ((Int.cast (R := ℝ)) ∘ a) y
+      (comp_inj_ne_zero _ ha _ Int.cast_injective Int.cast_zero)
+  · simp only [ne_eq, not_not] at ha
+    rw [ha]
+    have : ((0 : ℂ)^k)⁻¹ = 0 := by
+      simp only [inv_eq_zero]
+      rw [zpow_eq_zero_iff hk]
+    simp only [Pi.zero_apply, Int.cast_zero, zero_mul, add_zero, one_div, this, uhc, top_eq_univ,
+      image_univ]
+    exact differentiableOn_const 0
 
 lemma eisSummad_complex_extension_differentiableOn (k : ℤ) (a : Fin 2 → ℤ) (hk : k ≠ 0) :
   DifferentiableOn ℂ ((fun (z : ℍ) =>  eisSummand k a z ) ∘
@@ -80,14 +81,12 @@ lemma eisensteinSeries_SIF_complex_extension_differentiableOn (N : ℕ) (a: Fin 
   have hc := eisensteinSeries_TendstoLocallyUniformlyOn2 hk N a
   let f := ((fun (z : ℍ) => (eisensteinSeries_SIF a k).1 z)) ∘
   (PartialHomeomorph.symm (OpenEmbedding.toPartialHomeomorph UpperHalfPlane.coe openEmbedding_coe))
-  have := @TendstoLocallyUniformlyOn.differentiableOn (E := ℂ) (ι := (Finset ↑(gammaSet N a)) ) _ _ _
+  have := @TendstoLocallyUniformlyOn.differentiableOn (E := ℂ) (ι := (Finset ↑(gammaSet N a))) _ _ _
     (UpperHalfPlane.coe '' ⊤) atTop (fun (s : Finset (gammaSet N a )) =>
-  (fun (z : ℍ) => ∑ x in s, eisSummand k x z ) ∘
-  (PartialHomeomorph.symm (OpenEmbedding.toPartialHomeomorph UpperHalfPlane.coe openEmbedding_coe)))
-    f ?_ ?_ ((eventually_of_forall fun s => ?_)) ?_
+      (fun (z : ℍ) => ∑ x in s, eisSummand k x z ) ∘ (PartialHomeomorph.symm
+        (OpenEmbedding.toPartialHomeomorph UpperHalfPlane.coe openEmbedding_coe)))
+          f (by apply atTop_neBot) hc ((eventually_of_forall fun s => ?_)) ?_
   convert this
-  · exact atTop_neBot
-  · exact hc
   · apply DifferentiableOn.sum
     intro v _
     apply eisSummad_complex_extension_differentiableOn
