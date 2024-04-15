@@ -616,7 +616,7 @@ lemma feise_eq_one_div_denom (k : ℤ) (z : ℍ) (v : (lvl_N_congr'  N a b))  : 
   simp
   rw [eise]
   simp
-
+  norm_cast
 
 
 def equivla (A : SL(2, ℤ)) : ℤ × ℤ ≃ ℤ × ℤ :=
@@ -848,8 +848,7 @@ theorem Eisenstein_series_is_bounded (a b: ℤ) (N: ℕ) (k : ℤ) (hk : 3 ≤ k
     rw [modular_T_zpow_smul] at *
     simp
     have va := UpperHalfPlane.vadd_im ((N : ℝ)*n) z
-    simp_rw [UpperHalfPlane.im] at *
-    simp at va
+    simp_rw [UpperHalfPlane.im, uhc] at *
     rw [va]
     convert hz
     simp
@@ -890,14 +889,14 @@ lemma compact_in_some_slice (K : Set ℍ) (hK : IsCompact K) : ∃  A B : ℝ, 0
   apply le_trans this
   simp
   have htim : UpperHalfPlane.im t = 1 := by
-     simp [UpperHalfPlane.im ]
+     simp [UpperHalfPlane.im, uhc ]
   rw [htim] at hr3
   simp at hr3
   apply hr3
   have hbz := HB  hz
-  simp at *
+  simp [uhc] at *
   convert hbz
-  simp [UpperHalfPlane.im ]
+  simp [UpperHalfPlane.im, uhc ]
   apply z.2.le
   rw [not_nonempty_iff_eq_empty] at hne
   rw [hne]

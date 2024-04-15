@@ -28,7 +28,6 @@ local notation "ℍ'" =>
 theorem logDeriv_sine (z : ℍ) : logDeriv (Complex.sin ∘ fun t => π * t) z = π * cot (π * z) :=
   by
   rw [logDeriv_comp]
-  simp
   rw [logDeriv]
   simp
   rw [deriv_const_mul]
@@ -783,10 +782,9 @@ theorem sin_pi_z_ne_zero (z : ℍ) : Complex.sin (π * z) ≠ 0 :=
   by_contra h
   simp at h
   cases' h with h h
-  have hk : (k : ℂ).im = 0 := by simp
   have hz : 0 < (z : ℂ).im := by simpa using z.2
-  simp only [uhc] at hz
-  rw [h, hk] at hz
+  simp only [] at hz
+  rw [h] at hz
   simp at hz
   have := Real.pi_ne_zero
   exact this h
