@@ -22,6 +22,12 @@ theorem logDeriv_one : logDeriv 1 = 0 := by
   simp
   apply deriv_const x (1 : ℂ)
 
+lemma log_derv_eq_derv_log (f : ℂ  → ℂ) (x : ℂ) (hf : f x ≠ 0): (logDeriv f) x =
+  (deriv (Complex.log)) (f x) := by
+
+
+  sorry
+
 theorem log_derv_mul (f g : ℂ → ℂ) (x : ℂ) (hfg : f x * g x ≠ 0) (hdf : DifferentiableAt ℂ f x)
     (hdg : DifferentiableAt ℂ g x) :
     logDeriv (fun z => f z * g z) x = logDeriv f x + logDeriv g x :=

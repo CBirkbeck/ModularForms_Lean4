@@ -476,7 +476,7 @@ theorem Eisenstein_Series_q_expansion (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : Ev
     apply this.congr
     intro i
     norm_cast
-  · exact hk
+  · linarith
 
 theorem Eisenstein_Series_q_expansion_Bernoulli (k : ℕ) (hk : 3 ≤ (k : ℤ)) (hk2 : Even k) (z : ℍ) :
     (eisensteinSeriesOfWt_ k) z =

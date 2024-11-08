@@ -946,16 +946,98 @@ theorem tsum_aexp_contDiffOn (k : ℕ) :
   simpa using hN
 
 
-theorem summable_factor (n : ℤ) (z : ℍ) (k : ℤ) (hk : 3 ≤ k) :
-    Summable fun d : ℤ => ((-((n : ℂ) * z) + d) ^ k)⁻¹ :=
-  by
-  have H := Eisenstein_tsum_summable k z hk
-  have H2 := H.prod_factor (-n)
-  simp_rw [eise] at H2
-  simp at *
-  exact H2
+variable (z : ℍ)
 
-theorem aux_iter_der_tsum (k : ℕ) (hk : 2 ≤ k) (x : ℍ') :
+/-- Auxiliary function used for bounding Eisenstein series, defined as
+  `z.im ^ 2 / (z.re ^ 2 + z.im ^ 2)`. -/
+def r1 : ℝ := z.im ^ 2 / (z.re ^ 2 + z.im ^ 2)
+
+/-- For `c, d ∈ ℝ` with `1 ≤ d ^ 2`, we have `r1 z ≤ |c * z + d| ^ 2`. -/
+lemma r1_aux_bound (c : ℝ) {d : ℝ} (hd : 1 ≤ d ^ 2) :
+    r1 z ≤ (c * z.re + d) ^ 2 + (c * z.im) ^ 2 := by
+  have H1 : (c * z.re + d) ^ 2 + (c * z.im) ^ 2 =
+    c ^ 2 * (z.re ^ 2 + z.im ^ 2) + d * 2 * c * z.re + d ^ 2 := by ring
+  have H2 : (c ^ 2 * (z.re ^ 2 + z.im ^ 2) + d * 2 * c * z.re + d ^ 2) * (z.re ^ 2 + z.im ^ 2)
+    - z.im ^ 2 = (c * (z.re ^ 2 + z.im ^ 2) + d * z.re) ^ 2 + (d ^ 2 - 1) * z.im ^ 2 := by ring
+  rw [r1, H1, div_le_iff (by positivity), ← sub_nonneg, H2]
+  exact add_nonneg (sq_nonneg _) (mul_nonneg (sub_nonneg.mpr hd) (sq_nonneg _))
+
+lemma r1_pos : 0 < r1 z := by
+  dsimp only [r1]
+  positivity
+
+/-- This function is used to give an upper bound on the summands in Eisenstein series; it is
+defined by `z ↦ min z.im √(z.im ^ 2 / (z.re ^ 2 + z.im ^ 2))`. -/
+def r : ℝ := min z.im (Real.sqrt (r1 z))
+
+lemma r_pos : 0 < r z := by
+  simp only [r, lt_min_iff, im_pos, Real.sqrt_pos, r1_pos, and_self]
+
+
+lemma auxbound1 {c : ℝ} (d : ℝ) (hc : 1 ≤ c ^ 2) : r z ≤ Complex.abs (c * z + d) := by
+  rcases z with ⟨z, hz⟩
+  have H1 : z.im ≤ Real.sqrt ((c * z.re + d) ^ 2 + (c * z).im ^ 2) := by
+    rw [Real.le_sqrt' hz, im_ofReal_mul, mul_pow]
+    exact (le_mul_of_one_le_left (sq_nonneg _) hc).trans <| le_add_of_nonneg_left (sq_nonneg _)
+  simpa only [r, abs_apply, normSq_apply, add_re, re_ofReal_mul, coe_re, ← pow_two, add_im, mul_im,
+    coe_im, ofReal_im, zero_mul, add_zero, min_le_iff] using Or.inl H1
+
+
+
+
+theorem summable_factor (n : ℤ) (z : ℍ) (k : ℤ) (hk : 2 ≤ k) :
+    Summable fun d : ℤ => ((-((n : ℂ) * z) + d) ^ k)⁻¹ := by
+  have := Summable.add_compl (s := {0}) (f := (fun d : ℤ => ((-((n : ℂ) * z) + d) ^ k)⁻¹))
+  apply this
+  apply Set.Finite.summable
+  simp
+  rw [summable_norm_iff.symm] at *
+  let S : Set ℤ := {0}ᶜ
+  let g : S → ℝ := fun (y : S) => ‖1 / rfunct z ^ k * ((y :ℝ) ^ k)⁻¹‖
+  apply Summable.of_nonneg_of_le (f := g)
+  intro b
+  exact norm_nonneg _
+  intro b
+  simp only [comp_apply, norm_inv, norm_zpow, norm_eq_abs, one_div, norm_mul, Real.norm_eq_abs,
+    int_cast_abs]
+  rw [← mul_inv]
+  gcongr
+  apply mul_pos
+  apply zpow_pos_of_pos
+  rw [@abs_pos]
+  have := rfunct_pos z
+  exact ne_of_gt this
+  apply zpow_pos_of_pos
+  simp only [AbsoluteValue.pos_iff, ne_eq, Int.cast_eq_zero]
+  apply b.2
+  have : -((n : ℂ) * ↑z) + ↑↑b = b * (-(↑n * ↑z)/b + 1) := by
+    have hb : (b.1 : ℂ) ≠ 0 := by
+      norm_cast
+      apply b.2
+    ring_nf
+    rw [mul_inv_cancel_right₀ hb (↑n * ↑z)]
+  simp_rw [this]
+  conv =>
+    enter [2]
+    rw [@AbsoluteValue.map_mul]
+    rw [mul_zpow, mul_comm]
+  gcongr
+  have :=  auxlem3 z ⟨-n, b⟩ k (by linarith)
+  simp at this
+  apply le_trans this
+  apply le_of_eq
+  congr 1
+  congr 1
+  ring
+  have := summable_rfunct_twistr k z hk
+  rw [summable_norm_iff.symm] at this
+  have ht := Summable.subtype this S
+  apply ht.congr
+  intro b
+  simp only [one_div, norm_mul, norm_inv, norm_zpow, Real.norm_eq_abs, int_cast_abs, comp_apply]
+
+
+theorem aux_iter_der_tsum (k : ℕ) (hk : 1 ≤ k) (x : ℍ') :
     iteratedDerivWithin k
         ((fun z : ℂ => 1 / z) + fun z : ℂ => ∑' n : ℕ+, (1 / (z - n) + 1 / (z + n))) ℍ' x =
       (-1) ^ (k : ℕ) * (k : ℕ)! * ∑' n : ℤ, 1 / ((x : ℂ) + n) ^ (k + 1 : ℕ) :=
@@ -993,21 +1075,21 @@ theorem aux_iter_der_tsum (k : ℕ) (hk : 2 ≤ k) (x : ℍ') :
           simpa using lhs_summable_2' x (k + 1) hk2
         · simp only [Nat.factorial_ne_zero, Ne.def, neg_one_pow_mul_eq_zero_iff, Nat.cast_eq_zero,
             not_false_iff]
-    · have hk3 : 3 ≤ (k + 1 : ℤ) := by linarith
+    · have hk3 : 2 ≤ (k + 1 : ℤ) := by linarith
       have := summable_factor (-1 : ℤ) x (k + 1) hk3
       simpa using this
   · have := aut_contDiffOn 0 k
     simpa using this
   · apply tsum_aexp_contDiffOn k
 
-theorem aux_iter_der_tsum_eqOn (k : ℕ) (hk : 3 ≤ k) :
+theorem aux_iter_der_tsum_eqOn (k : ℕ) (hk : 2 ≤ k) :
     EqOn
       (iteratedDerivWithin (k - 1)
         ((fun z : ℂ => 1 / z) + fun z : ℂ => ∑' n : ℕ+, (1 / (z - n) + 1 / (z + n))) ℍ')
       (fun z : ℂ => (-1) ^ (k - 1) * (k - 1)! * ∑' n : ℤ, 1 / (z + n) ^ (k : ℕ)) ℍ' :=
   by
   intro z hz
-  have hk0 : 2 ≤ k - 1 := le_tsub_of_add_le_left hk
+  have hk0 : 1 ≤ k - 1 := le_tsub_of_add_le_left hk
   have := aux_iter_der_tsum (k - 1) hk0 ⟨z, hz⟩
   have hk1 : k - 1 + 1 = k := by
     apply Nat.sub_add_cancel

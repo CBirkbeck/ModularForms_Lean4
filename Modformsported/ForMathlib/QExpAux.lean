@@ -79,7 +79,7 @@ theorem series_eql' (z : ℍ) :
 @[simp]
 lemma uhc (z : ℍ) : (z : ℂ) = z.1 := by rfl
 
-theorem q_exp_iden'' (k : ℕ) (hk : 3 ≤ k) :
+theorem q_exp_iden'' (k : ℕ) (hk : 2 ≤ k) :
     EqOn (fun z : ℂ => (-1 : ℂ) ^ (k - 1) * (k - 1)! * ∑' d : ℤ, 1 / ((z : ℂ) + d) ^ k)
       (fun z : ℂ =>
         -(2 * ↑π * I) * ∑' n : ℕ+, (2 * ↑π * I * n) ^ ((k - 1) : ℕ) * Complex.exp (2 * ↑π * I * n * z))
@@ -117,7 +117,7 @@ theorem exp_comm (n : ℕ) (z : ℍ') : exp (2 * ↑π * I * ↑z * n) = exp (2 
   apply congr_arg
   ring
 
-theorem q_exp_iden (k : ℕ) (hk : 3 ≤ k) (z : ℍ) :
+theorem q_exp_iden (k : ℕ) (hk : 2 ≤ k) (z : ℍ) :
     ∑' d : ℤ, 1 / ((z : ℂ) + d) ^ k =
       (-2 * ↑π * I) ^ k / (k - 1)! * ∑' n : ℕ+, n ^ ((k - 1) ) * Complex.exp (2 * ↑π * I * z * n) :=
   by

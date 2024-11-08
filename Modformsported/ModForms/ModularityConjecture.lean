@@ -42,7 +42,7 @@ def IsNormalisedEigenform {N : ℕ} {k : ℤ} (f : CuspForm (Gamma0 N) k) : Prop
             ∀ (p r : ℕ), p.Prime → 2 ≤ r → (N : ZMod p) = 0 →
               a_[p ^ r]f = (a_[p]f) ^ r
 
-def ModularityConjecture (E : EllipticCurve ℚ) :=
+def ModularityConjecture (E : EllipticCurve ℚ) : Prop :=
   ∃ (N : ℕ+) (f : CuspForm (Gamma0 N) 2), IsNormalisedEigenform f ∧
     ∀ (p : ℕ), p.Prime → (N : ZMod p) ≠ 0 → a_[p]f = E.ap p
 

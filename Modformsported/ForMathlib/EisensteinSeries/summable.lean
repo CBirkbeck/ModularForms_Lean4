@@ -309,6 +309,33 @@ lemma summable_rfunct_twist  (k : ℤ) (z : ℍ) (h : 3 ≤ k) :
   convert riesum
   norm_cast
 
+
+lemma summable_rfunct_twistr  (k : ℤ) (z : ℍ) (h : 2 ≤ k) :
+  Summable fun n : ℤ => 1 / rfunct z ^ k * ((n : ℝ) ^ ((k : ℤ)))⁻¹ := by
+  have hk : 1 < (k : ℝ) := by
+    have : 1 < (k  : ℤ) := by linarith
+    norm_cast at *
+
+  have riesum := Real.summable_abs_int_rpow  hk
+  have nze : (1 / rfunct z ^ k : ℝ) ≠ 0 :=
+    by
+    apply div_ne_zero
+    simp only [Ne.def, not_false_iff, bit0_eq_zero, one_ne_zero]
+    apply zpow_ne_zero
+    simp only [Ne.def]
+    by_contra HR
+    have := rfunct_pos z
+    rw [HR] at this
+    simp only [lt_self_iff_false] at this
+  rw [← (summable_mul_left_iff nze).symm]
+  rw [summable_norm_iff.symm]
+  simp [Int.cast_ofNat, Int.cast_one, Int.cast_sub] at *
+  apply riesum.congr
+  intro n
+  rw [← @zpow_neg]
+  norm_cast
+
+
 theorem real_eise_is_summable (k : ℤ) (z : ℍ) (h : 3 ≤ k) : Summable (AbsEise k z) :=by
   let In := fun (n : ℕ) => square n
   have HI := squares_cover_all

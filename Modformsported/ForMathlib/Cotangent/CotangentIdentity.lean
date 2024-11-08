@@ -29,7 +29,7 @@ theorem logDeriv_sine (z : ℍ) : logDeriv (Complex.sin ∘ fun t => π * t) z =
   by
   rw [logDeriv_comp]
   rw [logDeriv]
-  simp
+  simp only [Complex.deriv_sin, Pi.div_apply]
   rw [deriv_const_mul]
   rw [deriv_id'']
   simp
@@ -247,9 +247,9 @@ theorem prod_le_prod_abs (f : ℕ → ℂ) (n : ℕ) :
   ring_nf
   rw [Finset.prod_range_succ]
   rw [mul_comm]
-  simp
+  simp only [le_neg_add_iff_add_le]
   norm_cast
-  simp
+  simp only [Int.cast_negSucc, zero_add, Nat.cast_one]
   linarith
 
 
